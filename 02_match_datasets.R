@@ -8,6 +8,7 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
+exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
@@ -34,3 +35,4 @@ iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(wcvp[, c("plant_name_id", "f
 
 
 # determine whether they are easy to match
+iucn_wcvp_matched$

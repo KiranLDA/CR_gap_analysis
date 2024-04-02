@@ -369,6 +369,7 @@ test$duplicated = test$Species_name %in% unique(test$Species_name[ duplicated(te
 test$accepted_name = test$wcvp_status == "Accepted"
 test$names_match = apply(test, 1, function(row) fuzzy_match(row["Species_name"], row["taxon_name"]))#test$species == test$taxon_name
 test$keep = ifelse(test$duplicated,0,1)
+test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 test$keep = ifelse(test$accepted_name & test$names_match & test$duplicated, 1, test$keep)
 
 obvious = test$Species_name[test$accepted_name & test$names_match & test$duplicated]
@@ -381,7 +382,7 @@ problematic = c()
 accepted = c()
 synonym = c()
 homotypic = c()
-diff_author = c()
+# diff_author = c()
 for (du in dupl_nam){
   temp = data.frame(test[test$Species_name == du,])
   if (!(any(temp$keep))) {
@@ -405,10 +406,10 @@ for (du in dupl_nam){
     }
 
     # if the names are the same, keep the one with the smallest author distance
-    else if (length(unique(temp$taxon_name)) == 1){
-      test$keep[which(test$Species_name == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
-      diff_author = c(diff_author, du)
-    }
+    # else if (length(unique(temp$taxon_name)) == 1){
+    #   test$keep[which(test$Species_name == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
+    #   diff_author = c(diff_author, du)
+    # }
 
     # class everything else as problematic
     else {
@@ -417,21 +418,24 @@ for (du in dupl_nam){
   }
 }
 
-problematic = c(problematic,test$Species_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
-test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
+problematic = c(problematic, test$Species_name[test$duplicated==F & is.na(test$taxon_name)])
 
 
 # see how many species were matched to different categories
-length(obvious) # 51
-length(accepted) # 2
-length(synonym) # 5
-length(homotypic) # 1
-length(diff_author) # 0
-length(problematic) # 81
+length(obvious) # 1976
+length(accepted) # 9
+length(synonym) # 355
+length(homotypic) # 29
+# length(diff_author) # 5
+length(problematic) # 141 (was 136 when names were included)
 
 ##### NOW GET RID OF DUPLICATED NAMES #################################################
 
 exceptional_wcvp_matched = test[test$keep == 1,]
+# not_matched = unique(exceptional_wcvp$Species_name)[!(unique(exceptional_wcvp$Species_name) %in% unique(exceptional_wcvp_matched$Species_name))]
+# not_matched = not_matched[!(not_matched %in% problematic)]
+# test[test$Species_name == not_matched[2],]
+# length differs from problematic because the author difference cannot be used
 length(unique(exceptional_wcvp_matched$Species_name))-length(unique(exceptional_wcvp$Species_name))
 write.csv(exceptional_wcvp_matched, paste0(basepath, "exceptional_wcvp_matched.csv"))
 
