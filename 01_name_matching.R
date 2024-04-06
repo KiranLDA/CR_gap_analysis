@@ -65,17 +65,17 @@ brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
 
 
 # now count adjusted seeds per species
-spp_count = brahms %>%
-  group_by(subspecies_name,author,CountryName,AdjustedSeedQuantity) %>%
-  tally() %>%
-  mutate(summed_count = sum(AdjustedSeedQuantity),
-         count = n()) %>%
-  ungroup()
-spp_count = spp_count[, c("subspecies_name","author", "CountryName","count", "summed_count")]
-spp_count =spp_count %>% distinct()
-# spp_count = spp_count[duplicated(spp_count$subspecies_name)==FALSE,]
-spp_count$CR = ifelse(spp_count$subspecies_name %in% iucn$scientificName,1,0)
-spp_country_count = spp_count
+# spp_count = brahms %>%
+#   group_by(subspecies_name,author,CountryName,AdjustedSeedQuantity) %>%
+#   tally() %>%
+#   mutate(summed_count = sum(AdjustedSeedQuantity),
+#          count = n()) %>%
+#   ungroup()
+# spp_count = spp_count[, c("subspecies_name","author", "CountryName","count", "summed_count")]
+# spp_count =spp_count %>% distinct()
+# # spp_count = spp_count[duplicated(spp_count$subspecies_name)==FALSE,]
+# spp_count$CR = ifelse(spp_count$subspecies_name %in% iucn$scientificName,1,0)
+# spp_country_count = spp_count
 
 
 # create summary table where adjusted seed counts per species are added together
