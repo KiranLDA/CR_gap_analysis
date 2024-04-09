@@ -1,4 +1,5 @@
 library(shiny)
+library(dplyr)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
@@ -9,7 +10,8 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
-exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
+# exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
+exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
@@ -59,11 +61,12 @@ for (i in 2:6){
                         read.csv(paste0(basepath,"Model-results-2024-04-04_",i,".csv")))
 }
 
-iucn_orthodox
+#get rid of duplicates
+iucn_orthodox = iucn_orthodox[which(duplicated(iucn_orthodox$Accepted_name)==FALSE),]
 
 # combine the two datasets
 iucn_wcvp_matched_orthodox = iucn_wcvp_matched %>% left_join(iucn_orthodox,
-                                                             by = c("taxon_name" = "Initial_List") )
+                                                             by = c("taxon_name" = "Accepted_name") )
 # keep unique values
 iucn_wcvp_matched_orthodox = unique(iucn_wcvp_matched_orthodox)
 
@@ -74,13 +77,18 @@ iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.re
 iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.75] = "recalcitrant"
 iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.75 & iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25] = "intermediate"
 
+length(exceptional_wcvp_matched$taxon_name)
+length(unique(exceptional_wcvp_matched$taxon_name))
+
+# remove duplicates
+
 iucn_storage_behaviour = iucn_wcvp_matched_orthodox %>% left_join(exceptional_wcvp_matched[,c("taxon_name", "Exceptional_status",
                                                                      "EF1_seed_unavailable","EF2_desiccation_sensitive",
                                                                      "EF3_short.lived", "EF4_deep_dormancy", "SID_Seed_Storage_Behaviour",
                                                                      "Woody_or_non.woody", "PlantSearch_plant_collections", "PlantSearch_seed_collections",
                                                                      "PlantSearch_tissue_culture_collections", "PlantSearch_cryopreservation_collections",
                                                                      "PlantSearch_uncategorized_germplasm_collections")],
-                                         by=c("taxon_name" = "taxon_name"))
+                                         by="taxon_name", relationship = "many-to-one")
 
 iucn_storage_behaviour = unique(iucn_storage_behaviour)
 
@@ -105,7 +113,9 @@ iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_B
 
 
 # Remaining species
-remaining = unique(iucn_storage_behaviour$taxon_name[which(is.na(iucn_storage_behaviour$category))])
+remaining = unique(iucn_storage_behaviour$taxon_name[
+  which(is.na(iucn_storage_behaviour$category))])
+# remaining_2 = read.csv(paste0(basepath, "remaining_to_match.csv"))
 write.csv(remaining,paste0(basepath, "remaining_to_match.csv"), row.names=FALSE )
 
 #run the shiny seed predictor app
@@ -117,15 +127,23 @@ runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_ana
 # iucn_storage_behaviour$category[which(iucn_storage_behaviour$EF4_deep_dormancy == "Yes")] = "EF2_desiccation_sensitive"
 # iucn_storage_behaviour$taxon_name[which(iucn_storage_behaviour$EF3_short.lived == "Yes")]
 
-orthodox_remaining = read.csv(paste0(basepath,"Model-results-2024-04-04_remaining.csv"))
+orthodox_remaining = read.csv(paste0(basepath,"Model-results-2024-04-08_remaining.csv"))
+
+# remove duplicates
+orthodox_remaining = orthodox_remaining[duplicated(orthodox_remaining$Initial_List) == F, ]
+# length(unique(orthodox_remaining$Initial_List))
+# length(orthodox_remaining$Initial_List)
+
 # which(wcvp$taxon_name == "Podocarpus decumbens")
 colnames(orthodox_remaining) = c("Initial_List", "wcvp_name.y","wcvp_authors.y","wcvp_id.y" ,"wcvp_status.y",
                                  "Accepted_wcvp_name_id","Accepted_name","Accepted_wcvp_name_authors",
-                                 "Accepted_name.1","Genus","Family","Order","tax.level","probability.of.recalcitrance","storBehav")
+                                 "Accepted_name.1","Genus","Family","Order","tax.level",
+                                 "probability.of.recalcitrance","storBehav")
+
 NA_storage = iucn_storage_behaviour[which(is.na(iucn_storage_behaviour$category)),c(1:45,60:72)]
 
 NA_storage = NA_storage %>% left_join(orthodox_remaining,
-                                      by=c("taxon_name" = "Initial_List"))
+                                      by=c("taxon_name" = "Accepted_name"))
 
 #reorder the column names
 NA_storage = NA_storage[, colnames(iucn_storage_behaviour)]
@@ -137,9 +155,9 @@ NA_storage$category[NA_storage$probability.of.recalcitrance >= 0.75] = "recalcit
 NA_storage$category[NA_storage$probability.of.recalcitrance < 0.75 & NA_storage$probability.of.recalcitrance > 0.25] = "intermediate"
 
 #remove the synonym row
-NA_storage = unique(NA_storage)
-id = NA_storage$X.1[duplicated(NA_storage$X.1)]
-NA_storage = NA_storage[-which(NA_storage$X.1 == id)[which(NA_storage$wcvp_status.y[NA_storage$X.1 == id] == "Synonym")],]
+# NA_storage = unique(NA_storage)
+# id = NA_storage$X.1[duplicated(NA_storage$X.1)]
+# NA_storage = NA_storage[-which(NA_storage$X.1 == id)[which(NA_storage$wcvp_status.y[NA_storage$X.1 == id] == "Synonym")],]
 
 iucn_storage_behaviour[which(is.na(iucn_storage_behaviour$category)),] = NA_storage
 
@@ -190,6 +208,10 @@ colkeep = c("taxon_name","scientificName", "family", "genus","redlistCategory",
 iucn_storage_behaviour = iucn_storage_behaviour[,colkeep]
 
 
+length(iucn_storage_behaviour$taxon_name)
+length(unique(iucn_storage_behaviour$taxon_name))
+
+
 
 
 ########################################################################################################################
@@ -201,7 +223,7 @@ iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predict
 # keep only the CR ones
 CR_pred = iucn_predictions[which(iucn_predictions$category == "CR"),]
 # remove those that are already in the databsae
-CR_pred = CR_pred[!(CR_pred$taxon_name %in% iucn_storage_behaviour$taxon_name),]
+CR_pred = CR_pred[which(!(CR_pred$taxon_name %in% iucn_storage_behaviour$taxon_name)),]
 
 
 ########### See if the CR are in the bank already ######################################################################
@@ -209,7 +231,7 @@ CR_pred = CR_pred[!(CR_pred$taxon_name %in% iucn_storage_behaviour$taxon_name),]
 # CR_pred_in_bank = CR_pred$taxon_name[unique(CR_pred$taxon_name) %in% unique(brahms_wcvp_matched$taxon_name)]
 # Subset the msbp data
 brahms_to_add = seed_count[seed_count$taxon_name %in% unique(CR_pred$taxon_name),]
-  #brahms_wcvp_matched[brahms_wcvp_matched$taxon_name %in% unique(CR_pred$taxon_name),]
+#brahms_wcvp_matched[brahms_wcvp_matched$taxon_name %in% unique(CR_pred$taxon_name),]
 
 # # create summary table where adjusted seed counts per species are added together
 # brahms_to_add = brahms_to_add %>%
@@ -220,7 +242,7 @@ brahms_to_add = seed_count[seed_count$taxon_name %in% unique(CR_pred$taxon_name)
 #   ungroup()
 # brahms_to_add = brahms_to_add[, c("taxon_name","wcvp_authors", "wcvp_accepted_id","accessions", "summed_count")]
 # brahms_to_add = brahms_to_add[duplicated(brahms_to_add$taxon_name)==FALSE,]
-#
+
 
 # create an empty dataset that follows iucn_storage_behaviour and fill with NAs
 brahms_to_add = data.frame(brahms_to_add)
@@ -265,20 +287,21 @@ brahms_to_add["PlantSearch_uncategorized_germplasm_collections"] = NA
 brahms_to_add = brahms_to_add[,colkeep]
 
 
-
+###################################################################################################
 ####  GET CR SPECIES THAT AREN'T BANKED AND ADD ORTHODOXY #########################################
 
 # remove species predicted CR that already have a CR prediction from IUCN
-CR_pred_to_add = unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name)] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
+CR_pred_to_add = CR_pred$taxon_name[which(!(CR_pred$taxon_name %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
+#unique(CR_pred$taxon_name)[which(!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
 write.csv(data.frame(CR_pred_to_add), paste0(basepath,"CR_predictions_for_orthodoxy_predictions.csv"), row.names=FALSE)
 
 #run the shiny seed predictor app
 runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 # get the orthodoxy predictions
-CR_pred_to_add = read.csv(paste0(basepath,"Model-results-2024-04-05_predictions.csv"))
+CR_pred_to_add = read.csv(paste0(basepath,"Model-results-2024-04-08_pred.csv"))
 #remove duplicates
-CR_pred_to_add = CR_pred_to_add[duplicated(CR_pred_to_add$Initial_List)==FALSE,]
+CR_pred_to_add = CR_pred_to_add[duplicated(CR_pred_to_add$Accepted_name)==FALSE,]
 CR_pred_to_add = CR_pred_to_add %>% left_join(wcvp[,c("plant_name_id","family","genus",
                                                     "climate_description", "geographic_area")],
                                             by=c("Accepted_wcvp_name_id"="plant_name_id"))
@@ -321,10 +344,45 @@ CR_pred_to_add["summed_count"] =  NA
 # only keep the columns that match IUCN dataframe
 CR_pred_to_add = CR_pred_to_add[,colkeep]
 
+
+# length(CR_pred_to_add$taxon_name)
+
 ###### COMBINE DATA    #############################################################################################
-iucn_storage_behaviour = rbind(iucn_storage_behaviour,
+spp_banked_recalcitrant = rbind(iucn_storage_behaviour,
                                brahms_to_add,
                                CR_pred_to_add)
+write.csv(spp_banked_recalcitrant,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
-write.csv(iucn_storage_behaviour,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
+
+# check out the duplicates
+length(spp_banked_recalcitrant$taxon_name)
+length(unique(spp_banked_recalcitrant$taxon_name))
+
+test = spp_banked_recalcitrant
+test = test[which(!is.na(test$taxon_name)),]
+# find duplicated names that don't have any accepted name
+dupl = test$taxon_name %in% unique(test$taxon_name[ duplicated(test$taxon_name)])
+dupl_nam = unique(test$taxon_name[dupl])
+du = dupl_nam[82]
+
+test$keep = 0
+test$keep[which(!(test$taxon_name %in% dupl_nam))] = 1
+
+last = c()
+for (du in dupl_nam){
+  temp = data.frame(test[test$taxon_name == du,])
+  ### TO DO: remove predictions
+  if (any(temp$redlistCriteria == "prediction")){
+    test$keep[which(test$taxon_name == du)[which(temp$redlistCriteria != "prediction")]] = 1
+  } else {
+    test$keep[which(test$taxon_name == du)] = 1
+  }
+}
+
+
+
+
+test = test[test$keep == 1,]
+
+
 
