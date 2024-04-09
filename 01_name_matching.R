@@ -439,3 +439,52 @@ exceptional_wcvp_matched = test[test$keep == 1,]
 length(unique(exceptional_wcvp_matched$Species_name))-length(unique(exceptional_wcvp$Species_name))
 write.csv(exceptional_wcvp_matched, paste0(basepath, "exceptional_wcvp_matched.csv"))
 
+exceptional_wcvp_matched = read.csv(paste0(basepath, "exceptional_wcvp_matched.csv"))
+########
+# find the duplicated
+dupl = exceptional_wcvp_matched$taxon_name %in%
+  unique(exceptional_wcvp_matched$taxon_name[duplicated(exceptional_wcvp_matched$taxon_name)])
+dupl_nam = unique(exceptional_wcvp_matched$taxon_name[dupl])
+
+exceptional_wcvp_matched$keep2 = 0
+exceptional_wcvp_matched$keep2[dupl == F] = 1
+
+#create some empty variables to fill during analysis
+for (du in dupl_nam){
+  id = which(exceptional_wcvp_matched$taxon_name == du)
+  temp = data.frame(exceptional_wcvp_matched[id,])
+
+  # temp$EF3_short.lived == "<NA>"
+  rowi = which(apply(temp, 1, function(x) sum(x == "<NA>")) == max(apply(temp, 1, function(x) sum(x == "<NA>")),na.rm=T))
+  if (length(rowi) == 1){
+    exceptional_wcvp_matched$keep2[id[rowi]] = 1
+  } else if (length(which(temp$accepted_name == T))==1 & sum(exceptional_wcvp_matched$keep2[id[rowi]]) ==  0){
+    # keep the accepted name
+    exceptional_wcvp_matched$keep2[id[which(temp$accepted_name == T)]] = 1
+  } else if (length(which(temp$Exceptional_status == "Insufficient data"))==1 & sum(exceptional_wcvp_matched$keep2[id[rowi]]) ==  0){
+    # otherwise keep the one that doesn't have sufficient data
+    exceptional_wcvp_matched$keep2[id[which(temp$Exceptional_status != "Insufficient data")][1]] = 1
+  } else if (length(which(temp$wcvp_status == "Synonym"))==1 & sum(exceptional_wcvp_matched$keep2[id[rowi]]) ==  0){
+    # otherwise keep the synonym
+    exceptional_wcvp_matched$keep2[id[which(temp$wcvp_status == "Synonym")]] = 1
+  } else if (length(which(temp$match_similarity == max(temp$match_similarity))) == 1 & sum(exceptional_wcvp_matched$keep2[id[rowi]]) ==  0){
+    # keep the one with the closest name
+    exceptional_wcvp_matched$keep2[id[which(temp$match_similarity == max(temp$match_similarity))]] = 1
+  }
+  else {
+    exceptional_wcvp_matched$keep2[id[sample(1:nrow(temp),1)]] = 1
+
+  }
+
+  #   if (sum(exceptional_wcvp_matched$keep2[which(exceptional_wcvp_matched$taxon_name == du)]) != 1)
+  #     exceptional_wcvp_matched$keep2[which(exceptional_wcvp_matched$taxon_name == du)] = 0
+  #
+  # }
+
+  if (sum(exceptional_wcvp_matched$keep2[which(exceptional_wcvp_matched$taxon_name == du)]) != 1){
+    print(paste0(du, " : ", sum(exceptional_wcvp_matched$keep2[which(exceptional_wcvp_matched$taxon_name == du)] )))
+  }
+}
+
+exceptional_wcvp_matched = exceptional_wcvp_matched[exceptional_wcvp_matched$keep2 ==1,]
+write.csv(exceptional_wcvp_matched, paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
