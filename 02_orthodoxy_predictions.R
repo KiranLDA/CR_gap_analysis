@@ -351,7 +351,6 @@ CR_pred_to_add = CR_pred_to_add[,colkeep]
 spp_banked_recalcitrant = rbind(iucn_storage_behaviour,
                                brahms_to_add,
                                CR_pred_to_add)
-write.csv(spp_banked_recalcitrant,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
 
 # check out the duplicates
@@ -379,10 +378,8 @@ for (du in dupl_nam){
   }
 }
 
-
-
-
 test = test[test$keep == 1,]
+write.csv(test,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
 
 
