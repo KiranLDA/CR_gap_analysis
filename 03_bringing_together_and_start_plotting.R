@@ -3,8 +3,22 @@
 library(geodata)
 library(dplyr)
 library(stringdist)
+library(sf)
+library(biscale)
+library(ggplot2)
+library(cowplot)
+
+basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
+
+
 
 #######   FUNCTION   ##################################################################################
+
+# function to normalise data
+normalise <- function(x){(x - min(x,na.rm=T))/ ((max(x,na.rm=T) - min(x,na.rm=T)) + 0.01)}
+
+#rotate matrix
+rotate <- function(x) t(apply(x, 2, rev))
 
 # Function to perform fuzzy matching
 fuzzy_match <- function(str1, str2) {
@@ -13,6 +27,7 @@ fuzzy_match <- function(str1, str2) {
 }
 
 # bi-color scale creation
+library(classInt)
 colmat<-function(nquantiles=4, upperleft=rgb(0,150,235, maxColorValue=255),
                  upperright=rgb(130,0,80, maxColorValue=255),
                  bottomleft="grey",
@@ -41,16 +56,10 @@ colmat<-function(nquantiles=4, upperleft=rgb(0,150,235, maxColorValue=255),
 
 #########################################################################################################
 
+
+############# GET THE WORLD MAP  DATA #######################################################################
+
 world <- sf::st_as_sf(world(path="."))
-
-
-
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
-
-# Some are replicated but they are species that have bee split
-length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
-length(spp_banked_recalcitrant$taxon_name) # 5717
 
 
 #########################################################################################################
@@ -58,60 +67,57 @@ length(spp_banked_recalcitrant$taxon_name) # 5717
 #########################################################################################################
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 
+####### FORMAT COUNTRY NAMES #############################################################################
+# add a new column with the reformatted name
+brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$CountryName
 
-####### FORMAT COUNTRY DATA #############################################################################
-# URL <- "https://github.com/nvkelso/natural-earth-vector/raw/master/geojson/ne_50m_admin_0_countries.geojson.gz"
-# fil <- basename(URL)
-# R.utils::gunzip("https://github.com/nvkelso/natural-earth-vector/raw/master/geojson/ne_50m_admin_0_countries.geojson.gz")
-# world <- readOGR(dsn="ne_50m_admin_0_countries.geojson", layer="OGRGeoJSON")
+# spelling errors
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Auckland Island"] = "New Zealand"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Bosnia-Herzegovina"] = "Bosnia and Herzegovina"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "UK"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "USA"] = "United States"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Congo, DRC"] = "Democratic Republic of the Congo"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "St. Helena, Ascension & Tristan da Cunha"] = "Saint Helena"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Ivory Coast"] = "Côte d'Ivoire"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Heard Isl"] = "Heard Island and McDonald Islands"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Sao Tome & Principe"] = "São Tomé and Príncipe"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Swaziland"] = "Eswatini"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Cape Verde"] = "Cabo Verde"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Palestinian Territory, Occupied"] = "Palestine"
 
-# world <- ne_countries(scale = "small", returnclass = "sf")
-# world <- ne_countries(scale = "large",  returnclass = "sf")
-# states <- ne_states(returnclass = "sf")
-# test <- rnaturalearth::ne_coastline(returnclass = "sf")
-# test <- world(path=".") #data(countryExData)
+#putting territories with their countries
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Christmas I."] = "Australia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Norfolk Island"] = "Australia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Virgin Is."] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Bermuda"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Gibraltar"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Pitcairn"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Indian Ocean Territory"] = "United Kingdom"
 
-# Install and load the worldmap package
-
-
-#
-# # Create a basic world map including dependencies
-# data("worldCountries")
-#
-# # Plot the map
-# mapCountryData(mapRegion=worldCountries, nameColumnToPlot="REGION")
-
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Auckland Island"] = "New Zealand"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Bosnia-Herzegovina"] = "Bosnia and Herzegovina"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Yugoslavia"] = "Bosnia and Herzegovina"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "UK"] = "United Kingdom"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "USA"] = "United States"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Congo, DRC"] = "Democratic Republic of the Congo"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "St. Helena, Ascension & Tristan da Cunha"] = "Saint Helena"
-# brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Congo, DRC"] = "Democratic Republic of the Congo"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Russian Federation"] = "Russia"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Ivory Coast"] = "Côte d'Ivoire"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Heard Isl"] = "Heard Island and McDonald Islands"
-brahms_wcvp_matched$CountryName[brahms_wcvp_matched$CountryName == "Sao Tome & Principe"] = "São Tomé and Príncipe"
+# the political merges that I feel a little unsure about as there are no lat longs to associate to a country after splitting
+# or other political regions e.g. San Marino not being recognised by geodata as it's own country
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Russian Federation"] = "Russia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Yugoslavia"] = "Bosnia and Herzegovina"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "San-Marino"] = "Italy"
 
 
-bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
 
 
-##### add spatial information
-country_names = data.frame(unique(brahms_wcvp_matched[,"CountryName"]))
-colnames(country_names) = "CountryName"
-country_names = country_names %>% left_join(data.frame(world)[,c("GID_0","NAME_0")], by=c("CountryName" = "NAME_0"))
+# test = data.frame(world)[,c("GID_0","NAME_0")]
 
 
-# Function to perform fuzzy matching
-# loop over the leftover names and add them
-unmatched = country_names$CountryName[is.na(country_names$GID_0)]
+country_names = data.frame(unique(brahms_CR[,"NewCountryName"]))
+colnames(country_names) = "NewCountryName"
+country_names = country_names %>% left_join(data.frame(world)[,c("GID_0","NAME_0")], by=c("NewCountryName" = "NAME_0"))
+
+
+# Fuzzy match the country names that weren't already matched
+unmatched = country_names$NewCountryName[is.na(country_names$GID_0)]
 leftover = c()
 for (country in unmatched){
   idw = which(fuzzy_match(country,world$NAME_0))
   if (length(idw) == 1){
-    idc = which(country_counts$CountryName == country)
+    idc = which(country_names$NewCountryName == country)
     country_names[idc,2] = data.frame(world)[idw,"GID_0"]
   } else {
     leftover = c(leftover, country)
@@ -119,146 +125,260 @@ for (country in unmatched){
   }
 }
 
-View(data.frame(leftover))
+# note that these names were not matched
+# [1] "Unknown"
+# [1] "FYROM"
 
-country_names
+
+##### SUBSET THE CR SPECIES ###################################################################
+
+# find the MSB species that are CR endangered
+brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
+summary(brahms_wcvp_matched$CR)
+
+brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
+dim(brahms_CR)
+
+###### ESTIMATE HOW MANY COUNTRIES HAVE ENOUGH SEEDS   ############################################################
+
+### FOR CR SPECIES ################################################################################################
+# Get the counts per country per spp
+CR_country_spp_seeds = brahms_CR %>%
+  group_by(NewCountryName, taxon_name, AdjustedSeedQuantity) %>%
+  tally() %>%
+  mutate(sum_spp = length(unique(taxon_name)),
+         sum_counts = sum(AdjustedSeedQuantity),
+         accessions = n()) %>%
+  ungroup()
+CR_country_spp_seeds = CR_country_spp_seeds[, c("NewCountryName","taxon_name", "sum_counts", "accessions")]
+CR_country_spp_seeds = unique(CR_country_spp_seeds)
+
+# determine how they can be used
+CR_country_spp_seeds$collection_utility = NA
+CR_country_spp_seeds$collection_utility[CR_country_spp_seeds$sum_counts == 0] = "with_partner"
+CR_country_spp_seeds$collection_utility[CR_country_spp_seeds$sum_counts > 0 & CR_country_spp_seeds$sum_counts < 250] = "stay_in_bank"
+CR_country_spp_seeds$collection_utility[CR_country_spp_seeds$sum_counts >= 250 & CR_country_spp_seeds$sum_counts < 1500] = "germination_testing"
+CR_country_spp_seeds$collection_utility[CR_country_spp_seeds$sum_counts >= 1500] = "restoration_use"
+
+# save the data
+write.csv(CR_country_spp_seeds, paste0(basepath, "CR_seeds_per_spp_country_with_usage.csv"))
+
+# Now count the numbers of species per country with the different uses
+CR_country_uses = CR_country_spp_seeds %>%
+  group_by(NewCountryName, collection_utility) %>%
+  tally() %>%
+  # mutate(sum_uses = length(unique(collection_utility)),
+  #        uses = n()) %>%
+  ungroup()
+colnames(CR_country_uses) = c("NewCountryName", "CR_collection_utility","species_number")
+
+# save the data
+write.csv(CR_country_uses, paste0(basepath, "CR_usage_per_country_with_spp_number.csv"))
 
 
+
+### FOR ALL SPECIES IN THE BANK ########################################################################
+
+# Get the counts per country per spp
+country_spp_seeds = brahms_wcvp_matched %>%
+  group_by(NewCountryName, taxon_name, AdjustedSeedQuantity) %>%
+  tally() %>%
+  mutate(sum_spp = length(unique(taxon_name)),
+         sum_counts = sum(AdjustedSeedQuantity),
+         accessions = n()) %>%
+  ungroup()
+country_spp_seeds = country_spp_seeds[, c("NewCountryName","taxon_name", "sum_counts", "accessions")]
+country_spp_seeds = unique(country_spp_seeds)
+
+# determine how they can be used
+country_spp_seeds$collection_utility = NA
+country_spp_seeds$collection_utility[country_spp_seeds$sum_counts == 0] = "with_partner"
+country_spp_seeds$collection_utility[country_spp_seeds$sum_counts > 0 & country_spp_seeds$sum_counts < 250] = "stay_in_bank"
+country_spp_seeds$collection_utility[country_spp_seeds$sum_counts >= 250 & country_spp_seeds$sum_counts < 1500] = "germination_testing"
+country_spp_seeds$collection_utility[country_spp_seeds$sum_counts >= 1500] = "restoration_use"
+
+# save the data
+write.csv(country_spp_seeds, paste0(basepath, "seeds_per_spp_country_with_usage.csv"))
+
+# Now count the numbers of species per country with the different uses
+country_uses = country_spp_seeds %>%
+  group_by(NewCountryName, collection_utility) %>%
+  tally() %>%
+  # mutate(sum_uses = length(unique(collection_utility)),
+  #        uses = n()) %>%
+  ungroup()
+colnames(country_uses) = c("NewCountryName", "collection_utility","species_number")
+
+# save the data
+write.csv(country_uses, paste0(basepath, "usage_per_country_with_spp_number.csv"))
+
+
+####### ESTIMATE PER COUNTRY THE NUMBERS OF SPECIES, ACCESSIONS AND SEEDS   ############
+
+###### FOR CR SPECIES ##################################################################
 
 # count number of seeds collected per country
-country_seeds = brahms_wcvp_matched %>%
-  group_by(CountryName, AdjustedSeedQuantity) %>%
+country_seeds = brahms_CR %>%
+  group_by(NewCountryName, AdjustedSeedQuantity) %>%
   tally() %>%
   mutate(sum_seeds = sum(AdjustedSeedQuantity),
          accessions = n()) %>%
   ungroup()
-country_seeds = country_seeds[, c("CountryName","sum_seeds")]
-country_seeds = country_seeds[duplicated(country_seeds$CountryName) == FALSE, ]
+country_seeds = country_seeds[, c("NewCountryName","sum_seeds")]
+country_seeds = country_seeds[duplicated(country_seeds$NewCountryName) == FALSE, ]
 
 # count species per country
-country_spp = brahms_wcvp_matched %>%
-  group_by(CountryName, taxon_name) %>%
+country_spp = brahms_CR %>%
+  group_by(NewCountryName, taxon_name) %>%
   tally() %>%
   mutate(sum_spp = length(unique(taxon_name)),
          accessions = n()) %>%
   ungroup()
-country_spp = country_spp[, c("CountryName","sum_spp")]
-country_spp = country_spp[duplicated(country_spp$CountryName) == FALSE, ]
+country_spp = country_spp[, c("NewCountryName","sum_spp")]
+country_spp = country_spp[duplicated(country_spp$NewCountryName) == FALSE, ]
 
 # count accessions per country
-country_acc = brahms_wcvp_matched %>%
-  group_by(CountryName, AccessionNumber) %>%
+country_acc = brahms_CR %>%
+  group_by(NewCountryName, AccessionNumber) %>%
   tally() %>%
   mutate(sum_accessions = length(unique(AccessionNumber)),
          accessions = n()) %>%
   ungroup()
-country_acc = country_acc[, c("CountryName","sum_accessions")]
-country_acc = country_acc[duplicated(country_acc$CountryName) == FALSE, ]
+country_acc = country_acc[, c("NewCountryName","sum_accessions")]
+country_acc = country_acc[duplicated(country_acc$NewCountryName) == FALSE, ]
 
 ###### Combine everything
-country_counts = country_seeds %>% left_join(country_spp[,c("CountryName","sum_spp")],
-                            by = "CountryName") %>% left_join(country_acc[,c("CountryName","sum_accessions")],
-                                                              by = "CountryName")
+country_counts = country_seeds %>% left_join(country_spp[,c("NewCountryName","sum_spp")],
+                            by = "NewCountryName") %>% left_join(country_acc[,c("NewCountryName","sum_accessions")],
+                                                              by = "NewCountryName")
 
 
-
-##### add spatial information
-country_counts = country_counts %>% left_join(world, by=c("CountryName" = "admin"))
-
-unmatched = country_counts$CountryName[is.na(country_counts$scalerank)]
+# save the data
+write.csv(country_counts, paste0(basepath, "seeds_accessions_species_per_country.csv"))
 
 
-# Function to perform fuzzy matching
-# loop over the leftover names and add them
-leftover = c()
-for (country in unmatched){
-  idw = which(fuzzy_match(country,world$admin))
-  if (length(idw != 0)){
-    idc = which(country_counts$CountryName == country)
-    country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
-  } else {
-    leftover = c(leftover, country)
-    print(country)
-  }
-}
+###### FOR ALL SPECIES IN THE BANK   ##############################################################
+
+# count number of seeds collected per country
+country_seeds = brahms_CR %>%
+  group_by(NewCountryName, AdjustedSeedQuantity) %>%
+  tally() %>%
+  mutate(sum_seeds = sum(AdjustedSeedQuantity),
+         accessions = n()) %>%
+  ungroup()
+country_seeds = country_seeds[, c("NewCountryName","sum_seeds")]
+country_seeds = country_seeds[duplicated(country_seeds$NewCountryName) == FALSE, ]
+
+# count species per country
+country_spp = brahms_CR %>%
+  group_by(NewCountryName, taxon_name) %>%
+  tally() %>%
+  mutate(sum_spp = length(unique(taxon_name)),
+         accessions = n()) %>%
+  ungroup()
+country_spp = country_spp[, c("NewCountryName","sum_spp")]
+country_spp = country_spp[duplicated(country_spp$NewCountryName) == FALSE, ]
+
+# count accessions per country
+country_acc = brahms_CR %>%
+  group_by(NewCountryName, AccessionNumber) %>%
+  tally() %>%
+  mutate(sum_accessions = length(unique(AccessionNumber)),
+         accessions = n()) %>%
+  ungroup()
+country_acc = country_acc[, c("NewCountryName","sum_accessions")]
+country_acc = country_acc[duplicated(country_acc$NewCountryName) == FALSE, ]
+
+###### Combine everything
+country_counts = country_seeds %>% left_join(country_spp[,c("NewCountryName","sum_spp")],
+                                             by = "NewCountryName") %>% left_join(country_acc[,c("NewCountryName","sum_accessions")],
+                                                                                  by = "NewCountryName")
 
 
-# now try a different column
-unmatched = c()
-for (country in leftover){
-  idw = which(fuzzy_match(country, world$formal_en))
-  if (length(idw != 0)){
-    idc = which(country_counts$CountryName == country)
-    country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
-  } else {
-    unmatched = c(unmatched, country)
-    print(country)
-  }
-}
-
-world$name_sort
-world$geounit
-# name_sort/name_long/name/geounit
-# loop over the leftover names and add them
-leftover = c()
-for (country in unmatched){
-  idw = which(fuzzy_match(country, world$admin))
-  if (length(idw != 0)){
-    idc = which(country_counts$CountryName == country)
-    country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
-  } else {
-    leftover = c(leftover, country)
-    print(country)
-  }
-}
-
-
-
-fuzzy_match("Azerbaijan",world$admin)
-  country_counts$CountryName[is.na(country_counts$scalerank)], world$admin)
-
-
-length(which(bank$summed_count >= 250)) # 180
-length(which(bank$summed_count >= 1500)) # 98
-length(which(bank$summed_count >= 250 & bank$summed_count <= 1500)) #82
-
-
-#####  Prep the spatial data ############################################################################
-
-library(tidyverse)
-library(rworldmap)
-library(sf)
-
-# basepath = "C:/Users/kdh10kg/Documents/github/darkspots_shiny/prep/"
-basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/"
-
-# functions
-normalise <- function(x){(x - min(x,na.rm=T))/ ((max(x,na.rm=T) - min(x,na.rm=T)) + 0.01)}
-
-
-#Load the tdwg shp which is the base for everything
-tdwg3 <- st_read(dsn = paste0(basepath, "level3"),
-                 layer = "level3")
-
-# map country codes to tdwg
-wgsrpd_mapping = read.csv(paste0(basepath,"country_tdwg3_map_KD.csv"))
-wgsrpd_mapping$ISO_code[is.na(wgsrpd_mapping$ISO_code)] <-"NA"
-
-
-tdwg3 <- tdwg3 %>%
-  left_join(wgsrpd_mapping[c("LEVEL3_COD","COUNTRY","ISO_code")])
+# save the data
+write.csv(country_counts, paste0(basepath, "seeds_accessions_species_per_country.csv"))
 
 
 
 
+### !!!!!! start probably delete!!!!!! ###########################################################
+# ##### add spatial information
+# country_counts = country_counts %>% left_join(world, by=c("CountryName" = "admin"))
+#
+# unmatched = country_counts$CountryName[is.na(country_counts$scalerank)]
+#
+#
+# # Function to perform fuzzy matching
+# # loop over the leftover names and add them
+# leftover = c()
+# for (country in unmatched){
+#   idw = which(fuzzy_match(country,world$admin))
+#   if (length(idw != 0)){
+#     idc = which(country_counts$CountryName == country)
+#     country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
+#   } else {
+#     leftover = c(leftover, country)
+#     print(country)
+#   }
+# }
+#
+#
+# # now try a different column
+# unmatched = c()
+# for (country in leftover){
+#   idw = which(fuzzy_match(country, world$formal_en))
+#   if (length(idw != 0)){
+#     idc = which(country_counts$CountryName == country)
+#     country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
+#   } else {
+#     unmatched = c(unmatched, country)
+#     print(country)
+#   }
+# }
+#
+# world$name_sort
+# world$geounit
+# # name_sort/name_long/name/geounit
+# # loop over the leftover names and add them
+# leftover = c()
+# for (country in unmatched){
+#   idw = which(fuzzy_match(country, world$admin))
+#   if (length(idw != 0)){
+#     idc = which(country_counts$CountryName == country)
+#     country_counts[idc,5:ncol(country_counts)] = world[idw,which(colnames(world) != "admin")]
+#   } else {
+#     leftover = c(leftover, country)
+#     print(country)
+#   }
+# }
+#
+#
+#
+# fuzzy_match("Azerbaijan",world$admin)
+#   country_counts$CountryName[is.na(country_counts$scalerank)], world$admin)
+#
+#
+# length(which(bank$summed_count >= 250)) # 180
+# length(which(bank$summed_count >= 1500)) # 98
+# length(which(bank$summed_count >= 250 & bank$summed_count <= 1500)) #82
 
-####  PROJECT A in ECKERT IV
+### !!!!!! end probably delete!!!!!! ###########################################################
+
+####### ADD SPATIAL DATA TO THE NAMES #############################################################################
+
+country_counts_map = country_counts %>% left_join(country_names)
+
+country_counts_map = world %>% left_join(country_counts_map)
+
+
+
+####  PROJECT in ECKERT IV
 
 PROJ <- "+proj=eck4 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"#"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" #
 
 sf_use_s2(FALSE)
-m = st_buffer(darkspots, 0)
-darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
+m = st_buffer(country_counts_map, 0)
+country_counts_map.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
                                                   xmax = 180,
                                                   ymin = -90,
                                                   ymax = 90))),
@@ -266,29 +386,95 @@ darkspots.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 # write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv( "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
+grid.DT = read.csv(paste0(spatial_path, "gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
-# values needed once (don't recalculate each time)
-areas = read.csv(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/", "twdg3_land_area.csv"))
+#### Format the projected data ready for plotting  ################################
+
+#log the data because it is very
+country_counts_map.prj$log_seeds = log(country_counts_map.prj$sum_seeds+1)
+country_counts_map.prj$log_spp = log(country_counts_map.prj$sum_spp+1)
+
+# replace NAs with zeros
+country_counts_map.prj$log_seeds[which(is.na(country_counts_map.prj$log_seeds))] = 0
+country_counts_map.prj$log_spp[which(is.na(country_counts_map.prj$log_spp))] = 0
+country_counts_map.prj$sum_seeds[which(is.na(country_counts_map.prj$sum_seeds))] = 0
+country_counts_map.prj$sum_spp[which(is.na(country_counts_map.prj$sum_spp))] = 0
+country_counts_map.prj$sum_accessions[which(is.na(country_counts_map.prj$sum_accessions))] = 0
 
 
 
 
-
+# values
 dim=4
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#6eabbd", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#554249", #"black",
+#                    bottomright="#c15e5c"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#f3b300", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#f3f3f3",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#000000", #"black",
+#                    bottomright="#509dc2"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#4fadd0", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#f3f3f3",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#2a1a8a", #"black",
+#                    bottomright="#de4fa6"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#efd100", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#fffdef",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#007fc4", #"black",
+#                    bottomright="#d2e4f6"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "gold", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#2a1a8a", #"black",
+#                    bottomright="#007fc4"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#A35F9A", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#D3D3D3",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#474E84", #"black",
+#                    bottomright="#6DB5B4"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+#
+#
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#C8B35A", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "#E8E8E8",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#804D36", #"black",
+#                    bottomright="#9972AF"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+
 col.matrix<-colmat(nquantiles=dim,
-                   upperleft= "#6eabbd", #rgb(0,150,235, maxColorValue=255),
-                   upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
-                   bottomleft="#554249", #"black",
-                   bottomright="#c15e5c"# brown3"#rgb(130,0,80, maxColorValue=255)
+                   upperleft= "#73AE80", #rgb(0,150,235, maxColorValue=255),
+                   upperright= "grey80",  #"grey",# rgb(255,230,15, maxColorValue=255),
+                   bottomleft="#2A5A5B", #"black",
+                   bottomright="#6C83B5"# brown3"#rgb(130,0,80, maxColorValue=255)
 )
+
 custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
 names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 
 
-data <- bi_class(darkspots.prj,y=linnean, x=wallacean,
-                 style ="fisher",#"quantile",#"equal",# "jenks",# , "equal", "fisher"
+
+data <- bi_class(country_counts_map.prj,
+                 y=sum_seeds,#sum_accessions,
+                 x=sum_spp,
+                 style ="quantile",#"fisher",#"quantile",#"equal",# "jenks",# , "equal", "fisher""jenks",#
                  dim = dim)
 
 # create map
@@ -299,7 +485,7 @@ map <- ggplot() +
               size = 2,
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
-          color = "black",#aes(fill = bi_class ),#NA,
+          color = aes(fill = bi_class ),#NA,"black",#
           size = 0.8, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
@@ -320,24 +506,70 @@ map <- ggplot() +
         panel.border = element_blank(),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank(),
-        legend.text=element_text(size=8),
-        legend.title=element_text(size=10)
+        legend.text=element_text(size=8), #linewidth = 8),#
+        legend.title=element_text(size=10) # linewidth = 10)#
   )
 
 map
 
+legend <- bi_legend(pal = custom_pal4,#"GrPink",
+                    dim = dim,
+                    xlab = "# species",
+                    ylab = "     # seeds",
+                    size = 10)
+# combine map with legend
+finalPlot <- ggdraw() +
+  draw_plot(map, 0, 0, 1, 1) +
+  draw_plot(legend, 0.82, .7, 0.24, 0.24)
+
+
+finalPlot
+ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "seeds_vs_species.pdf"), width = 30, height = 12, units = "cm")
+
+
+#####  Estimate CR species number  ###################################################
+
+
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
+
+# Add the country information to spp_banked_recalcitrant
 
 
 
-# number of seeds
-# per_tdwg
-# per country
+# return a species list per tdwg
+country_counts_map.prj$total_species = NA
 
-# number of species
+i=2
+country = country_counts_map.prj$NAME_0[i] #country_counts_map.prj$NewCountryName[i]
+tdwg_code <- get_wgsrpd3_codes(country)
+checklist <- wcvp_checklist(area_codes = tdwg_code, taxon_rank = "species",
+                            synonyms = FALSE)
+# only keep the country data
+checklist = checklist[checklist$area_code_l3 == tdwg_code,]
 
+# see how many of those are CR endangered
+country_counts_map.prj$total_species[i] = nrow(checklist)
+country_counts_map.prj$total_banked_somewhere[i] = length(which(checklist$taxon_name %in% brahms_wcvp_matched$taxon_name))
+country_counts_map.prj$total_banked_in_country[i] =
+country_counts_map.prj$CR_species[i] = length(which(checklist$taxon_name %in% spp_banked_recalcitrant$taxon_name))
+country_counts_map.prj$CR_banked_somewhere[i] = length(which(checklist$taxon_name %in% brahms_CR$taxon_name))
+country_counts_map.prj$CR_banked_from_country[i] =
 
 
 #####  PIE CHART    ######################################################################################
+
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
+
+
+
+bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
+
+
+# Some are replicated but they are species that have bee split
+length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
+length(spp_banked_recalcitrant$taxon_name) # 5717
 
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$labels = paste( spp_banked_recalcitrant$category, "-", spp_banked_recalcitrant$predictions)
