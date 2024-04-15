@@ -248,19 +248,19 @@ country_acc = country_acc[, c("NewCountryName","sum_accessions")]
 country_acc = country_acc[duplicated(country_acc$NewCountryName) == FALSE, ]
 
 ###### Combine everything
-country_counts = country_seeds %>% left_join(country_spp[,c("NewCountryName","sum_spp")],
+CR_country_counts = country_seeds %>% left_join(country_spp[,c("NewCountryName","sum_spp")],
                             by = "NewCountryName") %>% left_join(country_acc[,c("NewCountryName","sum_accessions")],
                                                               by = "NewCountryName")
 
 
 # save the data
-write.csv(country_counts, paste0(basepath, "seeds_accessions_species_per_country.csv"))
+write.csv(CR_country_counts, paste0(basepath, "CR_seeds_accessions_species_per_country.csv"))
 
 
 ###### FOR ALL SPECIES IN THE BANK   ##############################################################
 
 # count number of seeds collected per country
-country_seeds = brahms_CR %>%
+country_seeds = brahms_wcvp_matched %>%
   group_by(NewCountryName, AdjustedSeedQuantity) %>%
   tally() %>%
   mutate(sum_seeds = sum(AdjustedSeedQuantity),
@@ -270,7 +270,7 @@ country_seeds = country_seeds[, c("NewCountryName","sum_seeds")]
 country_seeds = country_seeds[duplicated(country_seeds$NewCountryName) == FALSE, ]
 
 # count species per country
-country_spp = brahms_CR %>%
+country_spp = brahms_wcvp_matched %>%
   group_by(NewCountryName, taxon_name) %>%
   tally() %>%
   mutate(sum_spp = length(unique(taxon_name)),
@@ -280,7 +280,7 @@ country_spp = country_spp[, c("NewCountryName","sum_spp")]
 country_spp = country_spp[duplicated(country_spp$NewCountryName) == FALSE, ]
 
 # count accessions per country
-country_acc = brahms_CR %>%
+country_acc = brahms_wcvp_matched %>%
   group_by(NewCountryName, AccessionNumber) %>%
   tally() %>%
   mutate(sum_accessions = length(unique(AccessionNumber)),

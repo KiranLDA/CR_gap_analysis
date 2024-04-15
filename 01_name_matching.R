@@ -61,7 +61,11 @@ brahms$author <- gsub("^(\\S+ \\S+)", "", brahms$Taxon) # gsub("^(\\w+ \\w+)", "
 brahms$author <- gsub("subsp\\. \\w+", "", brahms$author)      # Remove subspecies
 brahms$author <- gsub("var\\. \\w+", "", brahms$author)
 brahms$author <- trimws(brahms$author)
-brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
+# brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
+
+# edit code to include var and other if needed
+brahms$full_name = trimws(paste(brahms$species,brahms$subspecies,brahms$var))
+brahms$full_name = gsub("\\s+"," ",brahms$full_name)
 
 
 # now count adjusted seeds per species
@@ -102,12 +106,12 @@ spp_count = spp_count[duplicated(spp_count$subspecies_name)==FALSE,]
 
 # This bit of code dates 30 minutes to run, and is therefore saved to avoid rerun
 # MSB species
-# MSB_wcvp = wcvp_match_names(spp_count, wcvp,
-#                  name_col = "subspecies_name",
-#                  author_col = "author")
-# MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                            by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(MSB_wcvp, paste0(basepath,"MSB_unique_wcvp.csv"))
+MSB_wcvp = wcvp_match_names(spp_count, wcvp,
+                 name_col = "full_name",
+                 author_col = "author")
+MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+                           by=c("wcvp_accepted_id" = "plant_name_id"))
+write.csv(MSB_wcvp, paste0(basepath,"MSB_unique_wcvp.csv"))
 MSB_wcvp = read.csv(paste0(basepath,"MSB_unique_wcvp.csv"))
 
 # Put the data in test to avoid overwriting for time being...
@@ -124,7 +128,7 @@ obvious = test$subspecies_name[test$accepted_name & test$names_match & test$dupl
 # find duplicated names that don't have any accepted name
 dupl = test$subspecies_name %in% unique(test$subspecies_name[ duplicated(test$subspecies_name)])
 dupl_nam = unique(test$subspecies_name[dupl])
-#create some empty variables to fill during analysis
+# create some empty variables to fill during analysis
 problematic = c()
 accepted = c()
 synonym = c()
@@ -197,7 +201,7 @@ problematic
 
 species_match = c(species_match, test$subspecies_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$subspecies_name])
 
-
+# go through the process again pf selecting the accepted name and synonym
 for (nami in test$subspecies_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$subspecies_name]){
   print(nami)
   tryCatch({
