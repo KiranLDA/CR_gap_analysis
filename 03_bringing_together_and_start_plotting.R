@@ -104,8 +104,6 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "San-Ma
 
 
 # test = data.frame(world)[,c("GID_0","NAME_0")]
-
-
 country_names = data.frame(unique(brahms_CR[,"NewCountryName"]))
 colnames(country_names) = "NewCountryName"
 country_names = country_names %>% left_join(data.frame(world)[,c("GID_0","NAME_0")], by=c("NewCountryName" = "NAME_0"))
