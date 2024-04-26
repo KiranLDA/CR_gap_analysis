@@ -106,13 +106,13 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 
 # This bit of code dates 30 minutes to run, and is therefore saved to avoid rerun
 # MSB species
-MSB_wcvp = wcvp_match_names(spp_count, wcvp,
-                 name_col = "full_name",
-                 author_col = "author")
-MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-                           by=c("wcvp_accepted_id" = "plant_name_id"))
-
-write.csv(MSB_wcvp, paste0(basepath,"MSB_unique_wcvp_full_name.csv"))
+# MSB_wcvp = wcvp_match_names(spp_count, wcvp,
+#                  name_col = "full_name",
+#                  author_col = "author")
+# MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+#                            by=c("wcvp_accepted_id" = "plant_name_id"))
+#
+# write.csv(MSB_wcvp, paste0(basepath,"MSB_unique_wcvp_full_name.csv"))
 MSB_wcvp = read.csv(paste0(basepath,"MSB_unique_wcvp_full_name.csv"))
 
 # Put the data in test to avoid overwriting for time being...
@@ -172,12 +172,15 @@ for (du in dupl_nam){
 
 
 
-# some subspecies names are not recognised - use the species name and rerun rWCVP
+# some subspecies and variety names are not recognised - use the species name instead and rerun rWCVP
+
+# find names that didn't match and associate them with the author
 subset = data.frame(test[test$full_name %in% problematic,])
-subset$subsp = ifelse(subset$full_name != subset$species, T, F)
-subset = subset[subset$subsp == T,]
+subset$diff_name = ifelse(subset$full_name != subset$species, T, F)
+subset = subset[which(subset$diff_name == T),]
 species_match = unique(subset$full_name)
 
+# Find them on wcvp
 for (nami in species_match){
   print(nami)
   temp = test[test$full_name == nami,]
