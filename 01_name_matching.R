@@ -21,8 +21,11 @@ fuzzy_match <- function(str1, str2) {
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
-                             sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+# wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
+#                              sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
+WFO.data <- read.csv(paste0(basepath, "WFO_Backbone/classification_v_2023_12.csv"),
+                     sep="\t",)
 
 ###################################################################################
 #         MSBP data
@@ -242,6 +245,11 @@ length(diff_author) # 6
 length(species_match) # 70
 length(problematic) # 126
 
+# now find the problematic names in WordFl
+
+left = WorldFlora::WFO.match(data.frame(problematic), WFO.data=WFO.data, spec.name.tolower=TRUE)
+
+
 
 # subset = data.frame(test[test$subspecies_name %in% problematic,])
 # for (nami in unique(subset$subspecies_name)){
@@ -349,6 +357,19 @@ length(homotypic) # 1
 length(diff_author) # 0
 length(problematic) # 81
 
+# Now see if the problematic ones are in
+
+##############################
+# Match with full name
+iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+                                                    by=c("wcvp_accepted_id" = "plant_name_id"))
+
+iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(rWCVP::taxonomic_mapping,
+                                                    by=c("family" = "family"))
+
+
+
+
 
 # iucn_wcvp vs IUCN
 which(iucn$scientificName == "Fissidens hydropogon")
@@ -357,7 +378,14 @@ which(iucn_wcvp$scientificName == "Fissidens hydropogon")
 "Isothecium montanum" %in% problematic
 "Orthotrichum handiense" %in% problematic
 
-WorldFlora::WFO.one("Orthotrichum handiense")
+test = WorldFlora::WFO.match("Fissidens hydropogon", WFO.data=WFO.data, spec.name.tolower=TRUE)
+
+test$majorGroup
+
+WorldFlora::WFO.data#one("Orthotrichum handiense")
+# Flora Online taxonomic backbone
+WorldFlora::WFO.remember()
+
 
 
 length(which(duplicated(iucn_wcvp$scientificName)))
@@ -510,3 +538,16 @@ for (du in dupl_nam){
 
 exceptional_wcvp_matched = exceptional_wcvp_matched[exceptional_wcvp_matched$keep2 ==1,]
 write.csv(exceptional_wcvp_matched, paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
+
+
+
+############################################################################################
+
+# Attach the genus data
+brahms_CR = brahms_CR  %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+                                     by=c("wcvp_accepted_id" = "plant_name_id"))
+
+brahms_CR = brahms_CR  %>% left_join(rWCVP::taxonomic_mapping,
+                                     by=c("family" = "family"))
+
+

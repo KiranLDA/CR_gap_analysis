@@ -45,19 +45,6 @@ summary(iucn_wcvp_matched$banked)
 #    Mode   FALSE    TRUE
 # logical    5249     372
 
-# Attach the genus data
-brahms_CR = brahms_CR  %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
-                                     by=c("wcvp_accepted_id" = "plant_name_id"))
-
-brahms_CR = brahms_CR  %>% left_join(rWCVP::taxonomic_mapping,
-                         by=c("family" = "family"))
-
-iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
-                                                    by=c("wcvp_accepted_id" = "plant_name_id"))
-
-iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(rWCVP::taxonomic_mapping,
-                                                    by=c("family" = "family"))
-
 
 # find how many of each family there are in IUCN
 iucn_higher_list  = iucn_wcvp_matched[which(duplicated(iucn_wcvp_matched$wcvp_accepted_id)==F),] %>%
