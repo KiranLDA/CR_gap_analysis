@@ -8,25 +8,38 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 #load data from previous session
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
-brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
+# brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
 exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
+# how many species are in the bank?
+length(unique(brahms_wcvp_matched$taxon_name)) # 45798
+
+#how many collections?
+length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
 
 # find the MSB species that are CR endangered
 brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
 summary(brahms_wcvp_matched$CR)
 #   Mode   FALSE    TRUE
-# logical  195713    2222
+# logical  195715    2221
 
+# how many species in the bank are CR
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR)])) # 371
+
+# subset the CR data
 brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
 dim(brahms_CR)
 
+# number of IUCN listed species
+length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5609
 
-# Find the IUCN species that are banked
+# of the CR species which one are in the bank, and which ones not?
 iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
 summary(iucn_wcvp_matched$banked)
 #    Mode   FALSE    TRUE
@@ -36,9 +49,31 @@ summary(iucn_wcvp_matched$banked)
 brahms_CR = brahms_CR  %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
                                      by=c("wcvp_accepted_id" = "plant_name_id"))
 
+brahms_CR = brahms_CR  %>% left_join(rWCVP::taxonomic_mapping,
+                         by=c("family" = "family"))
+
 iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
                                                     by=c("wcvp_accepted_id" = "plant_name_id"))
 
+iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(rWCVP::taxonomic_mapping,
+                                                    by=c("family" = "family"))
+
+
+# find how many of each family there are in IUCN
+iucn_higher_list  = iucn_wcvp_matched[which(duplicated(iucn_wcvp_matched$wcvp_accepted_id)==F),] %>%
+  group_by(higher) %>%
+  tally()
+
+
+any(iucn_wcvp_matched$family ==  "Bryophyta")
+# IUCN years
+length(which(iucn_wcvp_matched$yearPublished < 2000)) #334
+length(which(iucn_wcvp_matched$yearPublished >= 2000 & iucn_wcvp_matched$yearPublished < 2010)) #453
+length(which(iucn_wcvp_matched$yearPublished >= 2010 & iucn_wcvp_matched$yearPublished < 2020)) #1951
+length(which(iucn_wcvp_matched$yearPublished >= 2020)) #2883
+
+length(wcvp$taxon_status == "Accepted")
+length(wcvp$taxon_status == "Accepted")
 
 #### GET ORTHODOXY ########################################################################################
 

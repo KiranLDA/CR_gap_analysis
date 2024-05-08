@@ -349,6 +349,20 @@ length(homotypic) # 1
 length(diff_author) # 0
 length(problematic) # 81
 
+
+# iucn_wcvp vs IUCN
+which(iucn$scientificName == "Fissidens hydropogon")
+which(iucn_wcvp$scientificName == "Fissidens hydropogon")
+"Fissidens hydropogon" %in% problematic
+"Isothecium montanum" %in% problematic
+"Orthotrichum handiense" %in% problematic
+
+WorldFlora::WFO.one("Orthotrichum handiense")
+
+
+length(which(duplicated(iucn_wcvp$scientificName)))
+length(which(iucn_wcvp_matched$wcvp_status == "Invalid"))
+
 ##### NOW GET RID OF DUPLICATED NAMES #################################################
 
 iucn_wcvp_matched = test[test$keep == 1,]
