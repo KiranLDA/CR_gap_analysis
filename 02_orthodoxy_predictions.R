@@ -8,6 +8,7 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 #load data from previous session
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
@@ -15,8 +16,14 @@ brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_match
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
 exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
 exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
+
+iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
+iucn_predicted_wcvp_matched = read.csv(paste0(basepath, "iucn_predicted_wcvp_matched.csv"))
+
+
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
 
 # # load brahms data
 # brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
@@ -56,28 +63,25 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 ##############################################################
 
 # how many species are in the bank?
-length(unique(brahms_wcvp_matched$full_name)) # 46920
-length(unique(brahms_wcvp_matched$taxon_name)) # 45780
-
-#
-length(unique(brahms_unique_wcvp_matched$full_name)) # 46787
-length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811
+length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
+length(unique(brahms_unique_wcvp_matched$full_name)) # 46787 had matches
+length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
+length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
 
 # how many species are the exceptional species
-length(unique(exceptional$Species_name)) # 23530
-length(unique(exceptional_wcvp_matched$Species_name)) # 22283
-length(unique(exceptional_wcvp_matched$taxon_name)) # 22298
-length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22250
-length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48
+length(unique(exceptional$Species_name)) # 23530 before matching
+length(unique(exceptional_wcvp_matched$Species_name)) # 22283 were matched
+length(unique(exceptional_wcvp_matched$taxon_name)) # 22298 to this many new names
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22250 this many from WCVP
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48 from WFO
 
 # how many of the predicted IUCN species were matched
-iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-iucn_predicted_wcvp_matched = read.csv(paste0(basepath, "iucn_predicted_wcvp_matched.csv")))
+length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR")])) # 4812
 
 # how many accessions
 length(unique(brahms_wcvp_matched$AccessionNumber))
 
-length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP"))
+length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 4812
 
 #how many collections?
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934

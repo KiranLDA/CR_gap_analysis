@@ -25,11 +25,11 @@ wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
 # wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
 #                              sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-WFO.download(WFO.url =
-               paste0("https://files.worldfloraonline.org/files/WFO_Backbone/",
-                      "_WFOCompleteBackbone/WFO_Backbone.zip"),
-             save.dir = getwd(), WFO.remember = TRUE,
-             timeout = 500)
+# WFO.download(WFO.url =
+#                paste0("https://files.worldfloraonline.org/files/WFO_Backbone/",
+#                       "_WFOCompleteBackbone/WFO_Backbone.zip"),
+#              save.dir = getwd(), WFO.remember = TRUE,
+#              timeout = 500)
 
 WFO.remember(WFO.file = NULL, WFO.data = "WFO.data", WFO.pos = 1)
 
@@ -932,15 +932,15 @@ colnames(iucn_predictions)[which(colnames(iucn_predictions) == "taxon_name")] = 
 length(iucn_predictions$scientificName) # 5702
 
 # slow to run 10 mins therefore saved and can be loaded
-# iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
-#                                          name_col = "scientificName",
-#                                          id_col = "plant_name_id"#,
-#                                          # author_col = "authority"
-# )
-# iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_wcvp.csv"))
-iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_wcvp.csv"))
+iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
+                                         name_col = "scientificName",
+                                         id_col = "plant_name_id"#,
+                                         # author_col = "authority"
+)
+iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+                                                by=c("wcvp_accepted_id" = "plant_name_id"))
+write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_prediction_wcvp.csv"))
+iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_prediction_wcvp.csv"))
 
 
 
