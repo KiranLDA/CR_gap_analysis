@@ -7,6 +7,7 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 ###### Find the CR species in the dataset ##################################################################
 
 #load data from previous session
+iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
@@ -67,6 +68,14 @@ length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
 length(unique(brahms_unique_wcvp_matched$full_name)) # 46787 had matches
 length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
 length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
+
+# how many names have been matched from IUCN
+length(unique(iucn$scientificName)) # 5702 before matching
+length(unique(iucn_wcvp_matched$scientificName)) # 5667 were matched
+length(unique(iucn_wcvp_matched$taxon_name)) # 5654 to this many new names
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
+
 
 # how many species are the exceptional species
 length(unique(exceptional$Species_name)) # 23530 before matching
