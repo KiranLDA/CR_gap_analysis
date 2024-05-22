@@ -17,8 +17,18 @@ exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_mat
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
+# load brahms data
+brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
+
+# remove duplicates
+brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 441 duplicates
+
+
+
+
+
 # how many species are in the bank?
-length(unique(brahms_wcvp_matched$taxon_name)) # 45798
+length(unique(brahms_wcvp_matched$taxon_name)) # 45780
 
 #how many collections?
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
@@ -37,13 +47,26 @@ brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
 dim(brahms_CR)
 
 # number of IUCN listed species
-length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5609
+length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5645
 
 # of the CR species which one are in the bank, and which ones not?
 iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
 summary(iucn_wcvp_matched$banked)
 #    Mode   FALSE    TRUE
-# logical    5249     372
+# logical    5295     372
+
+# Attach the genus data
+# brahms_CR = brahms_CR  %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+#                                      by=c("wcvp_accepted_id" = "plant_name_id"))
+
+# brahms_CR = brahms_CR  %>% left_join(rWCVP::taxonomic_mapping,
+#                          by=c("family" = "family"))
+
+# iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+#                                                     by=c("wcvp_accepted_id" = "plant_name_id"))
+#
+# iucn_wcvp_matched = iucn_wcvp_matched %>% left_join(rWCVP::taxonomic_mapping,
+#                                                     by=c("family" = "family"))
 
 
 # find how many of each family there are in IUCN
@@ -56,11 +79,26 @@ any(iucn_wcvp_matched$family ==  "Bryophyta")
 # IUCN years
 length(which(iucn_wcvp_matched$yearPublished < 2000)) #334
 length(which(iucn_wcvp_matched$yearPublished >= 2000 & iucn_wcvp_matched$yearPublished < 2010)) #453
-length(which(iucn_wcvp_matched$yearPublished >= 2010 & iucn_wcvp_matched$yearPublished < 2020)) #1951
-length(which(iucn_wcvp_matched$yearPublished >= 2020)) #2883
+length(which(iucn_wcvp_matched$yearPublished >= 2010 & iucn_wcvp_matched$yearPublished < 2020)) #1970
+length(which(iucn_wcvp_matched$yearPublished >= 2020)) #2893
 
 length(wcvp$taxon_status == "Accepted")
 length(wcvp$taxon_status == "Accepted")
+
+# how many are in wcvp
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / 5702
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5702
+5702 - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
+
+
+#########################################
+#number of taxa in the bank
+length(unique(brahms_wcvp_matched$taxon_name)) # 45811
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")]) )# 45779
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$taxonomic_backbone == "WFO")]) )# 45779
+
+length(unique(MSB_wcvp_matched$taxon_name[which(MSB_wcvp_matched$taxonomic_backbone == "WFO")])) # 43
+
 
 #### GET ORTHODOXY ########################################################################################
 
@@ -105,12 +143,12 @@ length(unique(exceptional_wcvp_matched$taxon_name))
 # remove duplicates
 
 iucn_storage_behaviour = iucn_wcvp_matched_orthodox %>% left_join(exceptional_wcvp_matched[,c("taxon_name", "Exceptional_status",
-                                                                     "EF1_seed_unavailable","EF2_desiccation_sensitive",
-                                                                     "EF3_short.lived", "EF4_deep_dormancy", "SID_Seed_Storage_Behaviour",
-                                                                     "Woody_or_non.woody", "PlantSearch_plant_collections", "PlantSearch_seed_collections",
-                                                                     "PlantSearch_tissue_culture_collections", "PlantSearch_cryopreservation_collections",
-                                                                     "PlantSearch_uncategorized_germplasm_collections")],
-                                         by="taxon_name", relationship = "many-to-one")
+                                                                                              "EF1_seed_unavailable","EF2_desiccation_sensitive",
+                                                                                              "EF3_short.lived", "EF4_deep_dormancy", "SID_Seed_Storage_Behaviour",
+                                                                                              "Woody_or_non.woody", "PlantSearch_plant_collections", "PlantSearch_seed_collections",
+                                                                                              "PlantSearch_tissue_culture_collections", "PlantSearch_cryopreservation_collections",
+                                                                                              "PlantSearch_uncategorized_germplasm_collections")],
+                                                                  by="taxon_name", relationship = "many-to-one")
 
 iucn_storage_behaviour = unique(iucn_storage_behaviour)
 
@@ -122,7 +160,7 @@ iucn_storage_behaviour$category[which(iucn_storage_behaviour$Exceptional_status 
 # View(iucn_storage_behaviour[is.na(iucn_storage_behaviour$category),])
 
 iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_Behaviour == "Orthodox") &
-                         is.na(iucn_storage_behaviour$category))] = "orthodox"
+                                        is.na(iucn_storage_behaviour$category))] = "orthodox"
 
 iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_Behaviour == "Orthodox p") &
                                         is.na(iucn_storage_behaviour$category))] = "orthodox"
@@ -206,8 +244,8 @@ colnames(seed_count) = c("taxon_name","wcvp_authors", "wcvp_accepted_id", "acces
 
 # add the accession data as will be useful later
 iucn_storage_behaviour = iucn_storage_behaviour %>% left_join(seed_count[,c("taxon_name","accessions","summed_count")],
-                                     by = "taxon_name",
-                                     relationship = "many-to-one")
+                                                              by = "taxon_name",
+                                                              relationship = "many-to-one")
 
 
 
@@ -269,8 +307,8 @@ brahms_to_add = seed_count[seed_count$taxon_name %in% unique(CR_pred$taxon_name)
 # create an empty dataset that follows iucn_storage_behaviour and fill with NAs
 brahms_to_add = data.frame(brahms_to_add)
 brahms_to_add = brahms_to_add %>% left_join(wcvp[,c("plant_name_id","family","genus",
-                                "climate_description", "geographic_area")],
-                        by=c("wcvp_accepted_id"="plant_name_id"))
+                                                    "climate_description", "geographic_area")],
+                                            by=c("wcvp_accepted_id"="plant_name_id"))
 
 # Fill in the CR_pred data
 brahms_to_add["scientificName"] = NA
@@ -325,8 +363,8 @@ CR_pred_to_add = read.csv(paste0(basepath,"Model-results-2024-04-08_pred.csv"))
 #remove duplicates
 CR_pred_to_add = CR_pred_to_add[duplicated(CR_pred_to_add$Accepted_name)==FALSE,]
 CR_pred_to_add = CR_pred_to_add %>% left_join(wcvp[,c("plant_name_id","family","genus",
-                                                    "climate_description", "geographic_area")],
-                                            by=c("Accepted_wcvp_name_id"="plant_name_id"))
+                                                      "climate_description", "geographic_area")],
+                                              by=c("Accepted_wcvp_name_id"="plant_name_id"))
 
 CR_pred_to_add["taxon_name"] = CR_pred_to_add["Accepted_name"]
 CR_pred_to_add["scientificName"] = NA
@@ -353,12 +391,12 @@ CR_pred_to_add$category[CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_
 
 
 CR_pred_to_add = CR_pred_to_add %>% left_join(exceptional_wcvp_matched[,c("taxon_name", "Exceptional_status",
-                                                         "EF1_seed_unavailable","EF2_desiccation_sensitive",
-                                                         "EF3_short.lived", "EF4_deep_dormancy", "SID_Seed_Storage_Behaviour",
-                                                         "Woody_or_non.woody", "PlantSearch_plant_collections", "PlantSearch_seed_collections",
-                                                         "PlantSearch_tissue_culture_collections", "PlantSearch_cryopreservation_collections",
-                                                         "PlantSearch_uncategorized_germplasm_collections")],
-                             by=c("taxon_name" = "taxon_name"))
+                                                                          "EF1_seed_unavailable","EF2_desiccation_sensitive",
+                                                                          "EF3_short.lived", "EF4_deep_dormancy", "SID_Seed_Storage_Behaviour",
+                                                                          "Woody_or_non.woody", "PlantSearch_plant_collections", "PlantSearch_seed_collections",
+                                                                          "PlantSearch_tissue_culture_collections", "PlantSearch_cryopreservation_collections",
+                                                                          "PlantSearch_uncategorized_germplasm_collections")],
+                                              by=c("taxon_name" = "taxon_name"))
 
 CR_pred_to_add["accessions"] =  NA
 CR_pred_to_add["summed_count"] =  NA
@@ -371,8 +409,8 @@ CR_pred_to_add = CR_pred_to_add[,colkeep]
 
 ###### COMBINE DATA    #############################################################################################
 spp_banked_recalcitrant = rbind(iucn_storage_behaviour,
-                               brahms_to_add,
-                               CR_pred_to_add)
+                                brahms_to_add,
+                                CR_pred_to_add)
 
 
 # check out the duplicates
