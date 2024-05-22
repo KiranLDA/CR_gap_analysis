@@ -932,14 +932,14 @@ colnames(iucn_predictions)[which(colnames(iucn_predictions) == "taxon_name")] = 
 length(iucn_predictions$scientificName) # 328565
 
 # slow to run 10 mins therefore saved and can be loaded
-iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
-                                         name_col = "scientificName"#,
-                                        # id_col = "plant_name_id"#,
-                                         # author_col = "authority"
-)
-iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-                                                by=c("wcvp_accepted_id" = "plant_name_id"))
-write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_predictions_wcvp.csv"))
+# iucn_predictions_wcvp = wcvp_match_names(iucn_predictions, wcvp,
+#                                          name_col = "scientificName"#,
+#                                         # id_col = "plant_name_id"#,
+#                                          # author_col = "authority"
+# )
+# iucn_predictions_wcvp = iucn_predictions_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+#                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
+# write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_predictions_wcvp.csv"))
 iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_predictions_wcvp.csv"))
 
 
