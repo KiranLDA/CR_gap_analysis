@@ -11,7 +11,9 @@ iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+# make sure only consider predicted that aren't already CR
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
@@ -19,8 +21,10 @@ exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
 exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
 
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-iucn_predicted_wcvp_matched = read.csv(paste0(basepath, "iucn_predicted_wcvp_matched.csv"))
+iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
 
+iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
+iucn_CR_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]
 
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
@@ -77,6 +81,16 @@ length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 thi
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
 
 
+# how many names have been matched from IUCN predictions
+# how many of the predicted IUCN species were matched
+length(unique(iucn_predictions$taxon_name)) # 328553 all names before matching
+length(unique(iucn_CR_predictions$taxon_name)) # 4812 CR before matching
+length(unique(iucn_CR_predictions_wcvp_matched$scientificName)) # 4802 were matched
+length(unique(iucn_CR_predictions_wcvp_matched$taxon_name)) # 4800 to this many new names
+length(unique(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))) # 4802 this many from WCVP
+length(unique(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 0 from WFO
+
+
 # how many species are the exceptional species
 length(unique(exceptional$Species_name)) # 23530 before matching
 length(unique(exceptional_wcvp_matched$Species_name)) # 22283 were matched
@@ -84,13 +98,12 @@ length(unique(exceptional_wcvp_matched$taxon_name)) # 22298 to this many new nam
 length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22250 this many from WCVP
 length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48 from WFO
 
-# how many of the predicted IUCN species were matched
-length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR")])) # 4812
+##########################################################
+## CR species in the Bank
+##########################################################
 
-# how many accessions
-length(unique(brahms_wcvp_matched$AccessionNumber))
+brahms_wcvp_matched$CR_pred[brahms_wcvp_matched$CR & brahms_wcvp_matched$CR_pred] = FALSE
 
-length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 4812
 
 #how many collections?
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
@@ -103,6 +116,127 @@ summary(brahms_wcvp_matched$CR)
 
 # how many species in the bank are CR
 length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR)])) # 371
+
+# how many families in the bank are CR
+length(unique(brahms_wcvp_matched$family[which(brahms_wcvp_matched$CR)])) # 89
+
+# how many orders in the bank are CR
+length(unique(brahms_wcvp_matched$order[which(brahms_wcvp_matched$CR)])) # 40
+
+# how many orders in the bank are CR
+summary(as.factor(brahms_wcvp_matched$higher[which(brahms_wcvp_matched$CR)])) # 40
+# Angiosperms       Ferns Gymnosperms  Lycophytes
+#        2163          17          39           2
+
+# percentage of CR species that are banked
+summary(as.factor(iucn_wcvp_matched$higher)) # 40
+#  A     Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
+# 10            5442              27              92              72              14              10
+
+# 2163 / (5442+10)
+# 17 /92
+
+percentage_fam = data.frame(matrix(NA, nrow = length(unique(iucn_wcvp_matched$family)),
+       ncol = 4))
+colnames(percentage_fam) = c("family","banked","iucn","percentage")
+
+brahms_CR_wcvp_matched = brahms_wcvp_matched[which(brahms_wcvp_matched$CR == T),]
+
+iter = 0
+for (fam in unique(iucn_wcvp_matched$family)){
+  percentage_fam[iter,1] = fam
+  percentage_fam[iter,2] = length(unique(brahms_CR_wcvp_matched$taxon_name[brahms_CR_wcvp_matched$family == fam ]))
+  percentage_fam[iter,3] = length(unique(iucn_wcvp_matched$taxon_name[iucn_wcvp_matched$family == fam]))
+  percentage_fam[iter,4] = (percentage_fam[iter,2] / percentage_fam[iter,3]) * 100
+  iter = iter + 1
+}
+
+percentage_fam[order(percentage_fam$percentage),]
+
+#########################################################
+## predicted CR species in the Bank
+##########################################################
+
+
+#how many collections?
+length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
+
+# what predictions are not already listed:
+pred_ID = iucn_CR_predictions_wcvp_matched$wcvp_accepted_id[!(iucn_CR_predictions_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id)]
+
+# find the MSB species that are CR endangered
+brahms_wcvp_matched$CR_pred = brahms_wcvp_matched$wcvp_accepted_id %in% pred_ID
+# brahms_wcvp_matched$wcvp_accepted_id %in% iucn_CR_predictions_wcvp_matched$wcvp_accepted_id
+# brahms_wcvp_matched$CR_pred[brahms_wcvp_matched$CR & brahms_wcvp_matched$CR_pred] = FALSE
+
+summary(brahms_wcvp_matched$CR_pred)
+#   Mode   FALSE    TRUE
+# logical  195715    1917
+
+#    Mode   FALSE    TRUE
+# logical  197928       8
+
+# how many species in the bank are CR
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR_pred)])) # 313 # 1
+
+# how many families in the bank are CR
+length(unique(brahms_wcvp_matched$family[which(brahms_wcvp_matched$CR_pred)])) # 64 # 1
+
+# how many orders in the bank are CR
+length(unique(brahms_wcvp_matched$order[which(brahms_wcvp_matched$CR_pred)])) # 29 # 1
+
+
+# summary
+summary(as.factor(brahms_wcvp_matched$higher[which(brahms_wcvp_matched$CR_pred)])) # 40
+# Angiosperms       Ferns Gymnosperms  Lycophytes
+#        2163          17          39           2
+
+# Angiosperms
+# 8
+
+percentage_fam = data.frame(matrix(NA, nrow = length(unique(iucn_CR_predictions_wcvp_matched$family)),
+                                   ncol = 4))
+colnames(percentage_fam) = c("family","banked","iucn","percentage")
+
+brahms_CR_wcvp_matched = brahms_wcvp_matched[which(brahms_wcvp_matched$CR_pred == T),]
+
+
+
+iter = 0
+for (fam in unique(iucn_CR_predictions_wcvp_matched$family)){
+  percentage_fam[iter,1] = fam
+  percentage_fam[iter,2] = length(unique(brahms_CR_wcvp_matched$taxon_name[brahms_CR_wcvp_matched$family == fam ]))
+  percentage_fam[iter,3] = length(unique(iucn_CR_predictions_wcvp_matched$taxon_name[iucn_CR_predictions_wcvp_matched$family == fam]))
+  percentage_fam[iter,4] = (percentage_fam[iter,2] / percentage_fam[iter,3]) * 100
+  iter = iter + 1
+}
+
+percentage_fam[order(percentage_fam$percentage),]
+
+##############
+
+percentage_fam = data.frame(matrix(NA, nrow = length(unique(iucn_CR_predictions_wcvp_matched$family[iucn_CR_predictions_wcvp_matched$wcvp_accepted_id %in% pred_ID])),
+                                   ncol = 4))
+colnames(percentage_fam) = c("family","banked","iucn","percentage")
+
+brahms_CR_wcvp_matched = brahms_wcvp_matched[which(brahms_wcvp_matched$CR_pred == T),]
+
+
+
+iter = 0
+for (fam in unique(iucn_CR_predictions_wcvp_matched$family)){
+  percentage_fam[iter,1] = fam
+  percentage_fam[iter,2] = length(unique(brahms_CR_wcvp_matched$taxon_name[brahms_CR_wcvp_matched$family == fam ]))
+  percentage_fam[iter,3] = length(unique(iucn_CR_predictions_wcvp_matched$taxon_name[iucn_CR_predictions_wcvp_matched$family == fam]))
+  percentage_fam[iter,4] = (percentage_fam[iter,2] / percentage_fam[iter,3]) * 100
+  iter = iter + 1
+}
+
+percentage_fam[order(percentage_fam$percentage),]
+
+
+
+########################################
 
 # subset the CR data
 brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
