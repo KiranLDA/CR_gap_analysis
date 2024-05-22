@@ -929,18 +929,18 @@ write.csv(exceptional_wcvp_matched, paste0(basepath,"exceptional_unique_wcvp_mat
 
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
 colnames(iucn_predictions)[which(colnames(iucn_predictions) == "taxon_name")] = "scientificName"
-length(iucn_predictions$scientificName) # 5702
+length(iucn_predictions$scientificName) # 328565
 
 # slow to run 10 mins therefore saved and can be loaded
 iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
-                                         name_col = "scientificName",
-                                         id_col = "plant_name_id"#,
+                                         name_col = "scientificName"#,
+                                        # id_col = "plant_name_id"#,
                                          # author_col = "authority"
 )
 iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_prediction_wcvp.csv"))
-iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_prediction_wcvp.csv"))
+write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_predictions_wcvp.csv"))
+iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_predictions_wcvp.csv"))
 
 
 
@@ -1045,7 +1045,7 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 match = test[test$accepted_name %in% problematic,]
 
 pb_sp = WorldFlora::WFO.match(spec.data = match$accepted_name, WFO.data=WFO.data, counter=1, verbose=TRUE)
-write.csv(pb_sp, paste0(basepath, "iucn_predicted_wfo_matched.csv"))
+write.csv(pb_sp, paste0(basepath, "iucn_predictions_wfo_matched.csv"))
 
 
 wfo_match = c()
@@ -1152,7 +1152,7 @@ length(problematic) # 35
 
 ##### NOW GET RID OF DUPLICATED NAMES #################################################
 
-iucn_predicted_wcvp_matched = test[test$keep == 1,]
-length(unique(iucn_predicted_wcvp_matched$scientificName))-length(unique(iucn_predicted_wcvp$scientificName))
-write.csv(iucn_predicted_wcvp_matched, paste0(basepath, "iucn_predicted_wcvp_matched.csv"))
+iucn_predictions_wcvp_matched = test[test$keep == 1,]
+length(unique(iucn_predictions_wcvp_matched$scientificName))-length(unique(iucn_predictions_wcvp$scientificName))
+write.csv(iucn_predictions_wcvp_matched, paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
 
