@@ -72,7 +72,7 @@ length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48
 
 # how many of the predicted IUCN species were matched
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-iucn_wcvp_matched, paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn_predicted_wcvp_matched = read.csv(paste0(basepath, "iucn_predicted_wcvp_matched.csv")))
 
 # how many accessions
 length(unique(brahms_wcvp_matched$AccessionNumber))
