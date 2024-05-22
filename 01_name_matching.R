@@ -932,14 +932,14 @@ colnames(iucn_predictions)[which(colnames(iucn_predictions) == "taxon_name")] = 
 length(iucn_predictions$scientificName) # 5702
 
 # slow to run 10 mins therefore saved and can be loaded
-iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
-                                         name_col = "scientificName",
-                                         id_col = "plant_name_id"#,
-                                         # author_col = "authority"
-)
-iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-                                                by=c("wcvp_accepted_id" = "plant_name_id"))
-write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_wcvp.csv"))
+# iucn_predictions_wcvp = wcvp_match_names(iucn, wcvp,
+#                                          name_col = "scientificName",
+#                                          id_col = "plant_name_id"#,
+#                                          # author_col = "authority"
+# )
+# iucn_predictions_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+#                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
+# write.csv(iucn_predictions_wcvp, paste0(basepath,"iucn_wcvp.csv"))
 iucn_predictions_wcvp = read.csv(paste0(basepath,"iucn_wcvp.csv"))
 
 
@@ -1152,7 +1152,7 @@ length(problematic) # 35
 
 ##### NOW GET RID OF DUPLICATED NAMES #################################################
 
-iucn_wcvp_matched = test[test$keep == 1,]
-length(unique(iucn_wcvp_matched$scientificName))-length(unique(iucn_wcvp$scientificName))
-write.csv(iucn_wcvp_matched, paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn_predicted_wcvp_matched = test[test$keep == 1,]
+length(unique(iucn_predicted_wcvp_matched$scientificName))-length(unique(iucn_predicted_wcvp$scientificName))
+write.csv(iucn_predicted_wcvp_matched, paste0(basepath, "iucn_predicted_wcvp_matched.csv"))
 

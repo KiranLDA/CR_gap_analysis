@@ -13,22 +13,71 @@ brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_match
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
+exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
 exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-# load brahms data
-brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
+# # load brahms data
+# brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
+#
+# # remove duplicates
+# brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 441 duplicates
+#
+# # extract species
+# brahms$species <- gsub("^(\\S+ \\S+).*", "\\1", brahms$Taxon) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
+# brahms$species <- trimws(brahms$species)
+#
+# # extract subspecies
+# subspecies_match <- regexpr("subsp\\. \\w+", brahms$Taxon)
+# brahms$subspecies <- substring(brahms$Taxon, subspecies_match,
+#                                subspecies_match + attr(subspecies_match, "match.length") - 1)
+#
+# # extract variety
+# variety_match <- regexpr("var\\. \\w+", brahms$Taxon)
+# brahms$var <- substring(brahms$Taxon, variety_match,
+#                         variety_match + attr(variety_match, "match.length") - 1)
+#
+# # now save the rest of the string as the author name
+# # Remove species and subspecies information to get author
+# brahms$author <- gsub("^(\\S+ \\S+)", "", brahms$Taxon) # gsub("^(\\w+ \\w+)", "", brahms$Taxon)  # Remove species
+# brahms$author <- gsub("subsp\\. \\w+", "", brahms$author)      # Remove subspecies
+# brahms$author <- gsub("var\\. \\w+", "", brahms$author)
+# brahms$author <- trimws(brahms$author)
+# # brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
+#
+# # edit code to include var and other if needed
+# brahms$full_name = trimws(paste(brahms$species,brahms$subspecies,brahms$var))
+# brahms$full_name = gsub("\\s+"," ",brahms$full_name)
 
-# remove duplicates
-brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 441 duplicates
 
-
-
-
+##############################################################
+###       GET some stats
+##############################################################
 
 # how many species are in the bank?
+length(unique(brahms_wcvp_matched$full_name)) # 46920
 length(unique(brahms_wcvp_matched$taxon_name)) # 45780
+
+#
+length(unique(brahms_unique_wcvp_matched$full_name)) # 46787
+length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811
+
+# how many species are the exceptional species
+length(unique(exceptional$Species_name)) # 23530
+length(unique(exceptional_wcvp_matched$Species_name)) # 22283
+length(unique(exceptional_wcvp_matched$taxon_name)) # 22298
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22250
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48
+
+# how many of the predicted IUCN species were matched
+iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
+iucn_wcvp_matched, paste0(basepath, "iucn_wcvp_matched.csv"))
+
+# how many accessions
+length(unique(brahms_wcvp_matched$AccessionNumber))
+
+length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 #how many collections?
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
