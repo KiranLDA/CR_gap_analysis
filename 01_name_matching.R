@@ -1034,8 +1034,8 @@ test$taxonomic_backbone = "WCVP"
 # test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
 
 #add family
-test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
-                          by=c("wcvp_accepted_id" = "plant_name_id"))
+# test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+#                           by=c("wcvp_accepted_id" = "plant_name_id"))
 
 test = test %>% left_join(rWCVP::taxonomic_mapping,
                           by=c("family" = "family"))
@@ -1139,14 +1139,14 @@ for(problem in problematic){
 problematic = problematic[!(problematic %in% wfo_match)]
 
 # see how many species were matched to different categories
-length(obvious) # 51
-length(accepted) # 0
-length(split) # 0
-length(synonym) # 5
-length(homotypic) # 0
-length(diff_author) # 0
-length(wfo_match) # 51
-length(problematic) # 35
+length(obvious) #
+length(accepted) #
+length(split) #
+length(synonym) #
+length(homotypic) #
+length(diff_author) #
+length(wfo_match) #
+length(problematic) #
 
 
 
