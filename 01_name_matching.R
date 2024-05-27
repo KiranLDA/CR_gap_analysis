@@ -374,6 +374,7 @@ for(problem in problematic){
 }
 
 problematic = problematic[!(problematic %in% wfo_match)]
+test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
 length(obvious) # 1567
@@ -620,6 +621,8 @@ for(problem in problematic){
 }
 
 problematic = problematic[!(problematic %in% wfo_match)]
+test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
+
 
 # see how many species were matched to different categories
 length(obvious) # 51
@@ -849,6 +852,7 @@ for(problem in problematic){
 }
 
 problematic = problematic[!(problematic %in% wfo_match)]
+test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
 length(obvious) # 1976
@@ -1044,7 +1048,7 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 # now check them out on WFO
 match = test[test$scientificName %in% problematic,]
 
-pb_sp = WorldFlora::WFO.match(spec.data = match$accepted_name, WFO.data=WFO.data, counter=1, verbose=TRUE)
+pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
 # write.csv(pb_sp, paste0(basepath, "iucn_predictions_wfo_matched.csv"))
 
 
@@ -1137,6 +1141,7 @@ for(problem in problematic){
 }
 
 problematic = problematic[!(problematic %in% wfo_match)]
+test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
 length(obvious) # 10238

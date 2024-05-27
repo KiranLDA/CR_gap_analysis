@@ -85,10 +85,13 @@ length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from W
 # how many of the predicted IUCN species were matched
 length(unique(iucn_predictions$taxon_name)) # 328553 all names before matching
 length(unique(iucn_CR_predictions$taxon_name)) # 4812 CR before matching
-length(unique(iucn_CR_predictions_wcvp_matched$scientificName)) # 4802 were matched
-length(unique(iucn_CR_predictions_wcvp_matched$taxon_name)) # 4800 to this many new names
+length(unique(iucn_CR_predictions_wcvp_matched$scientificName)) # 4812 were matched
+length(unique(iucn_CR_predictions_wcvp_matched$taxon_name)) # 4810 to this many new names
 length(unique(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))) # 4802 this many from WCVP
-length(unique(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 0 from WFO
+length(unique(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 10 from WFO
+
+unique(iucn_CR_predictions_wcvp_matched$match_logic) # 4800 to this many new names
+unique(iucn_wcvp_matched$match_logic)
 
 
 # how many species are the exceptional species
