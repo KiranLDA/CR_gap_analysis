@@ -10,6 +10,60 @@ library(cowplot)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
+#####  PIE CHART    ######################################################################################
+
+# Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
+
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
+spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
+spp_banked_recalcitrant$labels = paste0( spp_banked_recalcitrant$category, " (", spp_banked_recalcitrant$predictions,")")
+
+# bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
+
+# Some are replicated but they are species that have bee split
+length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
+length(spp_banked_recalcitrant$taxon_name) # 5717
+
+pie_data = spp_banked_recalcitrant %>% count(labels)
+pie_data = pie_data[c(1,2,6,7,4,5,8,9,3,10),]
+par(mar = c(0,0,1,4))
+pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
+    col=c("darkolivegreen3","darkolivegreen4",
+          "darkgoldenrod1","darkgoldenrod3",
+          "chocolate1","chocolate3",
+          "brown3","brown4",
+          "black", "grey"))
+
+
+#####  PIE CHART    ######################################################################################
+# bankable vs banked
+
+
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
+spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
+
+bankable = spp_banked_recalcitrant[spp_banked_recalcitrant$category %in% c("orthodox","banked","unknown"), ]
+bankable$labels = paste(bankable$category, bankable$predictions)
+
+# bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
+# predicted = spp_banked_recalcitrant[spp_banked_recalcitrant$redlistCriteria == "predicted",]
+
+# Some are replicated but they are species that have bee split
+# length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
+# length(spp_banked_recalcitrant$taxon_name) # 5717
+
+
+pie_data = bankable %>% count(labels)
+par(mar = c(0,0,1,4))
+pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n) , cex=.75,
+    col=c("darkolivegreen3","darkolivegreen4",
+          "darkgoldenrod1","darkgoldenrod3", "grey"))
+
+
+
+
 
 
 #######   FUNCTION   ##################################################################################
@@ -56,7 +110,6 @@ colmat<-function(nquantiles=4, upperleft=rgb(0,150,235, maxColorValue=255),
 
 #########################################################################################################
 
-
 ############# GET THE WORLD MAP  DATA #######################################################################
 
 world <- sf::st_as_sf(world(path="."))
@@ -100,6 +153,15 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Russia
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Yugoslavia"] = "Bosnia and Herzegovina"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "San-Marino"] = "Italy"
 
+##### SUBSET THE CR SPECIES ###################################################################
+
+# find the MSB species that are CR endangered
+brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
+summary(brahms_wcvp_matched$CR)
+
+brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
+dim(brahms_CR)
+
 
 
 
@@ -128,14 +190,6 @@ for (country in unmatched){
 # [1] "FYROM"
 
 
-##### SUBSET THE CR SPECIES ###################################################################
-
-# find the MSB species that are CR endangered
-brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
-summary(brahms_wcvp_matched$CR)
-
-brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
-dim(brahms_CR)
 
 ###### ESTIMATE HOW MANY COUNTRIES HAVE ENOUGH SEEDS   ############################################################
 
@@ -384,7 +438,7 @@ country_counts_map.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 # write.csv(grid.DT, "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/darkspots/prep/REVISION_1/gridDT.csv")
-grid.DT = read.csv(paste0(spatial_path, "gridDT.csv"))
+grid.DT = read.csv(paste0(basepath, "gridDT.csv"))
 grid.DT <- data.table::as.data.table(grid.DT)
 
 #### Format the projected data ready for plotting  ################################
@@ -404,7 +458,7 @@ country_counts_map.prj$sum_accessions[which(is.na(country_counts_map.prj$sum_acc
 
 
 # values
-dim=4
+dim=3
 # col.matrix<-colmat(nquantiles=dim,
 #                    upperleft= "#6eabbd", #rgb(0,150,235, maxColorValue=255),
 #                    upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
@@ -477,7 +531,7 @@ data <- bi_class(country_counts_map.prj,
 
 # create map
 map <- ggplot() +
-  geom_point( data= data,
+  geom_point( data = data,
               aes(color =  bi_class, #fill = bi_class,
                   geometry = geometry),
               size = 2,
@@ -554,30 +608,4 @@ country_counts_map.prj$CR_species[i] = length(which(checklist$taxon_name %in% sp
 country_counts_map.prj$CR_banked_somewhere[i] = length(which(checklist$taxon_name %in% brahms_CR$taxon_name))
 country_counts_map.prj$CR_banked_from_country[i] =
 
-
-#####  PIE CHART    ######################################################################################
-
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
-
-
-
-bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
-
-
-# Some are replicated but they are species that have bee split
-length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
-length(spp_banked_recalcitrant$taxon_name) # 5717
-
-spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
-spp_banked_recalcitrant$labels = paste( spp_banked_recalcitrant$category, "-", spp_banked_recalcitrant$predictions)
-pie_data = spp_banked_recalcitrant %>% count(labels)
-pie_data = pie_data[c(1,2,6,7,4,5,8,9,3,10),]
-par(mar = c(0,0,1,4))
-pie(pie_data$n, pie_data$labels, cex=.75,
-    col=c("darkolivegreen3","darkolivegreen4",
-          "darkgoldenrod1","darkgoldenrod3",
-          "chocolate1","chocolate3",
-          "brown3","brown4",
-          "black", "grey"))
 
