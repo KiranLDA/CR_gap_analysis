@@ -1,6 +1,4 @@
 
-
-
 library(shiny)
 library(dplyr)
 
@@ -247,6 +245,18 @@ brahms_germination_wcvp_matched$year_index = ifelse(is.na(brahms_germination_wcv
 
 summary(as.factor(brahms_germination_wcvp_matched$year_index))
 
+
+############################################################
+##     Combine for information index    ######################
+############################################################
+brahms_germination_wcvp_matched$information_index = (brahms_germination_wcvp_matched$year_index +
+                                                        brahms_germination_wcvp_matched$taxonomy_index +
+                                                        brahms_germination_wcvp_matched$geographic_index)
+brahms_germination_wcvp_matched$information_index = brahms_germination_wcvp_matched$information_index/3
+
+mean(brahms_germination_wcvp_matched$information_index) #  0.9577986
+
+
 #########################################################################################
 # GET THE VIABILITY INDEX   #############################################################
 #########################################################################################
@@ -264,7 +274,7 @@ brahms_germination_wcvp_matched$count_index = 0
 # name matched
 brahms_germination_wcvp_matched$CurrentSeedQuantity[brahms_germination_wcvp_matched$CurrentSeedQuantity == 0] = NA
 brahms_germination_wcvp_matched$count_index = ifelse(is.na(brahms_germination_wcvp_matched$CurrentSeedQuantity),
-                                                    brahms_germination_wcvp_matched$count_index,
+                                                    0,
                                                     1)
 
 summary(as.factor(brahms_germination_wcvp_matched$count_index))
@@ -305,6 +315,17 @@ brahms_germination_wcvp_matched$germination_index[is.na(brahms_germination_wcvp_
 summary(as.factor(brahms_germination_wcvp_matched$germination_index))
 
 
+############################################################
+##     Combine for Viability index    ######################
+############################################################
+brahms_germination_wcvp_matched$viability_index = (brahms_germination_wcvp_matched$count_index +
+                                                       brahms_germination_wcvp_matched$adjcount_index +
+                                                       brahms_germination_wcvp_matched$germination_index)
+brahms_germination_wcvp_matched$viability_index = brahms_germination_wcvp_matched$viability_index/3
+
+mean(brahms_germination_wcvp_matched$viability_index) #  0.3493124
+
+
 #########################################################################################
 # GET THE GENETIC DIVERSITY INDEX   #####################################################
 #########################################################################################
@@ -322,13 +343,13 @@ summary(as.factor(brahms_germination_wcvp_matched$germination_index))
 # 0 when no information available.
 
 
-# name a germination test
-brahms_germination_wcvp_matched$cultivation_index = ifelse(brahms_germination_wcvp_matched$CultivatedFlag >= "True",
+# If it comes from a cultivated plant
+brahms_germination_wcvp_matched$cultivation_index = ifelse(brahms_germination_wcvp_matched$CultivatedFlag == "True",
                                                            1,0)
 # no information
-brahms_germination_wcvp_matched$germination_index[is.na(brahms_germination_wcvp_matched$germination_index)] = 0
+brahms_germination_wcvp_matched$cultivation_index[is.na(brahms_germination_wcvp_matched$cultivation_index)] = 0
 
-summary(as.factor(brahms_germination_wcvp_matched$germination_index))
+summary(as.factor(brahms_germination_wcvp_matched$cultivation_index))
 
 #####################################
 ####      ex situ INDEX     #########
@@ -361,12 +382,72 @@ brahms_germination_wcvp_matched$exsitu_index = ifelse(brahms_germination_wcvp_ma
 brahms_germination_wcvp_matched$exsitu_index = ifelse(brahms_germination_wcvp_matched$NumberPlantsLocated == "",
                                                            brahms_germination_wcvp_matched$exsitu_index + 0,
                                                            brahms_germination_wcvp_matched$exsitu_index + 0.5)
-
+brahms_germination_wcvp_matched$exsitu_index = ifelse(is.na(brahms_germination_wcvp_matched$exsitu_index),
+                                                      0,brahms_germination_wcvp_matched$exsitu_index)
 summary(as.factor(brahms_germination_wcvp_matched$exsitu_index))
 
+############################################################
+##     Combine for genetic index    ######################
+############################################################
+brahms_germination_wcvp_matched$genetic_index = (brahms_germination_wcvp_matched$cultivation_index +
+                                                     brahms_germination_wcvp_matched$exsitu_index)
+brahms_germination_wcvp_matched$genetic_index = brahms_germination_wcvp_matched$genetic_index/2
+
+mean(brahms_germination_wcvp_matched$genetic_index) #  0.1822117
 
 
 
 
+#####################################################
+####      Get stats                         #########
+#####################################################
+
+mean(brahms_germination_wcvp_matched$information_index) #  0.9577986
+mean(brahms_germination_wcvp_matched$viability_index) #  0.3493124
+mean(brahms_germination_wcvp_matched$genetic_index) #  0.1822117
 
 
+
+######################################
+####   Get Targets       #############
+######################################
+
+# Target 1 aims to preserve at least one valid collection with 1050 seeds
+# for all CR plants. The term “valid collection” is used to define a collection
+# that is representative of the genetic diversity of the sampled population
+# (see more details below). Target 1 allows long term storage as well as the
+# application of species recovery programmes in extreme situations (e.g.,
+# after extinction in the wild). An adapted Target 1 is proposed when
+# 1050 seeds is reached when accounting for all valid collections for a
+# single species. Target 2 is achieved when a CR species has valid ex situ
+# collections which are representative of the natural distribution range of
+# each species. For those species which were assigned the CR category due to
+# criterium B of the IUCN (i.e., Extent of occurrence (EOO) < 100 km2 (B1),
+# or with an Area of occupancy (AOO) < 10 km² (B2)), one collection would
+# achieve this target.
+
+brahms_germination_wcvp_matched$Target_1 = ifelse(brahms_germination_wcvp_matched$AdjustedSeedQuantity >= 1050,
+                                                  1,0)
+brahms_germination_wcvp_matched$Target_1[is.na(brahms_germination_wcvp_matched$Target_1)] = 0
+
+# find species listed based on their range criteria
+iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
+                             grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)))
+colnames(iucn_dict) = c("taxon_name","Target_2")
+
+
+brahms_germination_wcvp_matched = brahms_germination_wcvp_matched %>%
+  left_join(iucn_dict, by= c("taxon_name"),
+            relationship = "many-to-many")
+
+head(brahms_germination_wcvp_matched)
+
+# grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)
+# ifelse("B1" %in% iucn_wcvp_matched$redlistCriteria[1] ,1,0)
+# grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)
+# unlist(lapply(iucn_wcvp_matched$redlistCriteria, function(x){ifelse("B1" %in% x,1,0)}))
+
+######################################################################################################################
+# Save
+write.csv(brahms_germination_wcvp_matched, paste0(basepath,"brahms_indexes_targets.csv"))
+######################################################################################################################
