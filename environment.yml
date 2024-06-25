@@ -1,0 +1,4 @@
+name: test-export
+channels:
+  - defaults
+prefix: C:\Users\kdh10kg\AppData\Local\R-MINI~1\envs\test-export
