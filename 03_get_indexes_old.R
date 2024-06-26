@@ -6,60 +6,56 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 ###### Find the CR species in the dataset ##################################################################
-#
-# #load data from previous session
-#
-# #iucn redlist data
-# iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
-# iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-#
-# # the MSB data
-# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-# brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
-#
-# # the exceptional species )recalcitrant
-# exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
-# exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
-#
-# # species with their IUCN predictions
-# iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-# iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
-# iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
-# iucn_CR_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]# keep only the CR ones
-# iucn_CR_predictions_wcvp_matched = iucn_CR_predictions_wcvp_matched[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in% iucn_wcvp_matched$taxon_name)),]# keep only the ones that aren't already in IUCN
-# iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$wcvp_ipni_id %in%
-#                                                       iucn_wcvp_matched$wcvp_ipni_id))]
-# iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in%
-#                                                       iucn_wcvp_matched$taxon_name))]
-#
-# # wcvp data
-# wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-# wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-#
-# # combined IUCN data with banked and unbanked and CR categories
-# iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-#
-# seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
-# seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
-#
-# seed_data_to_add_2 <- read.csv(paste0(basepath, "seedcounts2_2024-05-28.csv"))
-# seed_data_to_add_2 = seed_data_to_add_2[!(duplicated(seed_data_to_add_2$AccessionNumber)),]
-#
-#
-#
-# # germination test data
-# germination <- read.csv(paste0(basepath, "germination_test_2024-05-28.csv"))
-#
-# # Banked IUCN
-# iucn_banked <- iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),]
-# iucn_banked$taxon_name
-#
-# ####################################################################
-# get the brahms data
-site_counts = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+
+#load data from previous session
+
+#iucn redlist data
+iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
+iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+
+# the MSB data
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+
+# the exceptional species )recalcitrant
+exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
+exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
+
+# species with their IUCN predictions
+iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
+iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
+iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
+iucn_CR_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]# keep only the CR ones
+iucn_CR_predictions_wcvp_matched = iucn_CR_predictions_wcvp_matched[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in% iucn_wcvp_matched$taxon_name)),]# keep only the ones that aren't already in IUCN
+iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$wcvp_ipni_id %in%
+                                                      iucn_wcvp_matched$wcvp_ipni_id))]
+iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in%
+                                                      iucn_wcvp_matched$taxon_name))]
+
+# wcvp data
+wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
+# combined IUCN data with banked and unbanked and CR categories
+iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+
+seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
+seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
+
+seed_data_to_add_2 <- read.csv(paste0(basepath, "seedcounts2_2024-05-28.csv"))
+seed_data_to_add_2 = seed_data_to_add_2[!(duplicated(seed_data_to_add_2$AccessionNumber)),]
 
 
-# # Combine the earthcape and brahms online (data warehouse) data
+
+# germination test data
+germination <- read.csv(paste0(basepath, "germination_test_2024-05-28.csv"))
+
+# Banked IUCN
+iucn_banked <- iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),]
+iucn_banked$taxon_name
+
+####################################################################
+# Combine the earthcape and brahms online (data warehouse) data
 
 cultivated <- read.csv(paste0(basepath, "cultivated_2024-05-28.csv"))
 cultivated = cultivated[!(duplicated(cultivated$AccessionNumber)),]
@@ -68,7 +64,7 @@ cultivated2 = read.csv(paste0(basepath, "ICMS_cultivated_26_06_24.csv"))
 cultivated2$AccessionNumber = sapply(1:nrow(cultivated2),
                                      function(x){as.character(as.numeric(strsplit(cultivated2$Catalogue.Number[x], "K:MSB-")[[1]][2]))})
 cultivated = cultivated %>% left_join(cultivated2[,c("AccessionNumber", "Cultivated", "Derived.From", "Cultivated.Isolation.Technique")],
-                                      by = c("AccessionNumber" = "AccessionNumber"))
+                                  by = c("AccessionNumber" = "AccessionNumber"))
 
 cultivated$Cultivated = ifelse(is.na(cultivated$Cultivated),FALSE,TRUE)
 cultivated$CultivatedFlag = ifelse(cultivated$CultivatedFlag == "True", TRUE, FALSE)
@@ -78,12 +74,8 @@ cultivated$CultivatedAll = ifelse((cultivated$Cultivated | cultivated$Cultivated
 cbind(cultivated$Cultivated, cultivated$CultivatedFlag, cultivated$CultivatedAll)
 
 
-site_counts = site_counts %>% left_join(cultivated[,c("AccessionNumber","CultivatedFlag","ProjectName",
-                                                      "ImageCount","Cultivated" ,"Derived.From","Cultivated.Isolation.Technique",
-                                                      "CultivatedAll" )],
-                                        by = c("ACCESSION" =  "AccessionNumber"))
-
-
+###
+Site_counts = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
 
 # "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
 
@@ -152,15 +144,8 @@ germination_last_test = read.csv(paste0(basepath, "germination_last_test.csv"))
 # write.csv(brahms_germination_wcvp_matched,
 #           paste0(basepath, "brahms_germination_wcvp_matched.csv"))
 
-site_counts = site_counts %>% left_join(germination_last_test[,c("PassFail", "Result",
-                                                          "DateStarted", "AccessionNumber")],
-                                 by= c("ACCESSION" =  "AccessionNumber"))
 
-
-site_counts = site_counts %>% left_join(brahms_wcvp_matched[,c("AccessionNumber","wcvp_accepted_id","taxonomic_backbone",
-                                                 "taxon_name","family","higher","order"  )],
-                                 by= c("ACCESSION" =  "AccessionNumber"))
-# brahms_germination_wcvp_matched = read.csv(paste0(basepath, "brahms_germination_wcvp_matched.csv"))
+brahms_germination_wcvp_matched = read.csv(paste0(basepath, "brahms_germination_wcvp_matched.csv"))
 
 
 
@@ -234,22 +219,22 @@ site_counts = site_counts %>% left_join(brahms_wcvp_matched[,c("AccessionNumber"
 #    - ‘no information’ (0);
 
 # no inforation
-site_counts$geographic_index = 0
+brahms_germination_wcvp_matched$geographic_index = 0
 
 # country
-site_counts$geographic_index = ifelse(is.na(site_counts$COUNTRY),
-                                                          site_counts$geographic_index,
+brahms_germination_wcvp_matched$geographic_index = ifelse(is.na(brahms_germination_wcvp_matched$CountryName),
+                                                          brahms_germination_wcvp_matched$geographic_index,
                                                           0.5)
 # area (locality)
-site_counts$geographic_index = ifelse(is.na(site_counts$LOCNOTES),
-                                                          site_counts$geographic_index,
+brahms_germination_wcvp_matched$geographic_index = ifelse(is.na(brahms_germination_wcvp_matched$LocalityText),
+                                                          brahms_germination_wcvp_matched$geographic_index,
                                                           0.75)
 # coordinates
-site_counts$geographic_index = ifelse(is.na(site_counts$LAT),
-                                                          site_counts$geographic_index,
+brahms_germination_wcvp_matched$geographic_index = ifelse(is.na(brahms_germination_wcvp_matched$Latitude),
+                                                          brahms_germination_wcvp_matched$geographic_index,
                                                           1)
 
-summary(as.factor(site_counts$geographic_index))
+summary(as.factor(brahms_germination_wcvp_matched$geographic_index))
 
 #####################################
 ####    taxonomy INDEX      #########
@@ -259,14 +244,14 @@ summary(as.factor(site_counts$geographic_index))
 #      - ‘not verified’ or ‘no information’ (0);
 
 # no inforation
-site_counts$taxonomy_index = 0
+brahms_germination_wcvp_matched$taxonomy_index = 0
 
 # name matched
-site_counts$taxonomy_index = ifelse(is.na(site_counts$taxonomic_backbone),
-                                                        site_counts$taxonomy_index,
-                                                        1)
+brahms_germination_wcvp_matched$taxonomy_index = ifelse(is.na(brahms_germination_wcvp_matched$taxonomic_backbone),
+                                                          brahms_germination_wcvp_matched$taxonomy_index,
+                                                          1)
 
-summary(as.factor(site_counts$taxonomy_index))
+summary(as.factor(brahms_germination_wcvp_matched$taxonomy_index))
 
 #####################################
 ####    year INDEX          #########
@@ -276,27 +261,25 @@ summary(as.factor(site_counts$taxonomy_index))
 #     - ‘no information’ (0).
 
 # no inforation
-site_counts$year_index = 0
+brahms_germination_wcvp_matched$year_index = 0
 
-# name matched  # DONORDATE
-site_counts$year_index = ifelse(is.na(site_counts$DateCollected),
-                                                    site_counts$year_index,
-                                                    1)
+# name matched
+brahms_germination_wcvp_matched$year_index = ifelse(is.na(brahms_germination_wcvp_matched$DateCollected),
+                                                        brahms_germination_wcvp_matched$year_index,
+                                                        1)
 
-summary(as.factor(site_counts$year_index))
+summary(as.factor(brahms_germination_wcvp_matched$year_index))
 
 
 ############################################################
 ##     Combine for information index    ######################
 ############################################################
-site_counts$information_index = (site_counts$year_index +
-                                   site_counts$taxonomy_index +
-                                   site_counts$geographic_index)
+brahms_germination_wcvp_matched$information_index = (brahms_germination_wcvp_matched$year_index +
+                                                        brahms_germination_wcvp_matched$taxonomy_index +
+                                                        brahms_germination_wcvp_matched$geographic_index)
+brahms_germination_wcvp_matched$information_index = brahms_germination_wcvp_matched$information_index/3
 
-
-site_counts$information_index = site_counts$information_index/3
-
-mean(site_counts$information_index) #  0.9577986
+mean(brahms_germination_wcvp_matched$information_index) #  0.9577986
 
 
 #########################################################################################
@@ -311,15 +294,15 @@ mean(site_counts$information_index) #  0.9577986
 #       -‘no information’ (0);
 
 # no inforation
-site_counts$count_index = 0
+brahms_germination_wcvp_matched$count_index = 0
 
 # name matched
-site_counts$CURRCOUNT[site_counts$CURRCOUNT == 0] = NA
-site_counts$count_index = ifelse(is.na(site_counts$CURRCOUNT),
-                                                     0,
-                                                     1)
+brahms_germination_wcvp_matched$CurrentSeedQuantity[brahms_germination_wcvp_matched$CurrentSeedQuantity == 0] = NA
+brahms_germination_wcvp_matched$count_index = ifelse(is.na(brahms_germination_wcvp_matched$CurrentSeedQuantity),
+                                                    0,
+                                                    1)
 
-summary(as.factor(site_counts$count_index))
+summary(as.factor(brahms_germination_wcvp_matched$count_index))
 
 
 #####################################
@@ -330,15 +313,15 @@ summary(as.factor(site_counts$count_index))
 #       - ‘no information’ (0);
 
 # no information
-site_counts$adjcount_index = 0
+brahms_germination_wcvp_matched$adjcount_index = 0
 
 # name matched
-site_counts$ADJSTCOUNT[site_counts$ADJSTCOUNT == 0] = NA
-site_counts$adjcount_index = ifelse(is.na(site_counts$ADJSTCOUNT),
-                                                        site_counts$adjcount_index,
-                                                        1)
+brahms_germination_wcvp_matched$AdjustedSeedQuantity[brahms_germination_wcvp_matched$AdjustedSeedQuantity == 0] = NA
+brahms_germination_wcvp_matched$adjcount_index = ifelse(is.na(brahms_germination_wcvp_matched$AdjustedSeedQuantity),
+                                                     brahms_germination_wcvp_matched$adjcount_index,
+                                                     1)
 
-summary(as.factor(site_counts$adjcount_index))
+summary(as.factor(brahms_germination_wcvp_matched$adjcount_index))
 
 #####################################
 ####  germination INDEX     #########
@@ -349,23 +332,23 @@ summary(as.factor(site_counts$adjcount_index))
 #   - ‘no test information available’ (0).
 
 # name a germination test
-site_counts$germination_index = ifelse(site_counts$DateStarted >= 2009,
+brahms_germination_wcvp_matched$germination_index = ifelse(brahms_germination_wcvp_matched$DateStarted >= 2009,
                                                            1,0.5)
 # no information
-site_counts$germination_index[is.na(site_counts$germination_index)] = 0
+brahms_germination_wcvp_matched$germination_index[is.na(brahms_germination_wcvp_matched$germination_index)] = 0
 
-summary(as.factor(site_counts$germination_index))
+summary(as.factor(brahms_germination_wcvp_matched$germination_index))
 
 
 ############################################################
 ##     Combine for Viability index    ######################
 ############################################################
-site_counts$viability_index = (site_counts$count_index +
-                                 site_counts$adjcount_index +
-                                 site_counts$germination_index)
-site_counts$viability_index = site_counts$viability_index/3
+brahms_germination_wcvp_matched$viability_index = (brahms_germination_wcvp_matched$count_index +
+                                                       brahms_germination_wcvp_matched$adjcount_index +
+                                                       brahms_germination_wcvp_matched$germination_index)
+brahms_germination_wcvp_matched$viability_index = brahms_germination_wcvp_matched$viability_index/3
 
-mean(site_counts$viability_index) #  0.3493124
+mean(brahms_germination_wcvp_matched$viability_index) #  0.3493124
 
 
 #########################################################################################
@@ -386,12 +369,12 @@ mean(site_counts$viability_index) #  0.3493124
 
 
 # If it comes from a cultivated plant
-site_counts$cultivation_index = ifelse(site_counts$CultivatedFlag == "True",
+brahms_germination_wcvp_matched$cultivation_index = ifelse(brahms_germination_wcvp_matched$CultivatedFlag == "True",
                                                            1,0)
 # no information
-site_counts$cultivation_index[is.na(site_counts$cultivation_index)] = 0
+brahms_germination_wcvp_matched$cultivation_index[is.na(brahms_germination_wcvp_matched$cultivation_index)] = 0
 
-summary(as.factor(site_counts$cultivation_index))
+summary(as.factor(brahms_germination_wcvp_matched$cultivation_index))
 
 #####################################
 ####      ex situ INDEX     #########
@@ -413,29 +396,29 @@ summary(as.factor(site_counts$cultivation_index))
 # ‘Plant total’ or ‘Plant seed’ (0.2),
 # ‘no info’ (0).
 
-data.frame(cbind(site_counts$NumberPlantsSampled,
-                 site_counts$NumberPlantsLocated,
-                 site_counts$exsitu_index))
+data.frame(cbind(brahms_germination_wcvp_matched$NumberPlantsSampled,
+      brahms_germination_wcvp_matched$NumberPlantsLocated,
+      brahms_germination_wcvp_matched$exsitu_index))
 
 
 # name a germination test
-site_counts$exsitu_index = ifelse(site_counts$NumberPlantsSampled == "",
-                                                      0,0.5)
-site_counts$exsitu_index = ifelse(site_counts$NumberPlantsLocated == "",
-                                                      site_counts$exsitu_index + 0,
-                                                      site_counts$exsitu_index + 0.5)
-site_counts$exsitu_index = ifelse(is.na(site_counts$exsitu_index),
-                                                      0,site_counts$exsitu_index)
-summary(as.factor(site_counts$exsitu_index))
+brahms_germination_wcvp_matched$exsitu_index = ifelse(brahms_germination_wcvp_matched$NumberPlantsSampled == "",
+                                                           0,0.5)
+brahms_germination_wcvp_matched$exsitu_index = ifelse(brahms_germination_wcvp_matched$NumberPlantsLocated == "",
+                                                           brahms_germination_wcvp_matched$exsitu_index + 0,
+                                                           brahms_germination_wcvp_matched$exsitu_index + 0.5)
+brahms_germination_wcvp_matched$exsitu_index = ifelse(is.na(brahms_germination_wcvp_matched$exsitu_index),
+                                                      0,brahms_germination_wcvp_matched$exsitu_index)
+summary(as.factor(brahms_germination_wcvp_matched$exsitu_index))
 
 ############################################################
 ##     Combine for genetic index    ######################
 ############################################################
-site_counts$genetic_index = (site_counts$cultivation_index +
-                                                   site_counts$exsitu_index)
-site_counts$genetic_index = site_counts$genetic_index/2
+brahms_germination_wcvp_matched$genetic_index = (brahms_germination_wcvp_matched$cultivation_index +
+                                                     brahms_germination_wcvp_matched$exsitu_index)
+brahms_germination_wcvp_matched$genetic_index = brahms_germination_wcvp_matched$genetic_index/2
 
-mean(site_counts$genetic_index) #  0.1822117
+mean(brahms_germination_wcvp_matched$genetic_index) #  0.1822117
 
 
 
@@ -444,9 +427,9 @@ mean(site_counts$genetic_index) #  0.1822117
 ####      Get stats                         #########
 #####################################################
 
-mean(site_counts$information_index) #  0.9577986
-mean(site_counts$viability_index) #  0.3493124
-mean(site_counts$genetic_index) #  0.1822117
+mean(brahms_germination_wcvp_matched$information_index) #  0.9577986
+mean(brahms_germination_wcvp_matched$viability_index) #  0.3493124
+mean(brahms_germination_wcvp_matched$genetic_index) #  0.1822117
 
 
 
@@ -468,9 +451,9 @@ mean(site_counts$genetic_index) #  0.1822117
 # or with an Area of occupancy (AOO) < 10 km² (B2)), one collection would
 # achieve this target.
 
-site_counts$Target_1 = ifelse(site_counts$AdjustedSeedQuantity >= 1050,
+brahms_germination_wcvp_matched$Target_1 = ifelse(brahms_germination_wcvp_matched$AdjustedSeedQuantity >= 1050,
                                                   1,0)
-site_counts$Target_1[is.na(site_counts$Target_1)] = 0
+brahms_germination_wcvp_matched$Target_1[is.na(brahms_germination_wcvp_matched$Target_1)] = 0
 
 # find species listed based on their range criteria
 iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
@@ -478,11 +461,11 @@ iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
 colnames(iucn_dict) = c("taxon_name","Target_2")
 
 
-site_counts = site_counts %>%
+brahms_germination_wcvp_matched = brahms_germination_wcvp_matched %>%
   left_join(iucn_dict, by= c("taxon_name"),
             relationship = "many-to-many")
 
-head(site_counts)
+head(brahms_germination_wcvp_matched)
 
 # grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)
 # ifelse("B1" %in% iucn_wcvp_matched$redlistCriteria[1] ,1,0)
@@ -491,5 +474,5 @@ head(site_counts)
 
 ######################################################################################################################
 # Save
-write.csv(site_counts, paste0(basepath,"brahms_indexes_targets.csv"))
+write.csv(brahms_germination_wcvp_matched, paste0(basepath,"brahms_indexes_targets.csv"))
 ######################################################################################################################
