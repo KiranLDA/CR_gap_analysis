@@ -1162,7 +1162,7 @@ length(unique(iucn_predictions_wcvp_matched$scientificName))-length(unique(iucn_
 write.csv(iucn_predictions_wcvp_matched, paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
 
 ##########################################################################################
-##############           IUCN BRAHMS       ##############################
+##############           IUCN BRAHMS                        ##############################
 ##########################################################################################
 
 # NAME MATCH THE DATA NAOMI SENT
@@ -1317,65 +1317,6 @@ for (du in dupl_nam){
 }
 
 
-
-# some subspecies and variety names are not recognised - use the species name instead and rerun rWCVP
-
-# # find names that didn't match and associate them with the author
-# subset = data.frame(test[test$full_name %in% problematic,])
-# subset$diff_name = ifelse(subset$full_name != subset$species, T, F)
-# subset = subset[which(subset$diff_name == T),]
-# species_match = unique(subset$full_name)
-#
-# # Find them on wcvp
-# for (nami in species_match){
-#   print(nami)
-#   temp = test[test$full_name == nami,]
-#   temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-#                            name_col = "species")
-#   temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                               by=c("wcvp_accepted_id" = "plant_name_id"))
-#   i=1
-#   if (nrow(temp2)>1){
-#     i= which(temp2$wcvp_status == "Accepted")
-#   }
-#   test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-#   test$keep[which(test$full_name == nami)[1]] = 1
-# }
-#
-# # the remaining species are species that have been split,
-# # use the country they were collected  to assign the sub species
-# problematic = problematic[!(problematic %in% unique(subset$full_name))]
-# problematic
-# # there are some species that were not duplicated, but that didn't find a match
-# #
-#
-# species_match = c(species_match, test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name])
-#
-# # go through the process again pf selecting the accepted name and synonym
-# for (nami in test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name]){
-#   print(nami)
-#   tryCatch({
-#     temp = test[test$full_name == nami,]
-#     temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-#                              name_col = "species")
-#     temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-#     i=1
-#     if (nrow(temp2)>1){
-#       i = which(temp2$wcvp_status == "Accepted")
-#       if (length(i) == 0) i = which(temp2$wcvp_status == "Synonym")
-#     }
-#     test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-#     test$keep[which(test$full_name == nami)[1]] = 1
-#   }, error = function(e) {
-#     cat("Error occurred for", nami, ":", conditionMessage(e), "\n")
-#   })
-# }
-#
-#
-#
-# problematic = c(problematic, test$full_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
-
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 
 # now keep track how the matching was done and why
@@ -1397,105 +1338,6 @@ test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
 test = test %>% left_join(rWCVP::taxonomic_mapping,
                           by=c("family" = "family"))
 
-#
-# # now check them out on WFO
-# match = test[test$full_name %in% problematic,]
-#
-# pb_sp = WorldFlora::WFO.match(spec.data = match$full_name, WFO.data=WFO.data,
-#                               counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "iucn_brahms_wfo_matched.csv"))
-#
-#
-# wfo_match = c()
-#
-# for(problem in problematic){
-#   print(problem)
-#   # test[test$scientificName %in% problem,]
-#   sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
-#   sp = sp[which(!duplicated(sp$scientificNameID)),]
-#
-#   if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
-#
-#     to_add = test[test$scientificName %in% problem,][1,]
-#
-#     if(any(sp$taxonomicStatus == "Accepted" & !is.na(sp$taxonomicStatus))){
-#       if (length(which(sp$taxonomicStatus == "Accepted")) == 1){
-#
-#
-#         wfo_match = c(wfo_match, problem)
-#
-#         i = which(sp$taxonomicStatus== "Accepted")
-#         to_add$keep = 1
-#         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-#         to_add$match_similarity = NA
-#         to_add$match_edit_distance
-#         to_add$wcvp_id = sp$taxonID[i]
-#         to_add$wcvp_name = sp[i,18]
-#         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
-#         to_add$wcvp_rank = sp$taxonRank[i]
-#         to_add$wcvp_status = sp$taxonomicStatus[i]
-#         to_add$wcvp_homotypic = NA
-#         to_add$wcvp_ipni_id = sp$scientificNameID[i]
-#         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-#         to_add$taxon_name  = sp[i,18]
-#         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-#         to_add$accepted_name = TRUE
-#         to_add$match_logic = "accepted"
-#         to_add$family = sp$family[i]
-#         to_add$genus = sp$genus[i]
-#         to_add$taxonomic_backbone = "WFO"
-#         to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
-#         if (is.na( to_add$higher)) {
-#           to_add$higher = sp$majorGroup[i]
-#           to_add$order = sp$majorGroup[i]
-#         }
-#
-#         # accepted = c(accepted, problematic)
-#
-#         test = rbind(test, to_add)
-#       } else { # if there is more than 1
-#
-#         to_add = to_add[rep(seq_len(nrow(to_add)), each = length(which(sp$taxonomicStatus == "Accepted"))), ]
-#
-#         wfo_match = c(wfo_match, problem)
-#
-#         i = which(sp$taxonomicStatus== "Accepted")
-#         to_add$keep = 1
-#         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-#         to_add$match_similarity = NA
-#         to_add$match_edit_distance = NA
-#         to_add$wcvp_id = sp$taxonID[i]
-#         to_add$wcvp_name = sp[i,18]
-#         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
-#         to_add$wcvp_rank = sp$taxonRank[i]
-#         to_add$wcvp_status = sp$taxonomicStatus[i]
-#         to_add$wcvp_homotypic = NA
-#         to_add$wcvp_ipni_id = sp$scientificNameID[i]
-#         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-#         to_add$taxon_name  = sp[i,18]
-#         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-#         to_add$accepted_name = TRUE
-#         to_add$match_logic = "name_split"
-#         to_add$taxonomic_backbone = "WFO"
-#         to_add$family = sp$family[i]
-#         to_add$genus = sp$genus[i]
-#         to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
-#         if (any(is.na(to_add$higher))) {
-#           to_add$higher = sp$majorGroup[i]
-#           to_add$order = sp$majorGroup[i]
-#         }
-#
-#         # accepted = c(accepted, problematic)
-#
-#         test = rbind(test, to_add)
-#       }
-#
-#     }
-#   }
-# }
-#
-# problematic = problematic[!(problematic %in% wfo_match)]
-# test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
 length(obvious) # 1
@@ -1508,17 +1350,6 @@ length(wfo_match) # 0
 length(problematic) # 0
 
 
-
-# subset = data.frame(test[test$subspecies_name %in% problematic,])
-# for (nami in unique(subset$subspecies_name)){
-#   temp = data.frame(test[test$subspecies_name == nami,])
-#   if (any(temp$accepted_name == "Accepted")){
-#   # find the countries the species is collected from in Brahms
-#   countries = brahms[brahms$subspecies_name == nami, "CountryName"]
-#   spp_codes = subset$wcvp_accepted_id[subset$subspecies_name ==  nami]
-#   wcvp_geo = wcvp_countries[wcvp_countries$plant_name_id %in% spp_codes,]
-#   }
-# }
 
 ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
 
