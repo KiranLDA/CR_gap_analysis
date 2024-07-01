@@ -87,6 +87,7 @@ site_counts = site_counts %>% left_join(cultivated[,c("AccessionNumber","Cultiva
                                                       "CultivatedAll" )],
                                         by = c("ACCESSION" =  "AccessionNumber"))
 
+# "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
 
 
 # "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
