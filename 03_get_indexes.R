@@ -11,10 +11,10 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 #
 # #iucn redlist data
 # iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
-# iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 #
 # # the MSB data
-# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
 #
 # # the exceptional species )recalcitrant
@@ -39,9 +39,9 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 # # combined IUCN data with banked and unbanked and CR categories
 # iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 #
-# seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
-# seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
-#
+seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
+seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
+
 # seed_data_to_add_2 <- read.csv(paste0(basepath, "seedcounts2_2024-05-28.csv"))
 # seed_data_to_add_2 = seed_data_to_add_2[!(duplicated(seed_data_to_add_2$AccessionNumber)),]
 #
@@ -55,9 +55,13 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 # iucn_banked$taxon_name
 #
 # ####################################################################
-# get the brahms data
-site_counts = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
 
+# get the brahms data
+site_counts = read.csv(paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))#"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
+
+# remove thos that aren't in activate use
+site_counts = site_counts[site_counts$TTH != "*",]
 
 # # Combine the earthcape and brahms online (data warehouse) data
 
@@ -157,9 +161,19 @@ site_counts = site_counts %>% left_join(germination_last_test[,c("PassFail", "Re
                                  by= c("ACCESSION" =  "AccessionNumber"))
 
 
-site_counts = site_counts %>% left_join(brahms_wcvp_matched[,c("AccessionNumber","wcvp_accepted_id","taxonomic_backbone",
-                                                 "taxon_name","family","higher","order"  )],
-                                 by= c("ACCESSION" =  "AccessionNumber"))
+site_counts = site_counts %>% left_join(seed_data_to_add_1[,c("AccessionNumber",
+                                                              #"DistributionPolicy",
+                                                              "DateCollected",
+                                                              #"NumberPlantsSampled",
+                                                              #"NumberPlantsLocated",
+                                                              "DateDonated",
+                                                              "DateGermplasmBanked")],
+                                        by= c("ACCESSION" =  "AccessionNumber"))
+
+
+# site_counts = site_counts %>% left_join(brahms_wcvp_matched[,c("AccessionNumber","wcvp_accepted_id","taxonomic_backbone",
+#                                                  "taxon_name","family","higher","order"  )],
+#                                  by= c("ACCESSION" =  "AccessionNumber"))
 # brahms_germination_wcvp_matched = read.csv(paste0(basepath, "brahms_germination_wcvp_matched.csv"))
 
 
@@ -237,15 +251,15 @@ site_counts = site_counts %>% left_join(brahms_wcvp_matched[,c("AccessionNumber"
 site_counts$geographic_index = 0
 
 # country
-site_counts$geographic_index = ifelse(is.na(site_counts$COUNTRY),
+site_counts$geographic_index = ifelse(site_counts$COUNTRY %in% c("?", "Unknown" ),
                                                           site_counts$geographic_index,
                                                           0.5)
 # area (locality)
-site_counts$geographic_index = ifelse(is.na(site_counts$LOCNOTES),
+site_counts$geographic_index = ifelse(site_counts$LOCNOTES == "",
                                                           site_counts$geographic_index,
                                                           0.75)
 # coordinates
-site_counts$geographic_index = ifelse(is.na(site_counts$LAT),
+site_counts$geographic_index = ifelse(site_counts$LAT == 0,
                                                           site_counts$geographic_index,
                                                           1)
 
@@ -296,7 +310,7 @@ site_counts$information_index = (site_counts$year_index +
 
 site_counts$information_index = site_counts$information_index/3
 
-mean(site_counts$information_index) #  0.9577986
+mean(site_counts$information_index) #  0.9258117
 
 
 #########################################################################################
@@ -347,10 +361,13 @@ summary(as.factor(site_counts$adjcount_index))
 #       - ‘recent test’ (1),
 #       - ‘test older than 15 years’ (0.5),
 #   - ‘no test information available’ (0).
+as.Date(site_counts$LASTTEST, format =  "%d/%m/%Y")
 
 # name a germination test
-site_counts$germination_index = ifelse(site_counts$DateStarted >= 2009,
-                                                           1,0.5)
+# site_counts$germination_index = ifelse(site_counts$DateStarted >= 2009,
+#                                                            1,0.5)
+site_counts$germination_index = ifelse(as.numeric(format(as.Date(site_counts$LASTTEST, format =  "%d/%m/%Y"),"%Y")) >= 2009,
+                                       1,0.5)
 # no information
 site_counts$germination_index[is.na(site_counts$germination_index)] = 0
 
@@ -365,7 +382,7 @@ site_counts$viability_index = (site_counts$count_index +
                                  site_counts$germination_index)
 site_counts$viability_index = site_counts$viability_index/3
 
-mean(site_counts$viability_index) #  0.3493124
+mean(site_counts$viability_index) #  0.2844925
 
 
 #########################################################################################
@@ -386,10 +403,15 @@ mean(site_counts$viability_index) #  0.3493124
 
 
 # If it comes from a cultivated plant
-site_counts$cultivation_index = ifelse(site_counts$CultivatedFlag == "True",
-                                                           1,0)
+site_counts$cultivation_index = ifelse(site_counts$CultivatedAll == TRUE,
+                                                           0.5,0)
 # no information
 site_counts$cultivation_index[is.na(site_counts$cultivation_index)] = 0
+
+site_counts$cultivation_index = ifelse(!is.na(site_counts$Derived.From),
+                                       site_counts$cultivation_index + 0.5,
+                                       site_counts$cultivation_index + 0)
+
 
 summary(as.factor(site_counts$cultivation_index))
 
@@ -417,25 +439,55 @@ data.frame(cbind(site_counts$NumberPlantsSampled,
                  site_counts$NumberPlantsLocated,
                  site_counts$exsitu_index))
 
+site_counts$exsitu_index = ifelse((site_counts$PLANTTOTAL != "") &
+                                  (site_counts$PLANTSAMP != "") &
+                                  (!is.na(site_counts$PCSEED)),
+                                  1,
+                                  ifelse((((site_counts$PLANTTOTAL != "") &
+                                           (site_counts$PLANTSAMP != "")) |
+                                           (!is.na(site_counts$PCSEED))),
+                                         0.8,
+                                         ifelse((site_counts$PLANTSAMP != ""),
+                                                0.6,
+                                                ifelse(((site_counts$PLANTTOTAL != "") &
+                                                          (!is.na(site_counts$PCSEED))),
+                                                       0.4,
+                                                       ifelse(((site_counts$PLANTTOTAL != "") |
+                                                                 (!is.na(site_counts$PCSEED))),
+                                                              0.2,
+                                                              0
+                                                              )
+                                                       )
+                                                )
+                                         )
+                                  )
+
+
 
 # name a germination test
-site_counts$exsitu_index = ifelse(site_counts$NumberPlantsSampled == "",
-                                                      0,0.5)
-site_counts$exsitu_index = ifelse(site_counts$NumberPlantsLocated == "",
-                                                      site_counts$exsitu_index + 0,
-                                                      site_counts$exsitu_index + 0.5)
-site_counts$exsitu_index = ifelse(is.na(site_counts$exsitu_index),
-                                                      0,site_counts$exsitu_index)
+# site_counts$exsitu_index = ifelse(site_counts$NumberPlantsSampled == "",
+#                                                       0,0.5)
+# site_counts$exsitu_index = ifelse(site_counts$NumberPlantsLocated == "",
+#                                                       site_counts$exsitu_index + 0,
+#                                                       site_counts$exsitu_index + 0.5)
+# site_counts$exsitu_index = ifelse(is.na(site_counts$exsitu_index),
+#                                                       0,site_counts$exsitu_index)
 summary(as.factor(site_counts$exsitu_index))
 
 ############################################################
 ##     Combine for genetic index    ######################
 ############################################################
-site_counts$genetic_index = (site_counts$cultivation_index +
-                                                   site_counts$exsitu_index)
-site_counts$genetic_index = site_counts$genetic_index/2
-
-mean(site_counts$genetic_index) #  0.1822117
+# site_counts$genetic_index = (site_counts$cultivation_index +
+#                                                    site_counts$exsitu_index)
+# site_counts$genetic_index = site_counts$genetic_index/2
+site_counts$genetic_index = ifelse(site_counts$CultivatedAll == T,
+                                   site_counts$cultivation_index,
+                                   site_counts$exsitu_index)
+site_counts$genetic_index = ifelse(is.na(site_counts$genetic_index),
+                                   site_counts$exsitu_index,
+                                   site_counts$genetic_index)
+mean(site_counts$genetic_index) #  0.2755301
+# summary(site_counts$genetic_index) #  0.2755301
 
 
 
@@ -444,11 +496,14 @@ mean(site_counts$genetic_index) #  0.1822117
 ####      Get stats                         #########
 #####################################################
 
-mean(site_counts$information_index) #  0.9577986
-mean(site_counts$viability_index) #  0.3493124
-mean(site_counts$genetic_index) #  0.1822117
+mean(site_counts$information_index) #  0.9258117
+mean(site_counts$viability_index)   #  0.2844925
+mean(site_counts$genetic_index)     #  0.2755301
 
+site_counts$total_index = ((site_counts$information_index + site_counts$viability_index +
+                              site_counts$genetic_index)/3)
 
+mean(site_counts$total_index)       #  0.4953397
 
 ######################################
 ####   Get Targets       #############
@@ -468,14 +523,18 @@ mean(site_counts$genetic_index) #  0.1822117
 # or with an Area of occupancy (AOO) < 10 km² (B2)), one collection would
 # achieve this target.
 
-site_counts$Target_1 = ifelse(site_counts$AdjustedSeedQuantity >= 1050,
-                                                  1,0)
-site_counts$Target_1[is.na(site_counts$Target_1)] = 0
+site_counts$Target_1 = ifelse(site_counts$ADJSTCOUNT >= 1050,
+                                                  TRUE,FALSE)
+site_counts$Target_1[is.na(site_counts$Target_1)] = FALSE
 
 # find species listed based on their range criteria
 iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
-                             grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)))
-colnames(iucn_dict) = c("taxon_name","Target_2")
+                             iucn_wcvp_matched$redlistCriteria,
+                             grepl("B", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)))
+
+
+
+colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
 
 
 site_counts = site_counts %>%
@@ -491,5 +550,5 @@ head(site_counts)
 
 ######################################################################################################################
 # Save
-write.csv(site_counts, paste0(basepath,"brahms_indexes_targets.csv"))
+write.csv(site_counts, paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 ######################################################################################################################

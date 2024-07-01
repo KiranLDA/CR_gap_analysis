@@ -10,6 +10,10 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 
+# iucn data in the bank with calcualted targets
+indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+
+# seedbank data
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 # make sure only consider predicted that aren't already CR
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
@@ -93,7 +97,7 @@ length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from W
 # how many names have been matched from IUCN predictions
 # how many of the predicted IUCN species were matched
 length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR")])) # 4812
-iucn_CR_predictions = iucn_$taxon_name[which(iucn_predictions$category == "CR")]
+# iucn_CR_predictions = iucn_$taxon_name[which(iucn_predictions$category == "CR")]
 length(unique(iucn_predictions$taxon_name)) # 328553 before matching
 length(unique(iucn_predictions_wcvp_matched$scientificName)) # 5667 were matched
 length(unique(iucn_predictions_wcvp_matched$taxon_name)) # 5654 to this many new names
@@ -177,6 +181,73 @@ length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5702
 
 summary(unique(paste0(iucn_banked_recalitrance$banked, "_",iucn_banked_recalitrance$redlistCriteria == "prediction")))
 summary(iucn_banked_recalitrance$banked)
+
+
+
+#####################################
+### % placed names     ##############
+
+##### CR in the seed bank
+
+length(unique(indexes$ACCESSION)) # 2351
+length(unique(indexes$taxon_name[indexes$accepted_name ==T])) # 2351
+
+# total names
+length(unique(indexes$SPECIES)) #380
+length(unique(indexes$SPECIES[indexes$accepted_name ==T])) #380
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# unplaced
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+length(unique(indexes$SPECIES[which(is.na(indexes$wcvp_accepted_id))]))
+length(unique(indexes$SPECIES[which(is.na(indexes$wcvp_accepted_id))]))/length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
+# 0.002724796
+
+length(unique(iucn_wcvp_matched$scientificName[which(is.na(iucn_wcvp_matched$wcvp_accepted_id))]))/length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
+# 0
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# non homotypic
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Synonym")[!(which(indexes$wcvp_status == "Synonym") %in%
+                                                                                   which(indexes$wcvp_homotypic))]]))
+below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
+above1/below1
+# 0.01907357
+
+
+above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Synonym")[!(which(iucn_wcvp_matched$wcvp_status == "Synonym") %in%
+                                                                                   which(iucn_wcvp_matched$wcvp_homotypic))]]))
+below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
+above2/below2
+# 0.03331408
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# accepted
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Accepted")[!(which(indexes$wcvp_status == "Accepted") %in%
+                                                                                   which(indexes$wcvp_homotypic))]]))
+below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
+above1/below1
+# 0.01907357
+
+
+above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Accepted")[!(which(iucn_wcvp_matched$wcvp_status == "Accepted") %in%
+                                                                                                              which(iucn_wcvp_matched$wcvp_homotypic))]]))
+below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
+above2/below2
+# 0.03331408
+
+
+##################################################################
+# How many of IUCN in bank are storable, etc...
+
+####################################################################################
+### orthodoxy
+####################################################################################
+iucn_storage_behaviour = read.csv(paste0(basepath, "iucn_brahms_indexes_targets.csv"))
+indexes = read.csv(paste0(basepath, "iucn_brahms_indexes_targets.csv"))
 
 
 

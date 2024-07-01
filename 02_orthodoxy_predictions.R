@@ -425,5 +425,27 @@ for (du in dupl_nam){
 test = test[test$keep == 1,]
 write.csv(test,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
+###################################################################################################
+###################################################################################################
+####   MAKE SURE SPECIES IN THE BANK ARE ORTHODOX         #########################################
+###################################################################################################
+###################################################################################################
+
+
+# remove species predicted CR that already have a CR prediction from IUCN
+site_counts = read.csv(paste0(basepath,"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
+predictor = unique(site_counts$taxon_name[!is.na(site_counts$taxon_name)])#[which(!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
+write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE)
+
+#run the shiny seed predictor app
+runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+
+orth = read.csv(paste0(basepath,"Model-results-2024-07-01.csv"))
+test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalcitrance")],
+                          by = c("taxon_name"="Initial_List"))
+
+write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
+
 
 
