@@ -244,10 +244,67 @@ above2/below2
 # How many of IUCN in bank are storable, etc...
 
 ####################################################################################
-### orthodoxy
+### orthodoxy of species in bank
 ####################################################################################
-iucn_storage_behaviour = read.csv(paste0(basepath, "iucn_brahms_indexes_targets.csv"))
-indexes = read.csv(paste0(basepath, "iucn_brahms_indexes_targets.csv"))
+
+which(is.na(iucn_banked_recalitrance$taxon_name))
+
+# get proportions
+prop = iucn_banked_recalitrance$banked_category[!is.na(iucn_banked_recalitrance$banked_category)]
+summary(factor(prop))
+summary(factor(prop))/length(prop)
+
+#look at which species may not do well?
+prop = iucn_banked_recalitrance[,c("taxon_name", "banked_category", "banked_recalcitrance")]
+prop = prop[!is.na(prop$banked_category),]
+prop[prop$banked_category == "intermediate",]
+prop[prop$banked_category == "recalcitrant",]
+
+prop = iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),
+                                c("taxon_name", "banked_category", "banked_recalcitrance")]
+prop[is.na(prop$banked_category),"taxon_name"]
+nrow(prop[is.na(prop$banked_category),])
+
+#####################################################
+##  accession viability
+#####################################################
+
+nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+nrow(indexes)
+# proportioin of accessions tested
+nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])/nrow(indexes)
 
 
+# of those tested, what is their quality (75% viability)
+## Best ever test
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
 
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))
+length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+
+indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75)]
+
+length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER == 0 )])
+summary(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75 )])
+
+
+## last test
+length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))
+length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))
+length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+
+
+###############################################
+# How many countries have CR in MSBP
+##########################################
+
+length(unique(indexes$COUNTRY))
+length(unique(brahms_wcvp_matched$CountryName))
+length(unique(indexes$COUNTRY))/length(unique(brahms_wcvp_matched$CountryName))
+
+
+summary(factor(indexes$DISTPOLICY))

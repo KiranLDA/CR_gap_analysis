@@ -447,5 +447,28 @@ test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalci
 
 write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
 
+#######################################
+## Combine and save
 
+index_orthodoxy = read.csv(paste0(basepath, "iucn_brahms_wcvp_orthodoxy.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+
+comp = index_orthodoxy[,c("taxon_name","probability.of.recalcitrance")]
+colnames(comp)= c("taxon_name", "banked_recalcitrance")
+# remove duplicates
+comp = comp[duplicated(comp$taxon_name)==FALSE,]
+
+# add the orthodoxy to the banked data
+new = spp_banked_recalcitrant %>% left_join(comp,
+                                            by=c("taxon_name" = "taxon_name"))
+
+
+new$banked_category = NA
+new$banked_category[new$banked_recalcitrance <= 0.25] = "orthodox"
+new$banked_category[new$banked_recalcitrance >= 0.75] = "recalcitrant"
+new$banked_category[new$banked_recalcitrance < 0.75 &
+                      new$banked_recalcitrance > 0.25] = "intermediate"
+
+new = new[!is.na(new$taxon_name), ]
+write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
