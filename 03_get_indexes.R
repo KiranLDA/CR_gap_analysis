@@ -517,16 +517,36 @@ mean(site_counts$total_index)       #  0.4953397
 # application of species recovery programmes in extreme situations (e.g.,
 # after extinction in the wild). An adapted Target 1 is proposed when
 # 1050 seeds is reached when accounting for all valid collections for a
-# single species. Target 2 is achieved when a CR species has valid ex situ
+# single species from at least 50 different plants stored ex situ .
+# Target 2 is achieved when a CR species has valid ex situ
 # collections which are representative of the natural distribution range of
 # each species. For those species which were assigned the CR category due to
 # criterium B of the IUCN (i.e., Extent of occurrence (EOO) < 100 km2 (B1),
 # or with an Area of occupancy (AOO) < 10 km² (B2)), one collection would
 # achieve this target.
 
-site_counts$Target_1 = ifelse(site_counts$ADJSTCOUNT >= 1050,
+site_counts$Target_1a = ifelse(site_counts$ADJSTCOUNT >= 1050,
                                                   TRUE,FALSE)
-site_counts$Target_1[is.na(site_counts$Target_1)] = FALSE
+site_counts$Target_1a[is.na(site_counts$Target_1a)] = FALSE
+
+
+# from at least 50 different plants stored ex situ
+site_counts$Target_1b = ifelse((as.numeric(site_counts$PLANTSAMP) >= 50) | (site_counts$PLANTSAMP %in% c("11-100","100-1000","25-50",">100","200-500")),
+       TRUE,
+       FALSE)
+site_counts$Target_1b[is.na(site_counts$Target_1b)] = FALSE
+
+# Combine for target 1
+
+site_counts$Target_1 = ifelse((site_counts$Target_1a & site_counts$Target_1b),
+                               TRUE,FALSE)
+
+cbind(site_counts$ADJSTCOUNT,
+      site_counts$Target_1a,
+      site_counts$PLANTSAMP,
+      site_counts$Target_1b,
+      site_counts$Target_1)
+
 
 # find species listed based on their range criteria
 iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
@@ -543,6 +563,10 @@ site_counts = site_counts %>%
             relationship = "many-to-many")
 
 head(site_counts)
+
+#############################################
+
+site_counts
 
 # grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)
 # ifelse("B1" %in% iucn_wcvp_matched$redlistCriteria[1] ,1,0)
