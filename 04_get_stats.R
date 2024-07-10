@@ -579,16 +579,180 @@ length(unique(brahms_wcvp_matched$AccessionNumber[which(brahms_wcvp_matched$st.i
 #                                  Proposed  targets per CR plant species
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# get the data
+indexes$plants_sampled = as.numeric(indexes$PLANTSAMP)
+indexes$plants_sampled[site_counts$PLANTSAMP == "11-100"] = 50
+indexes$plants_sampled[site_counts$PLANTSAMP == "100-1000"] = 100
+indexes$plants_sampled[site_counts$PLANTSAMP == "25-50"] = 50
+indexes$plants_sampled[site_counts$PLANTSAMP == ">100"] = 100
+indexes$plants_sampled[site_counts$PLANTSAMP == "200-500"] = 200
+indexes$plants_sampled[is.na(indexes$plants_sampled)] = 0
+indexes$ADJSTCOUNT[is.na(indexes$ADJSTCOUNT)] = 0
+
+# per species data
+rm(spp_count)
+spp_count = indexes[,c("taxon_name", "ADJSTCOUNT", "plants_sampled", "redlistCriteria")] %>%
+  group_by(taxon_name) %>%
+  summarize(
+    accessions = n(), # Number of times the species appears
+    summed_count = sum(ADJSTCOUNT), # Sum of seed count per species
+    summed_sampled = sum(plants_sampled) # Sum of plants sampled per species
+  )
+
+to_add = indexes[,c("taxon_name", "redlistCriteria")]
+to_add = to_add[duplicated(to_add$taxon_name)==FALSE,]
+spp_count = spp_count %>% left_join(to_add,
+                                    by = "taxon_name")
+
+########################################################
+# Get targets
+########################################################
+
+spp_count$Target_1a = ifelse(spp_count$summed_count >= 1050,
+                               TRUE,FALSE)
+spp_count$Target_1a[is.na(spp_count$Target_1a)] = FALSE
+
+
+# from at least 50 different plants stored ex situ
+spp_count$Target_1b = ifelse((as.numeric(spp_count$summed_sampled) >= 50),
+                               TRUE,
+                               FALSE)
+spp_count$Target_1b[is.na(spp_count$Target_1b)] = FALSE
+
+# Combine for target 1
+
+spp_count$Target_1 = ifelse((spp_count$Target_1a & spp_count$Target_1b),
+                              TRUE,FALSE)
+
+# find species listed based on their range criteria
+iucn_dict = data.frame(cbind(spp_count$taxon_name,
+                             spp_count$redlistCriteria,
+                             grepl("B", spp_count$redlistCriteria, ignore.case=FALSE)))
+
+
+
+colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
+iucn_dict = iucn_dict[,c("taxon_name","Target_2")]
+
+spp_count = spp_count %>%
+  left_join(iucn_dict, by= c("taxon_name"),
+            relationship = "many-to-many")
+
+head(spp_count)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#  Get target stats
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # Add the targets to the IUCN data
-test2 = iucn_banked_recalitrance %>% left_join(indexes[,c("taxon_name","Target_1","Target_2")],
-                                       by = c("taxon_name"="taxon_name"))
+test2 = iucn_banked_recalitrance %>% left_join(indexes[,c("taxon_name","Target_1","Target_1a","Target_1b","Target_2")],
+                                               by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
-length(unique(iucn_banked_recalitrance$taxon_name))
+length(unique(test2$taxon_name)) # 5705
 
 # CR banked
-length(unique(iucn_banked_recalitrance$taxon_name[iucn_banked_recalitrance$category == "banked"]))
+length(unique(test2$taxon_name[test2$category == "banked"])) # 373
 
 # CR meeting target
-length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$Target_1)]))
+length(unique(test2$taxon_name[which(test2$Target_1)])) # 30
 
+# CR meeting target
+length(which(test2$Target_1)) # 39
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Add the targets to the IUCN data
+test2 = iucn_banked_recalitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_2")],
+                                               by = c("taxon_name"="taxon_name"))
+
+#  CR spp number in iucn
+length(unique(test2$taxon_name)) # 5705
+
+# CR banked
+length(unique(test2$taxon_name[test2$category == "banked"])) #373
+
+# CR meeting target 1
+length(unique(test2$taxon_name[which(test2$Target_1)])) # 41
+
+# CR meeting target
+length(which(test2$Target_1)) # 41
+
+# CR meeting target 1a
+length(unique(test2$taxon_name[which(test2$Target_1a)])) # 124
+# without data
+length(which(spp_count$summed_count == 0)) #107
+
+# CR meeting target 1b
+length(unique(test2$taxon_name[which(test2$Target_1b)])) # 49
+# without data
+length(which(spp_count$summed_sampled == 0)) #188
+
+#### TARGET 2
+
+### banked species
+iucn_dict = data.frame(cbind(spp_count$taxon_name,
+                             spp_count$redlistCriteria,
+                             grepl("A", spp_count$redlistCriteria, ignore.case=FALSE),
+                             grepl("B", spp_count$redlistCriteria, ignore.case=FALSE),
+                             grepl("C", spp_count$redlistCriteria, ignore.case=FALSE),
+                             grepl("D", spp_count$redlistCriteria, ignore.case=FALSE)))
+
+
+
+colnames(iucn_dict) = c("taxon_name","redlistCriteria","A","B","C","D")
+iucn_dict = iucn_dict[,c("taxon_name","A","B","C","D")]
+
+spp_count = spp_count %>%
+  left_join(iucn_dict, by= c("taxon_name"),
+            relationship = "many-to-many")
+
+head(spp_count)
+
+
+length(which(spp_count$A == "TRUE")) #70
+length(which(spp_count$B == "TRUE")) #247
+length(which(spp_count$C == "TRUE")) #78
+length(which(spp_count$D == "TRUE")) #100
+
+length(which(indexes$Target_2)) #247
+
+### all iucn
+iucn_dict = data.frame(cbind(iucn_banked_recalitrance$taxon_name,
+                             iucn_banked_recalitrance$redlistCriteria,
+                             iucn_banked_recalitrance$accessions,
+                             iucn_banked_recalitrance$banked,
+                             grepl("A", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("B", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("C", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("D", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE)))
+
+colnames(iucn_dict) = c("taxon_name","redlistCriteria","accessions","banked",
+                        "A","B","C","D")
+# iucn_dict = iucn_dict[,c("taxon_name","A","B","C","D")]
+
+length(which(iucn_dict$A == "TRUE")) # 615
+length(which(iucn_dict$B == "TRUE")) # 4581
+length(which(iucn_dict$C == "TRUE")) # 763
+length(which(iucn_dict$D == "TRUE")) # 1043
+
+length(which(iucn_dict$A == "TRUE"))/nrow(iucn_dict) # 0.1075739
+length(which(iucn_dict$B == "TRUE"))/nrow(iucn_dict) # 0.8012944
+length(which(iucn_dict$C == "TRUE"))/nrow(iucn_dict) # 0.1334616
+length(which(iucn_dict$D == "TRUE"))/nrow(iucn_dict) # 0.1824383
+
+# species counts needed
+length(which(iucn_dict$B == "FALSE" & iucn_dict$accessions >=2)) #46
+(247+46)/373
+(373-(247+46))/373
+iucn_dict2 = iucn_dict[iucn_dict$banked==F,]
+
+length(which(iucn_dict2$B == "TRUE")) # 4581
+length(which(iucn_dict2$B == "TRUE"))/nrow(iucn_dict2) # 0.8102545
+length(which(iucn_dict2$B == "FALSE")) # 1014
+length(which(iucn_dict2$B == "FALSE"))/nrow(iucn_dict2) # 0.8102545
+
+# iucn_banked_recalitrance = iucn_banked_recalitrance %>%
+#   left_join(iucn_dict, by= c("taxon_name"),
+#             relationship = "many-to-many")
