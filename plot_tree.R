@@ -70,8 +70,6 @@ fam_count = iucn_banked_recalitrance[,c("family", "banked", "accessions")] %>%
     total_accessisions = sum(accessions[!is.na(accessions)])
   )
 
-test = data.frame(tr$tip.label) %>% left_join(fam_count,
-                                  by = c("tr.tip.label" = "family"))
 
 
 colorz  = ifelse(test$banked_species > 0, "darkolivegreen",
@@ -356,6 +354,7 @@ p <- ggtree(tree, layout = "circular") +
              geom=geom_bar,
              mapping=aes(y=id, x=value, fill=group),
              pwidth=5,
+             # align=TRUE,
              stat="identity",
              orientation="y",
              offset = 0.3) +
