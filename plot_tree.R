@@ -70,6 +70,8 @@ fam_count = iucn_banked_recalitrance[,c("family", "banked", "accessions")] %>%
     total_accessisions = sum(accessions[!is.na(accessions)])
   )
 
+test = data.frame(tr$tip.label) %>% left_join(fam_count,
+                                              by = c("tr.tip.label" = "family"))
 
 
 colorz  = ifelse(test$banked_species > 0, "darkolivegreen",
@@ -287,24 +289,24 @@ ggsave(paste0(plotpath, "/phylo_banked_proportion_textcol.png"),
 
 
 dat2 = rbind(data.frame(id = test$tr.tip.label,
-                       group = "Unbanked CR species in family",
-                       value = (test$CR_species - test$banked_species),
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "Banked CR species in family",
-                       value = test$banked_species,
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "No CR species in family",
-                       value = 0,
-                       colour = colorz))
+                        group = "Unbanked CR species in family",
+                        value = (test$CR_species - test$banked_species),
+                        colour = colorz),
+             data.frame(id = test$tr.tip.label,
+                        group = "Banked CR species in family",
+                        value = test$banked_species,
+                        colour = colorz),
+             data.frame(id = test$tr.tip.label,
+                        group = "No CR species in family",
+                        value = 0,
+                        colour = colorz))
 
 dat2$value[is.na(dat2$value)] = 0
 
 
 # Plot the phylogenetic tree
 p <- ggtree(tr, layout = "circular") +
-  xlim(-10, 70) +
+  xlim(-10, 80) +
   geom_fruit(data = dat2,
              geom = geom_bar,
              mapping = aes(y = id, x = value, fill = group),
@@ -346,6 +348,27 @@ ggsave(paste0(plotpath, "/phylo_banked_raw.png"),
        units = "cm")
 
 
+
+##################
+# Get data
+(dat2$value[dat2$id == "Asteraceae" & dat2$group == "Unbanked CR species in family"] +
+  dat2$value[dat2$id == "Asteraceae" & dat2$group == "Banked CR species in family"])
+
+(dat2$value[dat2$id == "Rubiaceae" & dat2$group == "Unbanked CR species in family"] +
+    dat2$value[dat2$id == "Rubiaceae" & dat2$group == "Banked CR species in family"])
+
+(dat2$value[dat2$id == "Orchidaceae" & dat2$group == "Unbanked CR species in family"]+
+    dat2$value[dat2$id == "Orchidaceae" & dat2$group == "Banked CR species in family"])
+
+(dat2$value[dat2$id == "Lauraceae" & dat2$group == "Unbanked CR species in family"] +
+    dat2$value[dat2$id == "Lauraceae" & dat2$group == "Banked CR species in family"])
+
+(dat2$value[dat2$id == "Myrtaceae" & dat2$group == "Unbanked CR species in family"] +
+    dat2$value[dat2$id == "Myrtaceae" & dat2$group == "Banked CR species in family"])
+
+(dat2$value[dat2$id == "Fabaceae" & dat2$group == "Unbanked CR species in family"] +
+    dat2$value[dat2$id == "Fabaceae" & dat2$group == "Banked CR species in family"])
+
 ########################################################
 
 p <- ggtree(tree, layout = "circular") +
@@ -354,7 +377,6 @@ p <- ggtree(tree, layout = "circular") +
              geom=geom_bar,
              mapping=aes(y=id, x=value, fill=group),
              pwidth=5,
-             # align=TRUE,
              stat="identity",
              orientation="y",
              offset = 0.3) +
@@ -368,7 +390,7 @@ p <- ggtree(tree, layout = "circular") +
                offset = 10,
                size=2,
                hjust = 1)
-  p
+p
 
 
 ggsave(paste0(plotpath, "/phylo_banked_outer.pdf"),
