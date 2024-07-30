@@ -564,8 +564,8 @@ finalPlot <- ggdraw() +
 
 finalPlot
 
-ggsave(paste0(plotpath, "bivariate_spp_vs_%banked_GRYlBu.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "bivariate_spp_vs_%banked_GRYlBu.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "bivariate_spp_vs_prop_banked_GRYlBu.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "bivariate_spp_vs_prop_banked_GRYlBu.png"), width = 30, height = 12, units = "cm")
 
 
 
