@@ -181,9 +181,9 @@ length(wcvp$taxon_status == "Accepted")
 length(wcvp$taxon_status == "Accepted")
 
 # how many are in wcvp
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / 5702
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5702
-5702 - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / 5705
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5705
+5705 - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 
 summary(unique(paste0(iucn_banked_recalitrance$banked, "_",iucn_banked_recalitrance$redlistCriteria == "prediction")))
@@ -256,19 +256,26 @@ above2/below2
 
 which(is.na(iucn_banked_recalitrance$taxon_name))
 
+iucn_banked_recalitrance$banked_category = NA
+iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y <= 0.25] = "orthodox"
+iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y >= 0.75] = "recalcitrant"
+iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y < 0.75 &
+                                           iucn_banked_recalitrance$banked_recalcitrance.y > 0.25] = "intermediate"
+
+
 # get proportions
 prop = iucn_banked_recalitrance$banked_category[!is.na(iucn_banked_recalitrance$banked_category)]
 summary(factor(prop))
 summary(factor(prop))/length(prop)
 
 #look at which species may not do well?
-prop = iucn_banked_recalitrance[,c("taxon_name", "banked_category", "banked_recalcitrance")]
+prop = iucn_banked_recalitrance[,c("taxon_name", "banked_category", "banked_recalcitrance.y")]
 prop = prop[!is.na(prop$banked_category),]
 prop[prop$banked_category == "intermediate",]
 prop[prop$banked_category == "recalcitrant",]
 
 prop = iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),
-                                c("taxon_name", "banked_category", "banked_recalcitrance")]
+                                c("taxon_name", "banked_category", "banked_recalcitrance.y")]
 prop[is.na(prop$banked_category),"taxon_name"]
 nrow(prop[is.na(prop$banked_category),])
 
@@ -608,6 +615,28 @@ spp_count = spp_count %>% left_join(to_add,
 ########################################################
 # Get targets
 ########################################################
+
+spp_count$need_more = ifelse(spp_count$summed_count  < 250,
+                            TRUE,FALSE)
+
+length(which(spp_count$need_more))
+length(which(spp_count$need_more))/nrow(spp_count)
+
+
+spp_count$bankable = ifelse(spp_count$summed_count >= 250 & spp_count$summed_count < 1050,
+                             TRUE,FALSE)
+
+length(which(spp_count$bankable))
+length(which(spp_count$bankable))/nrow(spp_count)
+
+
+
+spp_count$restorable = ifelse(spp_count$summed_count >= 1050,
+                            TRUE,FALSE)
+
+length(which(spp_count$restorable))
+length(which(spp_count$restorable))/nrow(spp_count)
+
 
 spp_count$Target_1a = ifelse(spp_count$summed_count >= 1050,
                                TRUE,FALSE)

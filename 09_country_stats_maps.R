@@ -97,6 +97,8 @@ brahms_wcvp_matched$plants_sampled = as.numeric(brahms_wcvp_matched$PLANTSAMP)
 # brahms_wcvp_matched$ADJSTCOUNT[is.na(brahms_wcvp_matched$ADJSTCOUNT)] = 0
 
 iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
+iucn_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]
+
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
                              sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
@@ -282,6 +284,13 @@ iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries
 iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
                                                                       iucn_wcvp_matched_countries_tdwg3$banked_category,
                                                                       iucn_wcvp_matched_countries_tdwg3$category)
+iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+                                                                    iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
+                                                                    iucn_wcvp_matched_countries_tdwg3$tax.level)
+iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+                                                                    iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
+                                                                    iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
+
 # orthodox banked unbanked
 iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
                                                              iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
@@ -355,6 +364,7 @@ write.csv(country_stats, paste0(basepath, "country_stats.csv"))
 
 
 
+
 ####### ADD SPATIAL DATA TO THE NAMES #############################################################################
 country_names = data.frame(unique(iucn_wcvp_matched_countries_tdwg3[,"NewCountryName"]))
 colnames(country_names) = "NewCountryName"
@@ -365,6 +375,14 @@ country_counts_map = country_stats %>% left_join(country_names)
 country_counts_map = world %>% left_join(country_counts_map)
 country_counts_map$sum_CR[is.na(country_counts_map$sum_CR)] = 0
 country_counts_map$sum_CR_banked[is.na(country_counts_map$sum_CR_banked)] =0
+
+
+country_counts_map$log_CR = log(country_counts_map$sum_CR+1)
+country_counts_map$log_CR_banked = log(country_counts_map$sum_CR_banked+1)
+country_counts_map$proportion = country_counts_map$sum_CR_banked/country_counts_map$sum_CR
+country_counts_map$proportion[is.na(country_counts_map$proportion)] = 0
+country_counts_map$log_proportion = log(country_counts_map$proportion+1)
+
 
 
 # test = country_counts_map %>% left_join(permissions, by = c("NAME_0" = "Country"))
@@ -383,6 +401,8 @@ country_counts_map$NFP = ifelse(country_counts_map$ABS_National_Focal_Point_NFP 
 country_counts_map$CNA = ifelse(country_counts_map$Competent_National_Authority_CNA >= 1,1,0)
 country_counts_map$IRCC = ifelse(country_counts_map$Internationally_Recognized_Certificates_Compliance_IRCC >= 1,1,0)
 country_counts_map$NR = country_counts_map$Interim_National_Reports_Implementation_Nagoya_Protocol_NR
+
+
 
 country_counts_map$NFP[is.na(country_counts_map$NFP)] = 0
 country_counts_map$CNA[is.na(country_counts_map$CNA)] = 0
@@ -453,12 +473,10 @@ country_counts_map.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 
 
 
-####### Additional stats for plotting
 
-
-
-#### Format the projected data ready for plotting  ################################
-
+######################################################
+####    PLOT          ################################
+######################################################
 # values
 dim=4
 
@@ -785,7 +803,7 @@ ggsave(paste0(plotpath, "CR_banked_prop.png"), width = 30, height = 12, units = 
 ############################
 # Tiled plots
 ############################
-ggarrange(finalPlotb, finalPlota, finalPlotc,
+ggarrange(finalPlotc,finalPlotb, finalPlota,
           labels = c("a.", "b.", "c."),
           font.label = list(size = 30),
           ncol = 1, nrow = 3)
@@ -809,51 +827,630 @@ ggsave(paste0(plotpath, "maps_abcd.png"),  width = 60, height = 24, units = "cm"
 ##########################################################
 ##### PLOT CR SPECIES
 ##########################################################
+
+data = country_counts_map.prj
+
+# number of CR species
+map1 <- ggplot() +
+  geom_point( data= data,
+              aes(color =  log_CR,
+                  geometry = geometry),
+              size = 2,
+              stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill = log_CR),
+          color = "black", #aes(fill = log_CR),
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
+  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
+
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y=element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.text.x=element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text=element_text(size=8),
+        legend.title=element_text(size=10)
+  )
+
+
+map1 + guides(color = "none")
+
+legend <- cowplot::get_legend(map1 +
+                                guides(color = "none",
+                                       fill=guide_legend(title="% CR banked"),
+                                       override.aes = list(size = 0.5))
+)
+finalPlot1 <- ggdraw() +
+  draw_plot(map1, 0, 0, 1, 1) +
+  draw_plot(legend, 0.9, .65, 0.24, 0.24)
+
+
+finalPlot1
+ggsave(paste0(plotpath, "map_CR.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "map_CR.png"), width = 30, height = 12, units = "cm")
+
+
+
+#####################################
+### PROPORTION BANKED
+#-------------------------------------------------------
+
+
+map2 <- ggplot() +
+  geom_point( data= data,
+              aes(color =  proportion,
+                  geometry = geometry),
+              size = 2,
+              stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill = proportion),
+          color = "black",#aes(fill = proportion),
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"))+
+  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"))+
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y=element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.text.x=element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text=element_text(size=8),
+        legend.title=element_text(size=10)
+  )
+
+
+map2 + guides(color = "none")
+
+legend <- cowplot::get_legend(map2 +
+                                guides(color = "none",
+                                       fill=guide_legend(title="% CR banked"),
+                                       override.aes = list(size = 0.5))
+)
+finalPlot2 <- ggdraw() +
+  draw_plot(map2, 0, 0, 1, 1) +
+  draw_plot(legend, 0.9, .65, 0.24, 0.24)
+
+
+finalPlot2
+
+
+ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
+
+
+
+
+ggarrange(finalPlot1, finalPlot2,
+          labels = c("a.", "b."),
+          font.label = list(size = 30),
+          ncol = 1, nrow = 2)
+
+ggsave(paste0(plotpath, "maps.pdf"),  width = 30, height = 30, units = "cm")
+ggsave(paste0(plotpath, "maps.png"),  width = 30, height = 30, units = "cm",bg="white")
+
+
+
+
+#####################################
+### PERMISSIONS
+#-------------------------------------------------------
+
+data = country_counts_map.prj
+
+
+# Create the main map plot
+map1 <- ggplot() +
+  geom_point(data = data,
+             aes(color = as.factor(ABS_National_Focal_Point_NFP),
+                 geometry = geometry),
+             size = 2,
+             stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill = as.factor(ABS_National_Focal_Point_NFP)),
+          color = "black",
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  scale_color_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10))
+
+# Add the guides for color and fill with the new title
+map1 <- map1 +
+  guides(color = guide_legend(title = "NFP"),
+         fill = guide_legend(title = "NFP"))
+
+# Extract the legend
+legend <- cowplot::get_legend(map1)
+
+# Combine the map plot and the legend
+finalPlot1 <- ggdraw() +
+  draw_plot(map1 + guides(color = "none", fill = "none"), 0, 0, 1, 1) +
+  draw_plot(legend, 0.8, .7, 0.24, 0.24)
+
+
+finalPlot1
+
+
+ggsave(paste0(plotpath, "NFP.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "NFP.png"), width = 30, height = 12, units = "cm", bg= "white")
+
+
+############
+# CNA
+############
+
+# Create the main map plot
+map2 <- ggplot() +
+  geom_point(data = data,
+             aes(color = as.factor(ifelse(Competent_National_Authority_CNA >= 1,1,0)),
+                 geometry = geometry),
+             size = 2,
+             stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill =as.factor(ifelse(Competent_National_Authority_CNA >= 1,1,0))),
+          color = "black",
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  scale_color_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10))
+
+# Add the guides for color and fill with the new title
+map2 <- map2 +
+  guides(color = guide_legend(title = "CNA"),
+         fill = guide_legend(title = "CNA"))
+
+# Extract the legend
+legend <- cowplot::get_legend(map2)
+
+# Combine the map plot and the legend
+finalPlot2 <- ggdraw() +
+  draw_plot(map2 + guides(color = "none", fill = "none"), 0, 0, 1, 1) +
+  draw_plot(legend, 0.8, .7, 0.24, 0.24)
+
+
+finalPlot2
+
+
+ggsave(paste0(plotpath, "CNA.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "CNA.png"), width = 30, height = 12, units = "cm", bg= "white")
+
+############
+# IRCC
+############
+
+# Create the main map plot
+map3 <- ggplot() +
+  geom_point(data = data,
+             aes(color = as.factor(ifelse(Internationally_Recognized_Certificates_Compliance_IRCC >=1,1,0)),
+                 geometry = geometry),
+             size = 2,
+             stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill = as.factor(ifelse(Internationally_Recognized_Certificates_Compliance_IRCC >=1,1,0))),
+          color = "black",
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  scale_color_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10))
+
+# Add the guides for color and fill with the new title
+map3 <- map3 +
+  guides(color = guide_legend(title = "IRCC"),
+         fill = guide_legend(title = "IRCC"))
+
+# Extract the legend
+legend <- cowplot::get_legend(map3)
+
+# Combine the map plot and the legend
+finalPlot3 <- ggdraw() +
+  draw_plot(map3 + guides(color = "none", fill = "none"), 0, 0, 1, 1) +
+  draw_plot(legend, 0.8, .7, 0.24, 0.24)
+
+
+finalPlot3
+
+
+ggsave(paste0(plotpath, "IRCC.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "IRCC.png"), width = 30, height = 12, units = "cm", bg= "white")
+
+############
+# IRCC
+############
+
+# Create the main map plot
+map4 <- ggplot() +
+  geom_point(data = data,
+             aes(color = as.factor(Interim_National_Reports_Implementation_Nagoya_Protocol_NR),
+                 geometry = geometry),
+             size = 2,
+             stat = "sf_coordinates") +
+  geom_sf(data = data, mapping = aes(fill = as.factor(Interim_National_Reports_Implementation_Nagoya_Protocol_NR)),
+          color = "black",
+          size = 0.4, show.legend = FALSE) +
+  scale_fill_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  scale_color_manual(values = c("grey80", "deepskyblue4"), na.value = "grey50") +
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", size = .3) +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10))
+
+# Add the guides for color and fill with the new title
+map4 <- map4 +
+  guides(color = guide_legend(title = "NR"),
+         fill = guide_legend(title = "NR"))
+
+# Extract the legend
+legend <- cowplot::get_legend(map4)
+
+# Combine the map plot and the legend
+finalPlot4 <- ggdraw() +
+  draw_plot(map4 + guides(color = "none", fill = "none"), 0, 0, 1, 1) +
+  draw_plot(legend, 0.8, .7, 0.24, 0.24)
+
+
+finalPlot4
+
+
+ggsave(paste0(plotpath, "NR.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "NR.png"), width = 30, height = 12, units = "cm", bg= "white")
+
+
+ggarrange(finalPlot1, finalPlot2,finalPlot3,finalPlot4,
+          labels = c("a.", "b.", "c.","d."),
+          font.label = list(size = 30),
+          ncol = 2, nrow = 2)
+
+ggsave(paste0(plotpath, "permits_seperate.pdf"),  width = 60, height = 30, units = "cm")
+ggsave(paste0(plotpath, "permits_seperate.png"),  width = 60, height = 30, units = "cm",bg="white")
+
+
+
+
+###################################################################################################################
+#######  ADD STATS   ##############################################################################################
+###################################################################################################################
+
+
+# number of CR species
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria != "prediction")]))
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria == "prediction")]))
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name))
+
+# number of countries
+length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria != "prediction")]))
+length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria == "prediction")]))
+length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName))
+
+# countries with more than 10 CR species
+country_data2 = data.frame(country_counts_map.prj)
+country_data2 = country_data2[,1:(ncol(country_data2)-1)]
+country_data2$NewCountryName[country_data2$sum_CR_pred >= 10]
+length(unique(country_data2$NewCountryName[country_data2$sum_CR_pred < 10]))
+
+# countries with more than 100CR species
+country_data2$NewCountryName[country_data2$sum_CR_pred >= 150]
+country_data2$NewCountryName[country_data2$sum_CR_pred >= 200]
+
+# countries with the highest % of CR species
+country_stats$prop_CR = country_stats$sum_CR_pred/length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name))
+test = country_stats %>%
+  arrange(desc(prop_CR)) %>%  # arrange in descending order
+  slice(1:12)
+test[,c("NewCountryName","prop_CR","sum_CR_pred", "sum_CR")]
+
+# countries with over 50% of spp banked
+country_data2$NewCountryName[country_data2$prop_banked >= 0.5]
+country_data2$sum_CR_banked[country_data2$NewCountryName %in% country_data2$NewCountryName[country_data2$prop_banked >= 0.5]]
+
+#countries with highest proportion meeting target 1
+country_data2$NewCountryName[country_data2$prop_Target_1 >= 0.9]
+length(unique(country_data2$NewCountryName[country_data2$prop_Target_1 <= 0.1]))
+
+#countries with highest proportion meeting target 2
+country_data2$NewCountryName[country_data2$prop_Target_2 >= 0.9]
+length(unique(country_data2$NewCountryName[country_data2$prop_Target_2 <= 0.1]))
+
+# countries that meet both targets
+country_data2$NewCountryName[country_data2$prop_Target_2 >= 0.9 & country_data2$prop_Target_1 >= 0.9]
+
+# nunmber pf countries with each permission level
+sum(country_data2$NFP)
+sum(country_data2$CNA)
+sum(country_data2$IRCC)
+sum(country_data2$NR)
+
+# countries with all four ABS
+unique(country_data2$NewCountryName[country_data2$permits == 4])
+
+
+#####################################################################################################################
+#####################################################################################################################
+##      STATS FOR SOTAGE BEHAVIOUR
+#####################################################################################################################
+#####################################################################################################################
+
+### For unbanked
+
+test = iucn_wcvp_matched_countries_tdwg3[which(iucn_wcvp_matched_countries_tdwg3$category != "banked"),]
+unbanked_names = length(unique(test$taxon_name))
+
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "orthodox")]))
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "intermediate")]))
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "recalcitrant")]))
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "exceptional")]))
+
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "orthodox")]))/ unbanked_names
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "intermediate")]))/ unbanked_names
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "recalcitrant")]))/ unbanked_names
+length(unique(test$taxon_name[which(test$storage_behaviour_combined == "exceptional")]))/ unbanked_names
+
+
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name))
+# number of species in each category
+summary(as.factor(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined))
+
+#taxonomic level that predictions are made at for orthodox, intermediate and recalcitrant
+summary(as.factor(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox")]))
+summary(as.factor(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "intermediate")]))
+summary(as.factor(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant")]))
+summary(as.factor(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional")]))
+
+hist(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Family")])
+summary(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Family")])
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Family")])
+
+hist(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Genus")])
+summary(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Genus")])
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Genus")])
+
+
+hist(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Order")])
+summary(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Order")])
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Order")])
+
+hist(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Species")])
+summary(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Species")])
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which (iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Species")])
+
+
+# how many species are classed as intermediate (uncertain) at different taxonomic levels
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Order" &
+                                                                             iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "intermediate")])
+
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Genus" &
+                                                                             iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "intermediate")])
+
+length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which(iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined == "Family" &
+                                                                             iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "intermediate")])
+
+## exceptional species characteristics
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
+                                                            iucn_wcvp_matched_countries_tdwg3$EF1_seed_unavailable == "Yes")]))
+
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
+                                                                   iucn_wcvp_matched_countries_tdwg3$EF2_desiccation_sensitive == "Yes")]))
+
+
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
+                                                                   iucn_wcvp_matched_countries_tdwg3$EF3_short.lived == "Yes")]))
+
+length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
+                                                                   iucn_wcvp_matched_countries_tdwg3$EF4_deep_dormancy == "Yes")]))
+
+
+########################################################################################################
+########################################################################################################
+# plot a tree with all orthodoxy by family
+########################################################################################################
+########################################################################################################
+
+
+# Load packages
+library(ape)
+library(ggtree)
+library(tidyverse)
+library(ggtreeExtra)
+library(phyloseq)
+library(dplyr)
+library(ggplot2)
+
+basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code"
+# load iucn data
+# iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+iucn_wcvp_matched_countries_tdwg3
+
+
+# Read the phylogenetic tree from Zuntini
+tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+
+# load tree data
+tr <- tree
+numtip <- length(tr$tip.label)
+
+# Get number of species per family that are CR and that are banked
+fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "storage_behaviour_combined", "taxonomic_level_combined")] %>%
+  group_by(family) %>%
+  summarize(
+    n_orthodox = length(which(storage_behaviour_combined == "orthodox")),
+    n_recalc = length(which(storage_behaviour_combined == "recalcitrant")),
+    n_inter = length(which(storage_behaviour_combined == "intermediate")),
+    n_exceptional = length(which(storage_behaviour_combined == "exceptional")),
+    n_unknown = length(which(is.na(storage_behaviour_combined))),
+    p_orthodox = length(which(storage_behaviour_combined == "orthodox"))/n(),
+    p_recalc = length(which(storage_behaviour_combined == "recalcitrant"))/n(),
+    p_inter = length(which(storage_behaviour_combined == "intermediate"))/n(),
+    p_exceptional = length(which(storage_behaviour_combined == "exceptional"))/n(),
+    p_unknown = length(which(is.na(storage_behaviour_combined)))/n(),
+    tot = n()
+  )
+
+test = data.frame(tr$tip.label) %>% left_join(fam_count,
+                                              by = c("tr.tip.label" = "family"))
+
+
+colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+                 ifelse(test$p_recalc >= 0.5, "#DC267F",
+                        ifelse(test$p_inter >= 0.5,"#785EF0",
+                               ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85"))))
+colorz[is.na(colorz)] = "grey85"
+
+
+
+dat = rbind(data.frame(id = test$tr.tip.label,
+                       group = "Orthodox",
+                       value = test$p_orthodox,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Recalcitrant",
+                       value = test$p_recalc,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Intermediate",
+                       value = test$p_inter,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Exceptional",
+                       value = test$p_exceptional,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "No CR species in family",
+                       value = ifelse(is.na(test$p_unknown),1,test$p_unknown),
+                         # ifelse(is.na(test$tot),1,0),
+                       colour = colorz))
+
+
+
+##########################################
+### GET STATS
+##########################################
 #
-# data = country_counts_map.prj
+length(test$tr.tip.label[which(test$p_orthodox >=0.5)])/length(which(test$p_unknown != 1))
+length(test$tr.tip.label[which(test$p_recalc >=0.5)])
+length(test$tr.tip.label[which(test$p_inter >=0.5)])
+length(test$tr.tip.label[which(test$p_exceptional >=0.5)])
+test$tr.tip.label[which(test$p_exceptional >=0.5)]
+
+
+# proportions = dat$value[dat$group == "Banked CR species in family"]
 #
-# # number of CR species
-# map1 <- ggplot() +
-#   geom_point( data= data,
-#               aes(color =  log_CR,
-#                   geometry = geometry),
-#               size = 2,
-#               stat = "sf_coordinates") +
-#   geom_sf(data = data, mapping = aes(fill = log_CR),
-#           color = "black", #aes(fill = log_CR),
-#           size = 0.4, show.legend = FALSE) +
-#   scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
-#   scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
+# # % families with CR
+# length(which(!is.na(proportions)))/length(proportions) *100
 #
-#   bi_theme() +
-#   geom_path(data = grid.DT,
-#             aes(x = X, y = Y, group = group),
-#             linetype = "solid", colour = "black", size = .3) +
-#   theme(axis.title.y=element_blank(),
-#         axis.title.x=element_blank(),
-#         axis.text.y=element_blank(),
-#         axis.text.x=element_blank(),
-#         panel.border = element_blank(),
-#         panel.grid.minor = element_blank(),
-#         panel.grid.major = element_blank(),
-#         legend.text=element_text(size=8),
-#         legend.title=element_text(size=10)
-#   )
+# # % families with banked CR
+# length(which(proportions > 0))/length(proportions) *100
 #
+# # % CR that have some banked
+# length(which(proportions > 0))/length(which(!is.na(proportions))) *100
 #
-# map1 + guides(color = "none")
+# # % CR that have 50% banked
+# length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
 #
-# legend <- cowplot::get_legend(map1 +
-#                                 guides(color = "none",
-#                                        fill=guide_legend(title="% CR banked"),
-#                                        override.aes = list(size = 0.5))
-# )
-# finalPlot1 <- ggdraw() +
-#   draw_plot(map1, 0, 0, 1, 1) +
-#   draw_plot(legend, 0.9, .65, 0.24, 0.24)
+# # % CR that have 99% banked
+# length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
 #
+# # Names of fanmilies with CR that are 99% banked
+# dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
 #
-# finalPlot1
-# ggsave(paste0(plotpath, "map_CR.pdf"), width = 30, height = 12, units = "cm")
-# ggsave(paste0(plotpath, "map_CR.png"), width = 30, height = 12, units = "cm")
-#
+# # Stats for big families
+# test$CR_species[test$tr.tip.label == "Rubiaceae"]
+# test$CR_species[test$tr.tip.label == "Myrtaceae"]
+# test$CR_species[test$tr.tip.label == "Lauraceae"]
+# test$CR_species[test$tr.tip.label == "Fabaceae"]
+# test$CR_species[test$tr.tip.label == "Orchidaceae"]
+# test$CR_species[test$tr.tip.label == "Asteraceae"]
+
+#############################################
+# Plot the phylogenetic tree
+#############################################
+
+p <- ggtree(tr, layout = "circular") +
+  xlim(-10, 70) +
+  geom_fruit(data = dat,
+             geom = geom_bar,
+             mapping = aes(y = id, x = value, fill = group),
+             pwidth = 0.5,
+             stat = "identity",
+             orientation = "y",
+             offset = 0.05) +
+  scale_fill_manual(values = c( "#FFB000","#785EF0","grey85","#648FFF", "#DC267F"),
+    # "darkolivegreen", "grey", "#FFA500"),
+                    name = "")
+
+# Extract tip labels from the tree data
+tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
+
+p <- p %<+% tip_data +
+  aes(color = colour) +
+  geom_tiplab(aes(label=label), offset=24, size=2) +
+  scale_color_identity() +
+  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
+  scale_colour_manual(values = c("#648FFF","#785EF0","#DC267F","#FFB000","grey85"),
+                        #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
+                      labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "Recalcitrant", "NA")) +
+  guides(colour = "none")
+
+print(p)
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.pdf"),
+       width = 20,
+       height = 20,
+       units = "cm")
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.png"),
+       width = 25,
+       height = 25,
+       units = "cm")
+
+

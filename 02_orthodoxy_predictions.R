@@ -439,10 +439,10 @@ predictor = unique(site_counts$taxon_name[!is.na(site_counts$taxon_name)])#[whic
 write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE)
 
 #run the shiny seed predictor app
-runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+# runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 orth = read.csv(paste0(basepath,"Model-results-2024-07-01.csv"))
-test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalcitrance")],
+test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalcitrance", "tax.level")],
                           by = c("taxon_name"="Initial_List"))
 
 write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
@@ -453,8 +453,8 @@ write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
 index_orthodoxy = read.csv(paste0(basepath, "iucn_brahms_wcvp_orthodoxy.csv"))
 spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 
-comp = index_orthodoxy[,c("taxon_name","probability.of.recalcitrance")]
-colnames(comp)= c("taxon_name", "banked_recalcitrance")
+comp = index_orthodoxy[,c("taxon_name","probability.of.recalcitrance", "tax.level")]
+colnames(comp)= c("taxon_name", "banked_recalcitrance", "taxonomic_prediction_level")
 # remove duplicates
 comp = comp[duplicated(comp$taxon_name)==FALSE,]
 
