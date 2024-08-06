@@ -121,9 +121,9 @@ length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48
 
 
 # how many accessions
-length(unique(brahms_wcvp_matched$AccessionNumber))
+length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
 
-length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 4812
+length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 197685
 
 #how many collections?
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
@@ -143,6 +143,7 @@ dim(brahms_CR)
 
 # number of IUCN listed species
 length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5645
+length(unique(iucn_wcvp_matched$taxon_name)) #5654
 
 # of the CR species which one are in the bank, and which ones not?
 iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
