@@ -63,8 +63,7 @@ site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFIL
 # remove thos that aren't in activate use
 site_counts = site_counts[site_counts$TTH != "*",]
 
-# # Combine the earthcape and brahms online (data warehouse) data
-
+# Combine the earthcape and brahms online (data warehouse) data
 cultivated <- read.csv(paste0(basepath, "cultivated_2024-05-28.csv"))
 cultivated = cultivated[!(duplicated(cultivated$AccessionNumber)),]
 
@@ -86,6 +85,8 @@ site_counts = site_counts %>% left_join(cultivated[,c("AccessionNumber","Cultiva
                                                       "ImageCount","Cultivated" ,"Derived.From","Cultivated.Isolation.Technique",
                                                       "CultivatedAll" )],
                                         by = c("ACCESSION" =  "AccessionNumber"))
+
+site_counts = site_counts[which(!is.na(site_counts$taxon_name)),]
 
 # "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
 
@@ -266,6 +267,7 @@ site_counts$geographic_index = ifelse(site_counts$LAT == 0,
 
 summary(as.factor(site_counts$geographic_index))
 
+length(site_counts$geographic_index)
 #####################################
 ####    taxonomy INDEX      #########
 #####################################

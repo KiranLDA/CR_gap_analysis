@@ -5,6 +5,8 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 ###### Find the CR species in the dataset ##################################################################
+wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
 #load data from previous session
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
@@ -32,8 +34,6 @@ iucn_CR_predictions_wcvp_matched = iucn_CR_predictions_wcvp_matched[which(ifelse
                                                                                    iucn_wcvp_matched$taxon_name, FALSE,TRUE)),]
 length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
 
-wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
 
 # # load brahms data
@@ -103,14 +103,15 @@ iucn_wcvp_matched_orthodox = iucn_wcvp_matched %>% left_join(iucn_orthodox[,c("A
 iucn_wcvp_matched_orthodox = unique(iucn_wcvp_matched_orthodox)
 
 
-iucn_wcvp_matched_orthodox$banked = ifelse(iucn_wcvp_matched_orthodox$tax.level %in% brahms_unique_wcvp_matched$taxon_name,TRUE,FALSE)
+iucn_wcvp_matched_orthodox$banked = ifelse(iucn_wcvp_matched_orthodox$taxon_name %in% brahms_unique_wcvp_matched$taxon_name,TRUE,FALSE)
 
 # specify the categories
 iucn_wcvp_matched_orthodox$category = NA
-iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$banked == T] = "banked"
-iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.25] = "orthodox"
-iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.75] = "recalcitrant"
-iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.75 & iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25] = "intermediate"
+# iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$banked == T] = "banked"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.25)] = "orthodox"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.75 &
+                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25)] = "intermediate"
 
 length(exceptional_wcvp_matched$taxon_name)
 length(unique(exceptional_wcvp_matched$taxon_name))
@@ -196,7 +197,7 @@ iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_B
 # iucn_storage_behaviour[which(is.na(iucn_storage_behaviour$category)),] = NA_storage
 
 # save the output
-# write.csv(iucn_storage_behaviour, paste0(basepath, "iucn_orthodocy_recalcitrance.csv"))
+write.csv(iucn_storage_behaviour, paste0(basepath, "iucn_orthodocy_recalcitrance.csv"))
 iucn_storage_behaviour = read.csv(paste0(basepath, "iucn_orthodocy_recalcitrance.csv"))
 # length(iucn_storage_behaviour$taxon_name)
 length(unique(iucn_storage_behaviour$taxon_name))
@@ -339,9 +340,10 @@ brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
 # brahms_to_add["probability.of.recalcitrance"] = NA
 # brahms_to_add["storBehav"] = NA
 # brahms_to_add["category"] = "banked"
-brahms_to_add$category[brahms_to_add$probability.of.recalcitrance <= 0.25] = "orthodox"
-brahms_to_add$category[brahms_to_add$probability.of.recalcitrance >= 0.75] = "recalcitrant"
-brahms_to_add$category[brahms_to_add$probability.of.recalcitrance < 0.75 & brahms_to_add$probability.of.recalcitrance > 0.25] = "intermediate"
+brahms_to_add$category = NA
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.75 & brahms_to_add$probability.of.recalcitrance > 0.25)] = "intermediate"
 brahms_to_add["Exceptional_status"] = NA
 brahms_to_add["EF1_seed_unavailable"] = NA
 brahms_to_add["EF2_desiccation_sensitive"] = NA
@@ -403,9 +405,9 @@ CR_pred_to_add = CR_pred_to_add %>% left_join(rWCVP::taxonomic_mapping,
                                             by=c("family" = "family"))
 CR_pred_to_add["category"] = NA
 # CR_pred_to_add$category[CR_pred_to_add$banked == T] = "banked"
-CR_pred_to_add$category[CR_pred_to_add$probability.of.recalcitrance <= 0.25] = "orthodox"
-CR_pred_to_add$category[CR_pred_to_add$probability.of.recalcitrance >= 0.75] = "recalcitrant"
-CR_pred_to_add$category[CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_pred_to_add$probability.of.recalcitrance > 0.25] = "intermediate"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_pred_to_add$probability.of.recalcitrance > 0.25)] = "intermediate"
 
 
 
@@ -452,24 +454,28 @@ test = spp_banked_recalcitrant
 dupl = test$taxon_name %in% unique(test$taxon_name[ duplicated(test$taxon_name)])
 dupl_nam = unique(test$taxon_name[dupl])
 # du = dupl_nam[82]
+dupl_nam = dupl_nam[order(dupl_nam)]
+# test$keep = 0
+# test$keep[which(!(test$taxon_name %in% dupl_nam))] = 1
+#
+# temp = data.frame(test[test$taxon_name %in% dupl_nam,])
+# temp[order(temp$taxon_name ),]
+# last = c()
+# for (du in dupl_nam){
+#   temp = data.frame(test[test$taxon_name == du,])
+#   ### TO DO: remove predictions
+#   if (any(temp$redlistCriteria == "prediction")){
+#     test$keep[which(test$taxon_name == du)[which(temp$redlistCriteria != "prediction")]] = 1
+#   } else {
+#     test$keep[which(test$taxon_name == du)] = 1
+#   }
+# }
 
-test$keep = 0
-test$keep[which(!(test$taxon_name %in% dupl_nam))] = 1
+# test = test[test$keep == 1,]
+# length(unique(test$taxon_name))
+spp_banked_recalcitrant = spp_banked_recalcitrant[which(!is.na(spp_banked_recalcitrant$taxon_name)),]
 
-last = c()
-for (du in dupl_nam){
-  temp = data.frame(test[test$taxon_name == du,])
-  ### TO DO: remove predictions
-  if (any(temp$redlistCriteria == "prediction")){
-    test$keep[which(test$taxon_name == du)[which(temp$redlistCriteria != "prediction")]] = 1
-  } else {
-    test$keep[which(test$taxon_name == du)] = 1
-  }
-}
-
-test = test[test$keep == 1,]
-length(unique(test$taxon_name))
-write.csv(test,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
+write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
 ###################################################################################################
 ###################################################################################################
@@ -478,43 +484,43 @@ write.csv(test,paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE 
 ###################################################################################################
 
 
-# remove species predicted CR that already have a CR prediction from IUCN
-site_counts = read.csv(paste0(basepath,"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
-site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
-predictor = unique(site_counts$taxon_name[!is.na(site_counts$taxon_name)])#[which(!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
-write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE)
-
-#run the shiny seed predictor app
-# runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
-
-orth = read.csv(paste0(basepath,"Model-results-2024-07-01.csv"))
-test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalcitrance", "tax.level")],
-                                 by = c("taxon_name"="Initial_List"))
-
-write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
-
-#######################################
-## Combine and save
-
-index_orthodoxy = read.csv(paste0(basepath, "iucn_brahms_wcvp_orthodoxy.csv"))
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-
-comp = index_orthodoxy[,c("taxon_name","probability.of.recalcitrance", "tax.level")]
-colnames(comp)= c("taxon_name", "banked_recalcitrance", "taxonomic_prediction_level")
-# remove duplicates
-comp = comp[duplicated(comp$taxon_name)==FALSE,]
-
-# add the orthodoxy to the banked data
-new = spp_banked_recalcitrant %>% left_join(comp,
-                                            by=c("taxon_name" = "taxon_name"))
-
-
-new$banked_category = NA
-new$banked_category[new$banked_recalcitrance <= 0.25] = "orthodox"
-new$banked_category[new$banked_recalcitrance >= 0.75] = "recalcitrant"
-new$banked_category[new$banked_recalcitrance < 0.75 &
-                      new$banked_recalcitrance > 0.25] = "intermediate"
-
-new = new[!is.na(new$taxon_name), ]
-write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
-
+# # remove species predicted CR that already have a CR prediction from IUCN
+# site_counts = read.csv(paste0(basepath,"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+# site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
+# predictor = unique(site_counts$taxon_name[!is.na(site_counts$taxon_name)])#[which(!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
+# write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE)
+#
+# #run the shiny seed predictor app
+# # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+#
+# orth = read.csv(paste0(basepath,"Model-results-2024-07-01.csv"))
+# test = site_counts %>% left_join(orth[, c("Initial_List","probability.of.recalcitrance", "tax.level")],
+#                                  by = c("taxon_name"="Initial_List"))
+#
+# write.csv(test, paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))
+#
+# #######################################
+# ## Combine and save
+#
+# index_orthodoxy = read.csv(paste0(basepath, "iucn_brahms_wcvp_orthodoxy.csv"))
+# spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+#
+# comp = index_orthodoxy[,c("taxon_name","probability.of.recalcitrance", "tax.level")]
+# colnames(comp)= c("taxon_name", "banked_recalcitrance", "taxonomic_prediction_level")
+# # remove duplicates
+# comp = comp[duplicated(comp$taxon_name)==FALSE,]
+#
+# # add the orthodoxy to the banked data
+# new = spp_banked_recalcitrant %>% left_join(comp,
+#                                             by=c("taxon_name" = "taxon_name"))
+#
+#
+# new$banked_category = NA
+# new$banked_category[new$banked_recalcitrance <= 0.25] = "orthodox"
+# new$banked_category[new$banked_recalcitrance >= 0.75] = "recalcitrant"
+# new$banked_category[new$banked_recalcitrance < 0.75 &
+#                       new$banked_recalcitrance > 0.25] = "intermediate"
+#
+# new = new[!is.na(new$taxon_name), ]
+# write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
+#

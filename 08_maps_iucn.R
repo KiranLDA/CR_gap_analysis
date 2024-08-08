@@ -71,7 +71,9 @@ world <- sf::st_as_sf(world(path="."))
 #read in iucn data and wcvp data
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|",
+                             header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 
@@ -79,6 +81,10 @@ tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 iucn_wcvp_matched$wcvp_accepted_id <- as.numeric(iucn_wcvp_matched$wcvp_accepted_id)
 wcvp_countries$plant_name_id <- as.numeric(wcvp_countries$plant_name_id)
 
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+
+spp_banked_recalcitrant %>% left_join(wcvp_accepted_id)
 
 
 # put wcvp tdwg3 region data into iucn data

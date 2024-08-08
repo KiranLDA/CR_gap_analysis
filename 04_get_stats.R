@@ -3,6 +3,8 @@ library(dplyr)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
+wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
 ###### Find the CR species in the dataset ##################################################################
 
@@ -11,6 +13,7 @@ indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 
 # seedbank data
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+
 
 # iucn species and their categories
 iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
@@ -45,10 +48,9 @@ iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_mat
 iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in%
                                                       iucn_wcvp_matched$taxon_name))]
 
-wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-
+CR_msbp <- read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+CR_msbp
 
 # # load brahms data
 # brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
@@ -129,27 +131,54 @@ length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 197685
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
 
 # find the MSB species that are CR endangered
-brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
-summary(brahms_wcvp_matched$CR)
+length(unique(CR_msbp$taxon_name)) # 372
+length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")])) # 1
+length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")])) # 371
+
+# total accessions
+nrow(CR_msbp) #2355
+# how many accessions that are not CR_pred
+length(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")]) # 2345
+length(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")]) # 10
+
+
+# brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
+# summary(brahms_wcvp_matched$CR)
 #   Mode   FALSE    TRUE
 # logical  195715    2221
 
 # how many species in the bank are CR
-length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR)])) # 371
+# length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR)])) # 371
 
 # subset the CR data
-brahms_CR = brahms_wcvp_matched[brahms_wcvp_matched$CR,]
-dim(brahms_CR)
+brahms_CR = CR_msbp#brahms_wcvp_matched[brahms_wcvp_matched$CR,]
+
 
 # number of IUCN listed species
-length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5645
+# length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5645
 length(unique(iucn_wcvp_matched$taxon_name)) #5654
 
-# of the CR species which one are in the bank, and which ones not?
-iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
-summary(iucn_wcvp_matched$banked)
-#    Mode   FALSE    TRUE
-# logical    5295     372
+# of the CR and CRpred species which one are in the bank, and which ones not?
+length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria == "prediction")]))
+length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria == "prediction")]))
+length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
+length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
+
+# make sure they all add up
+total_CR_CRpred = (length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria == "prediction")])) +
+  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria == "prediction")])) +
+  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")])) +
+  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
+)
+total_CR_CRpred
+total_CR = (length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")])) +
+              length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")])))
+total_CR
+
+# iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
+# summary(iucn_wcvp_matched$banked)
+# #    Mode   FALSE    TRUE
+# # logical    5295     372
 
 # Attach the genus data
 # brahms_CR = brahms_CR  %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
@@ -166,17 +195,19 @@ summary(iucn_wcvp_matched$banked)
 
 
 # find how many of each family there are in IUCN
-iucn_higher_list  = iucn_wcvp_matched[which(duplicated(iucn_wcvp_matched$wcvp_accepted_id)==F),] %>%
+iucn_higher_list  = iucn_wcvp_matched[which(duplicated(iucn_wcvp_matched$taxon_name)==F),] %>%
   group_by(higher) %>%
   tally()
 
 iucn_higher_list
+sum(iucn_higher_list$n)
 
 ## What years are the IUCN assessments from
-length(which(iucn_wcvp_matched$yearPublished < 2000)) #334
-length(which(iucn_wcvp_matched$yearPublished >= 2000 & iucn_wcvp_matched$yearPublished < 2010)) #453
-length(which(iucn_wcvp_matched$yearPublished >= 2010 & iucn_wcvp_matched$yearPublished < 2020)) #1970
-length(which(iucn_wcvp_matched$yearPublished >= 2020)) #2893
+length(which(iucn_banked_recalitrance$yearPublished < 2000)) #334
+length(which(iucn_banked_recalitrance$yearPublished >= 2000 & iucn_banked_recalitrance$yearPublished < 2010)) #470
+length(which(iucn_banked_recalitrance$yearPublished >= 2010 & iucn_banked_recalitrance$yearPublished < 2020)) #1970
+length(which(iucn_banked_recalitrance$yearPublished[which(iucn_banked_recalitrance$redlistCriteria != "prediction")] >= 2020)) #2893
+ # because predictions are all from 2024
 
 length(wcvp$taxon_status == "Accepted")
 length(wcvp$taxon_status == "Accepted")
@@ -196,11 +227,12 @@ summary(iucn_banked_recalitrance$banked)
 ### % placed names     ##############
 
 ##### CR in the seed bank
-
 length(unique(indexes$ACCESSION)) # 2351
-length(unique(indexes$taxon_name[indexes$accepted_name ==T])) # 2351
 
 # total names
+length(unique(indexes$taxon_name)) # 372
+length(unique(indexes$taxon_name[which(indexes$accepted_name ==T)])) # 366
+
 length(unique(indexes$SPECIES)) #380
 length(unique(indexes$SPECIES[indexes$accepted_name ==T])) #380
 
@@ -300,7 +332,7 @@ length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))/nr
 length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))
 length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
 
-indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75)]
+length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75)])
 
 length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER == 0 )])
 summary(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75 )])
@@ -374,7 +406,7 @@ indexes$COUNTRY_ABS[indexes$COUNTRY_ABS == "Tanzania"] = "United Republic of Tan
 # merge with the data
 indexes = left_join(indexes, abs,
                  by=c("COUNTRY_ABS"="Country"))
-unique(indexes[is.na(test$status)])
+unique(indexes$COUNTRY_ABS[is.na(indexes$status)])
 
 # Countries with nagoya
 length(unique(indexes$COUNTRY_ABS[which(indexes$st.nagoya == 1)])) # 43
@@ -465,7 +497,7 @@ brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "Turks & Caic
 brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "British Virgin Islands"] = "United Kingdom of Great Britain and Northern Ireland"
 brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "British Virgin Is."] = "United Kingdom of Great Britain and Northern Ireland"
 
-brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "St. Lucia"] = "United Kingdom of Great Britain and Northern Ireland"
+brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "St. Lucia"] = "Saint Lucia" #"United Kingdom of Great Britain and Northern Ireland"
 brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "Falkland Is."] = "United Kingdom of Great Britain and Northern Ireland"
 brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "Czech-Republic"] = "Czechia"
 brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "South Korea"] = "Republic of Korea"
