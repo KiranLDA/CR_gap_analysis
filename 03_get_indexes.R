@@ -6,7 +6,8 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 ###### Find the CR species in the dataset ##################################################################
-#
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
 # #load data from previous session
 #
 # #iucn redlist data
@@ -53,7 +54,18 @@ seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$Accessio
 # # Banked IUCN
 # iucn_banked <- iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),]
 # iucn_banked$taxon_name
+
+# get the tdwg to country mapping
+tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping_multicountry.csv"))
+tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
+
+# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Turks\xa0and\xa0Caicos\xa0Islands"] = "Turks and Caicos Islands"
+# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Northern\xa0Mariana\xa0Islands"] = "Northern Mariana Islands"
+# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Falkland\xa0Islands"] = "Falkland Islands"
+# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Cayman\xa0Islands"] ="Cayman Islands"
 #
+# write.csv(tdwg3_countries, paste0(basepath, "country_tdwg3_mapping.csv"), row.names = FALSE)
+
 # ####################################################################
 
 # get the brahms data
@@ -550,25 +562,73 @@ cbind(site_counts$ADJSTCOUNT,
       site_counts$Target_1)
 
 
-# find species listed based on their range criteria
-iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
-                             iucn_wcvp_matched$redlistCriteria,
-                             grepl("B", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)))
+##### TARGET 2   ###########################
+
+# # find species listed based on their range criteria
+# iucn_dict = data.frame(cbind(iucn_wcvp_matched$taxon_name,
+#                              iucn_wcvp_matched$redlistCriteria,
+#                              grepl("B", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)))
+#
+#
+#
+# colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
+#
+#
+# site_counts = site_counts %>%
+#   left_join(iucn_dict, by= c("taxon_name"),
+#             relationship = "many-to-many")
 
 
-
-colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
-
-
-site_counts = site_counts %>%
-  left_join(iucn_dict, by= c("taxon_name"),
-            relationship = "many-to-many")
-
-head(site_counts)
-
+##############################################
+# New target 2
 #############################################
 
-site_counts
+
+
+# add a new column with the reformatted name
+site_counts$NewCountryName = site_counts$COUNTRY
+
+# rename the weird comments
+site_counts$NewCountryName[site_counts$NewCountryName == "?"] = NA
+site_counts$NewCountryName[site_counts$NewCountryName == "Saint Helena, Ascension, and Tristan da Cunha"] = "Saint Helena"
+site_counts$NewCountryName[site_counts$NewCountryName == "St. Helena, Ascension & Tristan da Cunha"] = "Saint Helena"
+site_counts$NewCountryName[site_counts$NewCountryName == "United States"] = "United States of America"
+site_counts$NewCountryName[site_counts$NewCountryName == "Unknown"] = NA
+
+# variable to fill in
+site_counts$prop_range_banked = NA
+
+# for every species
+for (spp_i in unique(site_counts$taxon_name)){
+
+  # get tdwg that spp is founds in
+  index = which(site_counts$taxon_name %in% spp_i)
+  country_data = site_counts[index,] %>% left_join(wcvp_countries[,c("plant_name_id", "area_code_l3","area")],
+                           by = c("wcvp_accepted_id" = "plant_name_id"),
+                           relationship = "many-to-many")
+
+  # get code
+  TDWG_codes = unique(country_data$area_code_l3)
+
+  # get countries from tdwg
+  country_list = unique(tdwg3_countries$COUNTRY[which(tdwg3_countries$LEVEL3_COD %in% TDWG_codes)])
+
+  # get banked country
+  banked_country_list =  unique(country_data$NewCountryName)
+  banked_country_list = banked_country_list[!is.na(banked_country_list)]
+
+  # calculate proportion of range banked
+  prop_range_banked =  length(which(country_list %in% banked_country_list))/length(country_list)
+  site_counts$prop_range_banked[index] = prop_range_banked
+
+}
+
+site_counts$Target_2a = ifelse(site_counts$prop_range_banked == 1,
+                               TRUE,FALSE)
+site_counts$Target_2a[is.na(site_counts$Target_2a)] = FALSE
+
+site_counts$Target_2 = ifelse((site_counts$Target_2a & site_counts$Target_1b),
+                              TRUE,FALSE)
 
 # grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)
 # ifelse("B1" %in% iucn_wcvp_matched$redlistCriteria[1] ,1,0)

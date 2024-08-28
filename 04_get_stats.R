@@ -16,7 +16,7 @@ brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.c
 
 
 # iucn species and their categories
-iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 
 # Access and benefits sharing data
 abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
@@ -159,20 +159,20 @@ brahms_CR = CR_msbp#brahms_wcvp_matched[brahms_wcvp_matched$CR,]
 length(unique(iucn_wcvp_matched$taxon_name)) #5654
 
 # of the CR and CRpred species which one are in the bank, and which ones not?
-length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria == "prediction")]))
-length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria == "prediction")]))
-length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
-length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
+length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria == "prediction")]))
+length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria == "prediction")]))
+length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")]))
+length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")]))
 
 # make sure they all add up
-total_CR_CRpred = (length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria == "prediction")])) +
-  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria == "prediction")])) +
-  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")])) +
-  length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")]))
+total_CR_CRpred = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria == "prediction")])) +
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria == "prediction")])) +
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")]))
 )
 total_CR_CRpred
-total_CR = (length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == T  & iucn_banked_recalitrance$redlistCriteria != "prediction")])) +
-              length(unique(iucn_banked_recalitrance$taxon_name[which(iucn_banked_recalitrance$banked == F & iucn_banked_recalitrance$redlistCriteria != "prediction")])))
+total_CR = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
+              length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")])))
 total_CR
 
 # iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
@@ -203,10 +203,10 @@ iucn_higher_list
 sum(iucn_higher_list$n)
 
 ## What years are the IUCN assessments from
-length(which(iucn_banked_recalitrance$yearPublished < 2000)) #334
-length(which(iucn_banked_recalitrance$yearPublished >= 2000 & iucn_banked_recalitrance$yearPublished < 2010)) #470
-length(which(iucn_banked_recalitrance$yearPublished >= 2010 & iucn_banked_recalitrance$yearPublished < 2020)) #1970
-length(which(iucn_banked_recalitrance$yearPublished[which(iucn_banked_recalitrance$redlistCriteria != "prediction")] >= 2020)) #2893
+length(which(iucn_banked_recalcitrance$yearPublished < 2000)) #334
+length(which(iucn_banked_recalcitrance$yearPublished >= 2000 & iucn_banked_recalcitrance$yearPublished < 2010)) #470
+length(which(iucn_banked_recalcitrance$yearPublished >= 2010 & iucn_banked_recalcitrance$yearPublished < 2020)) #1970
+length(which(iucn_banked_recalcitrance$yearPublished[which(iucn_banked_recalcitrance$redlistCriteria != "prediction")] >= 2020)) #2893
  # because predictions are all from 2024
 
 length(wcvp$taxon_status == "Accepted")
@@ -218,8 +218,8 @@ length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5705
 5705 - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 
-summary(unique(paste0(iucn_banked_recalitrance$banked, "_",iucn_banked_recalitrance$redlistCriteria == "prediction")))
-summary(iucn_banked_recalitrance$banked)
+summary(unique(paste0(iucn_banked_recalcitrance$banked, "_",iucn_banked_recalcitrance$redlistCriteria == "prediction")))
+summary(iucn_banked_recalcitrance$banked)
 
 
 
@@ -286,28 +286,30 @@ above2/below2
 ####################################################################################
 ### orthodoxy of species in bank
 ####################################################################################
-
-which(is.na(iucn_banked_recalitrance$taxon_name))
-
-iucn_banked_recalitrance$banked_category = NA
-iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y <= 0.25] = "orthodox"
-iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y >= 0.75] = "recalcitrant"
-iucn_banked_recalitrance$banked_category[iucn_banked_recalitrance$banked_recalcitrance.y < 0.75 &
-                                           iucn_banked_recalitrance$banked_recalcitrance.y > 0.25] = "intermediate"
-
+#
+# which(is.na(iucn_banked_recalcitrance$taxon_name))
+#
+# iucn_banked_recalcitrance$banked_category = NA
+# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y <= 0.25] = "orthodox"
+# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y >= 0.75] = "recalcitrant"
+# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y < 0.75 &
+#                                            iucn_banked_recalcitrance$banked_recalcitrance.y > 0.25] = "intermediate"
+#
+iucn_banked_recalcitrance$probability.of.recalcitrance[which(iucn_banked_recalcitrance$banked == T)]
 
 # get proportions
-prop = iucn_banked_recalitrance$banked_category[!is.na(iucn_banked_recalitrance$banked_category)]
+# prop = iucn_banked_recalcitrance$category[!is.na(iucn_banked_recalcitrance$banked_category)]
+prop = iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == T)]
 summary(factor(prop))
 summary(factor(prop))/length(prop)
 
 #look at which species may not do well?
-prop = iucn_banked_recalitrance[,c("taxon_name", "banked_category", "banked_recalcitrance.y")]
+prop = iucn_banked_recalcitrance[,c("taxon_name", "banked_category", "banked_recalcitrance.y")]
 prop = prop[!is.na(prop$banked_category),]
 prop[prop$banked_category == "intermediate",]
 prop[prop$banked_category == "recalcitrant",]
 
-prop = iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),
+prop = iucn_banked_recalcitrance[which(iucn_banked_recalcitrance$category == "banked"),
                                 c("taxon_name", "banked_category", "banked_recalcitrance.y")]
 prop[is.na(prop$banked_category),"taxon_name"]
 nrow(prop[is.na(prop$banked_category),])
@@ -708,7 +710,7 @@ head(spp_count)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Add the targets to the IUCN data
-test2 = iucn_banked_recalitrance %>% left_join(indexes[,c("taxon_name","Target_1","Target_1a","Target_1b","Target_2")],
+test2 = iucn_banked_recalcitrance %>% left_join(indexes[,c("taxon_name","Target_1","Target_1a","Target_1b","Target_2")],
                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
@@ -726,7 +728,7 @@ length(which(test2$Target_1)) # 39
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Add the targets to the IUCN data
-test2 = iucn_banked_recalitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_2")],
+test2 = iucn_banked_recalcitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_2")],
                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
@@ -781,14 +783,14 @@ length(which(spp_count$D == "TRUE")) #100
 length(which(indexes$Target_2)) #247
 
 ### all iucn
-iucn_dict = data.frame(cbind(iucn_banked_recalitrance$taxon_name,
-                             iucn_banked_recalitrance$redlistCriteria,
-                             iucn_banked_recalitrance$accessions,
-                             iucn_banked_recalitrance$banked,
-                             grepl("A", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
-                             grepl("B", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
-                             grepl("C", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE),
-                             grepl("D", iucn_banked_recalitrance$redlistCriteria, ignore.case=FALSE)))
+iucn_dict = data.frame(cbind(iucn_banked_recalcitrance$taxon_name,
+                             iucn_banked_recalcitrance$redlistCriteria,
+                             iucn_banked_recalcitrance$accessions,
+                             iucn_banked_recalcitrance$banked,
+                             grepl("A", iucn_banked_recalcitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("B", iucn_banked_recalcitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("C", iucn_banked_recalcitrance$redlistCriteria, ignore.case=FALSE),
+                             grepl("D", iucn_banked_recalcitrance$redlistCriteria, ignore.case=FALSE)))
 
 colnames(iucn_dict) = c("taxon_name","redlistCriteria","accessions","banked",
                         "A","B","C","D")
@@ -815,6 +817,6 @@ length(which(iucn_dict2$B == "TRUE"))/nrow(iucn_dict2) # 0.8102545
 length(which(iucn_dict2$B == "FALSE")) # 1014
 length(which(iucn_dict2$B == "FALSE"))/nrow(iucn_dict2) # 0.8102545
 
-# iucn_banked_recalitrance = iucn_banked_recalitrance %>%
+# iucn_banked_recalcitrance = iucn_banked_recalcitrance %>%
 #   left_join(iucn_dict, by= c("taxon_name"),
 #             relationship = "many-to-many")

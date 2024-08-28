@@ -17,6 +17,9 @@ library(ggpubr)
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/"
 
+wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
+                             sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
 #######   FUNCTION   ##################################################################################
 
 # function to normalise data
@@ -99,8 +102,7 @@ brahms_wcvp_matched$plants_sampled = as.numeric(brahms_wcvp_matched$PLANTSAMP)
 iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
 iucn_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]
 
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
-                             sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 spp_banked_recalcitrant <- read.csv(paste0(basepath,"spp_banked_recalcitrant.csv"))
