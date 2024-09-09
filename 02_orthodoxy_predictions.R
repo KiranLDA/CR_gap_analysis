@@ -84,10 +84,10 @@ length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
 # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 # Compile orthodoxy predictions
-iucn_orthodox = read.csv(paste0(basepath,"Model-results-2024-04-04_1.csv"))
+iucn_orthodox = read.csv(paste0(basepath,"Model-results-2024-08-08_1.csv"))
 for (i in 2:6){
   iucn_orthodox = rbind(iucn_orthodox,
-                        read.csv(paste0(basepath,"Model-results-2024-04-04_",i,".csv")))
+                        read.csv(paste0(basepath,"Model-results-2024-08-08_",i,".csv")))
 }
 
 #get rid of duplicates
@@ -99,10 +99,16 @@ iucn_wcvp_matched_orthodox = iucn_wcvp_matched %>% left_join(iucn_orthodox[,c("A
                                                                               "probability.of.recalcitrance",
                                                                               "storBehav")],
                                                              by = c("taxon_name" = "Accepted_name") )
+length(which(is.na(iucn_wcvp_matched_orthodox$storBehav)))
+
+
+
+
+
 # keep unique values
 iucn_wcvp_matched_orthodox = unique(iucn_wcvp_matched_orthodox)
 
-
+# banked
 iucn_wcvp_matched_orthodox$banked = ifelse(iucn_wcvp_matched_orthodox$taxon_name %in% brahms_unique_wcvp_matched$taxon_name,TRUE,FALSE)
 
 # specify the categories
@@ -219,7 +225,7 @@ seed_count = seed_count[duplicated(seed_count$taxon_name)==FALSE,]
 colnames(seed_count) = c("taxon_name","wcvp_authors", "wcvp_accepted_id", "accessions","summed_count")
 
 # add the accession data as will be useful later
-iucn_storage_behaviour = iucn_storage_behaviour %>% left_join(seed_count[,c("taxon_name","wcvp_accepted_id","accessions","summed_count")],
+iucn_storage_behaviour = iucn_storage_behaviour %>% left_join(seed_count[,c("wcvp_accepted_id","accessions","summed_count")],
                                                               # by = "taxon_name",
                                                               by = "wcvp_accepted_id",
                                                               relationship = "many-to-one")
@@ -233,8 +239,8 @@ colkeep = c("taxon_name","scientificName", "family", "genus","higher",
             "order","redlistCategory",
             "redlistCriteria", "yearPublished", "assessmentDate", "criteriaVersion",
             "populationTrend","systems", "realm","yearLastSeen","possiblyExtinct",
-            "possiblyExtinctInTheWild", "scopes","banked",  #"Genus", "Family",
-            # "Order",
+            "possiblyExtinctInTheWild", "scopes","banked",
+            #"Genus", "Family", "Order",
             "tax.level","probability.of.recalcitrance","storBehav",
             "category","Exceptional_status","EF1_seed_unavailable",
             "EF2_desiccation_sensitive","EF3_short.lived","EF4_deep_dormancy",
@@ -247,8 +253,11 @@ colkeep = c("taxon_name","scientificName", "family", "genus","higher",
 
 iucn_storage_behaviour = iucn_storage_behaviour[,colkeep]
 
-
 length(iucn_storage_behaviour$taxon_name)
+dupli = iucn_storage_behaviour$taxon_name[which(duplicated(iucn_storage_behaviour$taxon_name))]
+View(iucn_storage_behaviour[which(iucn_storage_behaviour$taxon_name %in% dupli),])
+
+# more names in IUCN than WCVP
 length(unique(iucn_storage_behaviour$taxon_name))
 
 
@@ -452,6 +461,7 @@ length(unique(spp_banked_recalcitrant$taxon_name))
 
 test = spp_banked_recalcitrant
 # test = test[which(!is.na(test$taxon_name)),]
+
 # find duplicated names that don't have any accepted name
 dupl = test$taxon_name %in% unique(test$taxon_name[ duplicated(test$taxon_name)])
 dupl_nam = unique(test$taxon_name[dupl])
@@ -550,41 +560,46 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv
 ####################################################
 ###################################################
 ####################################################
-
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-
-
-# prepare the IUCN species and get their orthodoxy
-# orthodox_matches = data.frame(unique(spp_banked_recalcitrant$taxon_name))
-# dim(orthodox_matches)
-# nrow(orthodox_matches)/6
-# j=1
-# for(i in seq(1,nrow(orthodox_matches),960)){
-#   write.csv(orthodox_matches[i:(i+959),],paste0(basepath, "IUCN_to_match_",j,".csv"), row.names=FALSE )
-#   j=j+1
+#
+# spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+#
+#
+# # prepare the IUCN species and get their orthodoxy
+# # orthodox_matches = data.frame(unique(spp_banked_recalcitrant$taxon_name))
+# # dim(orthodox_matches)
+# # nrow(orthodox_matches)/6
+# # j=1
+# # for(i in seq(1,nrow(orthodox_matches),960)){
+# #   write.csv(orthodox_matches[i:(i+959),],paste0(basepath, "IUCN_to_match_",j,".csv"), row.names=FALSE )
+# #   j=j+1
+# # }
+# #
+# # # #run the shiny seed predictor app
+# # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+#
+# # Compile orthodoxy predictions
+# iucn_orthodox = read.csv(paste0(basepath,"Model-results-2024-08-08_1.csv"))
+# for (i in 2:6){
+#   iucn_orthodox = rbind(iucn_orthodox,
+#                         read.csv(paste0(basepath,"Model-results-2024-08-08_",i,".csv")))
 # }
 #
-# # #run the shiny seed predictor app
-# runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
-
-# Compile orthodoxy predictions
-iucn_orthodox = read.csv(paste0(basepath,"Model-results-2024-08-08_1.csv"))
-for (i in 2:6){
-  iucn_orthodox = rbind(iucn_orthodox,
-                        read.csv(paste0(basepath,"Model-results-2024-08-08_",i,".csv")))
-}
-
-iucn_orthodox = iucn_orthodox[which(!is.na(iucn_orthodox$Initial_List)),]
-
-length(iucn_orthodox$Initial_List[which(iucn_orthodox$wcvp_status == "Accepted")])
-length(iucn_orthodox$Initial_List[which(iucn_orthodox$Initial_List %in% spp_banked_recalcitrant$taxon_name)])
-length(iucn_orthodox$Initial_List[which(iucn_orthodox$wcvp_name %in% spp_banked_recalcitrant$taxon_name)])
-
-which(is.na(iucn_orthodox$probability.of.recalcitrance[which(iucn_orthodox$Initial_List %in%
-                                                               spp_banked_recalcitrant$taxon_name)]))
-
-for (spp_i in unique(spp_banked_recalcitrant$taxon_name)){
-  spp_i = iucn_orthodox$Initial_List[which(duplicated(iucn_orthodox$Initial_List) == T)]
-  temp = iucn_orthodox[which(iucn_orthodox$Initial_List %in%  spp_i),]
-
-}
+# iucn_orthodox = iucn_orthodox[which(!is.na(iucn_orthodox$Initial_List)),]
+#
+# length(iucn_orthodox$Initial_List[which(iucn_orthodox$wcvp_status == "Accepted")])
+# length(iucn_orthodox$Initial_List[which(iucn_orthodox$Initial_List %in% spp_banked_recalcitrant$taxon_name)])
+# length(iucn_orthodox$Initial_List[which(iucn_orthodox$wcvp_name %in% spp_banked_recalcitrant$taxon_name)])
+# length(iucn_orthodox$Initial_List[which(iucn_orthodox$Accepted_name %in% spp_banked_recalcitrant$taxon_name)])
+#
+#
+#
+# iucn_orthodox[which(!(iucn_orthodox$Accepted_name %in% iucn_orthodox$wcvp_name)),]
+#
+# which(is.na(iucn_orthodox$probability.of.recalcitrance[which(iucn_orthodox$Initial_List %in%
+#                                                                spp_banked_recalcitrant$taxon_name)]))
+#
+# for (spp_i in unique(spp_banked_recalcitrant$taxon_name)){
+#   spp_i = iucn_orthodox$Initial_List[which(duplicated(iucn_orthodox$Initial_List) == T)]
+#   temp = iucn_orthodox[which(iucn_orthodox$Initial_List %in%  spp_i),]
+#
+# }

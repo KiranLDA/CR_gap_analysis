@@ -31,7 +31,9 @@ wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
 #              save.dir = getwd(), WFO.remember = TRUE,
 #              timeout = 500)
 
-WFO.remember(WFO.file = NULL, WFO.data = "WFO.data", WFO.pos = 1)
+# WFO.remember(WFO.file = NULL, WFO.data = "WFO.data", WFO.pos = 1)
+WFO.remember(WFO.file = paste0(basepath,"WFO_Backbone/classification_v_2023_12.csv"),
+             WFO.data = "WFO.data", WFO.pos = 1)
 
 ###################################################################################
 #         MSBP data
@@ -309,14 +311,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -344,14 +346,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -528,7 +530,7 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 match = test[test$scientificName %in% problematic,]
 
 pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
-write.csv(pb_sp, paste0(basepath, "iucn_wfo_matched.csv"))
+# write.csv(pb_sp, paste0(basepath, "iucn_wfo_matched.csv"))
 
 
 
@@ -556,14 +558,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18] sp$New.accepted
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -591,14 +593,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -787,14 +789,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -822,14 +824,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -1049,8 +1051,8 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 match = test[test$scientificName %in% problematic,]
 
 pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "iucn_predictions_wfo_matched.csv"))
-
+write.csv(pb_sp, paste0(basepath, "iucn_predictions_wfo_matched.csv"))
+# pb_sp =read.csv(paste0(basepath, "iucn_predictions_wfo_matched.csv"))
 
 wfo_match = c()
 
@@ -1076,14 +1078,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -1111,14 +1113,14 @@ for(problem in problematic){
         to_add$match_similarity = NA
         to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp[i,18]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
         to_add$wcvp_rank = sp$taxonRank[i]
         to_add$wcvp_status = sp$taxonomicStatus[i]
         to_add$wcvp_homotypic = NA
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp[i,18]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"

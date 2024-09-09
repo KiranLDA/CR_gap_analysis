@@ -289,12 +289,12 @@ above2/below2
 #
 # which(is.na(iucn_banked_recalcitrance$taxon_name))
 #
-# iucn_banked_recalcitrance$banked_category = NA
-# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y <= 0.25] = "orthodox"
-# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y >= 0.75] = "recalcitrant"
-# iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$banked_recalcitrance.y < 0.75 &
-#                                            iucn_banked_recalcitrance$banked_recalcitrance.y > 0.25] = "intermediate"
-#
+iucn_banked_recalcitrance$banked_category = NA
+iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance <= 0.25] = "orthodox"
+iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance >= 0.75] = "recalcitrant"
+iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance < 0.75 &
+                                           iucn_banked_recalcitrance$probability.of.recalcitrance > 0.25] = "intermediate"
+
 iucn_banked_recalcitrance$probability.of.recalcitrance[which(iucn_banked_recalcitrance$banked == T)]
 
 # get proportions
@@ -304,13 +304,13 @@ summary(factor(prop))
 summary(factor(prop))/length(prop)
 
 #look at which species may not do well?
-prop = iucn_banked_recalcitrance[,c("taxon_name", "banked_category", "banked_recalcitrance.y")]
+prop = iucn_banked_recalcitrance[,c("taxon_name", "storBehav","banked_category", "probability.of.recalcitrance")] # "banked_category","banked_recalcitrance.y")]
 prop = prop[!is.na(prop$banked_category),]
 prop[prop$banked_category == "intermediate",]
 prop[prop$banked_category == "recalcitrant",]
 
 prop = iucn_banked_recalcitrance[which(iucn_banked_recalcitrance$category == "banked"),
-                                c("taxon_name", "banked_category", "banked_recalcitrance.y")]
+                                c("taxon_name", "banked_category", "probability.of.recalcitrance")] #"banked_recalcitrance.y")]
 prop[is.na(prop$banked_category),"taxon_name"]
 nrow(prop[is.na(prop$banked_category),])
 
