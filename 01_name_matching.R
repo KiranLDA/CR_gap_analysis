@@ -284,7 +284,8 @@ match = test[test$full_name %in% problematic,]
 
 pb_sp = WorldFlora::WFO.match(spec.data = match$full_name, WFO.data=WFO.data,
                               counter=1, verbose=TRUE)
-write.csv(pb_sp, paste0(basepath, "brahms_wfo_matched.csv"))
+# write.csv(pb_sp, paste0(basepath, "brahms_wfo_matched.csv"))
+# pb_sp = read.csv(paste0(basepath, "brahms_wfo_matched.csv"))
 
 
 wfo_match = c()

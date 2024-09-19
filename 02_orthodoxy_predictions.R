@@ -13,8 +13,10 @@ iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+
 # make sure only consider predicted that aren't already CR
 brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+brahms_unique_wcvp_matched = brahms_unique_wcvp_matched[which(!is.na(brahms_unique_wcvp_matched$species)),]
 
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
@@ -275,7 +277,7 @@ length(unique(iucn_storage_behaviour$taxon_name))
 # CR_pred = CR_pred[which(!(CR_pred$taxon_name %in% iucn_wcvp_matched$taxon_name)),]
 # dim(CR_pred[which(!(CR_pred$ipni_id %in% iucn_wcvp_matched$wcvp_ipni_id)),])
 CR_pred = iucn_CR_predictions_wcvp_matched
-length(unique(CR_pred$taxon_name))
+length(unique(CR_pred$taxon_name)) #104
 iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred$taxon_name]
 # CR_pred_to_add$taxon_name[!(CR_pred_to_add$taxon_name %in% CR_pred$taxon_name)]
 # iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred_to_add$taxon_name]

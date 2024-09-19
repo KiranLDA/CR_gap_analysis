@@ -89,18 +89,24 @@ CR_msbp
 ###       GET some stats
 ##############################################################
 
+# how many names have been matched from IUCN
+length(unique(iucn$scientificName)) # 5702 before matching
+length(unique(iucn_wcvp_matched$scientificName)) # 5667 were matched
+length(unique(iucn$scientificName)) - length(unique(iucn_wcvp_matched$scientificName))
+test = iucn[which(!(iucn$scientificName %in% iucn_wcvp_matched$scientificName)),]
+length(unique(iucn_wcvp_matched$taxon_name)) # 5654 to this many new names
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
+
+# how many of each order
+summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
+
+
 # how many species are in the bank?
 length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
 length(unique(brahms_unique_wcvp_matched$full_name)) # 46787 had matches
 length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
 length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
-
-# how many names have been matched from IUCN
-length(unique(iucn$scientificName)) # 5702 before matching
-length(unique(iucn_wcvp_matched$scientificName)) # 5667 were matched
-length(unique(iucn_wcvp_matched$taxon_name)) # 5654 to this many new names
-length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
-length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
 
 
 # how many names have been matched from IUCN predictions
@@ -136,9 +142,9 @@ length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum"
 length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")])) # 371
 
 # total accessions
-nrow(CR_msbp) #2355
+nrow(CR_msbp) #2348
 # how many accessions that are not CR_pred
-length(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")]) # 2345
+length(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")]) # 2338
 length(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")]) # 10
 
 
@@ -213,9 +219,11 @@ length(wcvp$taxon_status == "Accepted")
 length(wcvp$taxon_status == "Accepted")
 
 # how many are in wcvp
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / 5705
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / 5705
-5705 - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / length(unique(iucn$scientificName))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / length(unique(iucn$scientificName))
+length(unique(iucn$scientificName)) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 
 summary(unique(paste0(iucn_banked_recalcitrance$banked, "_",iucn_banked_recalcitrance$redlistCriteria == "prediction")))
@@ -227,14 +235,14 @@ summary(iucn_banked_recalcitrance$banked)
 ### % placed names     ##############
 
 ##### CR in the seed bank
-length(unique(indexes$ACCESSION)) # 2351
+length(unique(indexes$ACCESSION)) # 2348
 
 # total names
 length(unique(indexes$taxon_name)) # 372
-length(unique(indexes$taxon_name[which(indexes$accepted_name ==T)])) # 366
+length(unique(indexes$taxon_name[which(indexes$accepted_name == T)])) # 366
 
-length(unique(indexes$SPECIES)) #380
-length(unique(indexes$SPECIES[indexes$accepted_name ==T])) #380
+length(unique(indexes$SPECIES)) #379
+length(unique(indexes$SPECIES[indexes$accepted_name == T])) #366
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # unplaced
@@ -253,7 +261,7 @@ above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Synonym")[!
                                                                                    which(indexes$wcvp_homotypic))]]))
 below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
 above1/below1
-# 0.01907357
+# 0.01912568
 
 
 above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Synonym")[!(which(iucn_wcvp_matched$wcvp_status == "Synonym") %in%
