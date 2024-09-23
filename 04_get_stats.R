@@ -18,6 +18,10 @@ brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.c
 # iucn species and their categories
 iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 
+
+
+
+
 # Access and benefits sharing data
 abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
 
@@ -640,9 +644,13 @@ indexes$plants_sampled[site_counts$PLANTSAMP == "200-500"] = 200
 indexes$plants_sampled[is.na(indexes$plants_sampled)] = 0
 indexes$ADJSTCOUNT[is.na(indexes$ADJSTCOUNT)] = 0
 
+# indexes = indexes %>% left_join(unique(iucn_banked_recalcitrance[,c("taxon_name",
+#                                                                     "redlistCriteria")]),
+#                                 by = "taxon_name")
 # per species data
-rm(spp_count)
-spp_count = indexes[,c("taxon_name", "ADJSTCOUNT", "plants_sampled", "redlistCriteria")] %>%
+# rm(spp_count)
+spp_count = indexes[,c("taxon_name", "ADJSTCOUNT", "plants_sampled")] %>%
+# , "redlistCriteria")] %>%
   group_by(taxon_name) %>%
   summarize(
     accessions = n(), # Number of times the species appears
@@ -650,15 +658,79 @@ spp_count = indexes[,c("taxon_name", "ADJSTCOUNT", "plants_sampled", "redlistCri
     summed_sampled = sum(plants_sampled) # Sum of plants sampled per species
   )
 
-to_add = indexes[,c("taxon_name", "redlistCriteria")]
+# to_add = indexes[,c("taxon_name", "redlistCriteria")]
+to_add = iucn_banked_recalcitrance[,c("taxon_name", "redlistCriteria")]
 to_add = to_add[duplicated(to_add$taxon_name)==FALSE,]
 spp_count = spp_count %>% left_join(to_add,
                                     by = "taxon_name")
+
 
 ########################################################
 # Get targets
 ########################################################
 
+# number of species
+length(unique(spp_count$taxon_name))
+# 372
+
+# how many collections meet target 1 individually
+length(which(indexes$Target_1))
+# 39
+
+# how many species meet target 1 individually
+length(unique(indexes$taxon_name[which(indexes$Target_1)]))
+# 30
+
+# define new comboned target 1
+spp_count$Target_1 = (spp_count$summed_count >= 1050 &
+                               spp_count$summed_sampled >= 50)
+
+# how many species meet target 1 once collections are merged?
+length(which(spp_count$Target_1))
+# 43
+
+#~~~~~~~~~~~~~~~~~~~~
+# TARGET 1A
+# The ones that just have 1050 collections
+spp_count$Target_1a = (spp_count$summed_count >= 1050)
+
+# how many species meet target 1 once collections are merged?
+length(which(spp_count$Target_1a))
+# 137
+
+# percentage
+length(which(spp_count$Target_1a)) / length(spp_count$Target_1a)
+# 0.3682796
+
+# how many species have no data?
+length(which(spp_count$summed_count == 0))
+# 107
+
+length(which(spp_count$summed_count == 0))/ length(spp_count$summed_count)
+
+#~~~~~~~~~~~~~~~~~~~~
+# TARGET 1B
+# The ones that just have been collected from over 50 individuals
+spp_count$Target_1b = (spp_count$summed_sampled >= 50)
+
+# how many species meet target 1 once collections are merged?
+length(which(spp_count$Target_1b))
+# 137
+
+# percentage
+length(which(spp_count$Target_1b)) / length(spp_count$Target_1b)
+# 0.155914
+
+# how many species have no data?
+length(which(spp_count$summed_sampled == 0))
+# 184
+
+# percentage
+length(which(spp_count$summed_sampled == 0))/ length(spp_count$summed_sampled)
+# 0.4946237
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 spp_count$need_more = ifelse(spp_count$summed_count  < 250,
                             TRUE,FALSE)
 
@@ -697,21 +769,87 @@ spp_count$Target_1b[is.na(spp_count$Target_1b)] = FALSE
 spp_count$Target_1 = ifelse((spp_count$Target_1a & spp_count$Target_1b),
                               TRUE,FALSE)
 
-# find species listed based on their range criteria
-iucn_dict = data.frame(cbind(spp_count$taxon_name,
-                             spp_count$redlistCriteria,
-                             grepl("B", spp_count$redlistCriteria, ignore.case=FALSE)))
 
+#~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~
+# Target 2
+#~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~
 
+# OLD TARGET 2
+# # find species listed based on their range criteria
+# iucn_dict = data.frame(cbind(spp_count$taxon_name,
+#                              spp_count$redlistCriteria,
+#                              grepl("B", spp_count$redlistCriteria, ignore.case=FALSE)))
+#
+#
+#
+# colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
+# iucn_dict = iucn_dict[,c("taxon_name","Target_2")]
 
-colnames(iucn_dict) = c("taxon_name","redlistCriteria","Target_2")
-iucn_dict = iucn_dict[,c("taxon_name","Target_2")]
+iucn_dict = unique(data.frame(cbind(indexes$taxon_name,
+                                    indexes$prop_range_banked)))
+colnames(iucn_dict) = c("taxon_name","prop_range_banked")
 
 spp_count = spp_count %>%
-  left_join(iucn_dict, by= c("taxon_name"),
-            relationship = "many-to-many")
+  left_join(iucn_dict, by= c("taxon_name"))
 
 head(spp_count)
+
+# calculate merged Target 2
+
+#~~~~~~~~~~~~~~~
+# how many collections meet target 2 individually
+length(which(indexes$Target_2))
+# 55
+
+# how many species meet target 2 individually
+length(unique(indexes$taxon_name[which(indexes$Target_2)]))
+# 32
+
+# define new comboned target 1
+spp_count$Target_2 = (spp_count$summed_sampled >= 50 &
+                        spp_count$prop_range_banked == 1)
+
+
+# how many species meet target 1 once collections are merged?
+length(which(spp_count$Target_2))
+# 39
+
+length(which(spp_count$Target_2))/ length(spp_count$Target_2)
+# 0.1048387
+
+#~~~~~~~~~~~~~~~~~~~~~~~
+# target 2A
+spp_count$Target_2a = (spp_count$prop_range_banked == 1)
+
+# how many species meet target 1 once collections are merged?
+length(which(spp_count$Target_2a))
+# 282
+
+length(which(spp_count$Target_2a))/ length(spp_count$Target_2)
+# 0.7580645
+
+# average range of country banked.
+mean(as.numeric(spp_count$prop_range_banked))
+
+length(unique(iucn_banked_recalcitrance$taxon_name)) -
+  length(unique())
+
+# number of species still needed to get target 2
+length(unique(iucn_banked_recalcitrance$taxon_name)) -
+  length(which(spp_count$Target_2))
+
+length(unique(iucn_banked_recalcitrance$taxon_name)) -
+  length(which(spp_count$Target_1))
+
+length(unique(spp_count$taxon_name)) -
+  length(which(spp_count$Target_2))
+
+length(unique(spp_count$taxon_name)) -
+  length(which(spp_count$Target_1))
+
+
+
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #  Get target stats
@@ -732,6 +870,167 @@ length(unique(test2$taxon_name[which(test2$Target_1)])) # 30
 
 # CR meeting target
 length(which(test2$Target_1)) # 39
+
+
+###################################################################
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# storage behaviour
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# summary of records
+summary(as.factor(iucn_banked_recalcitrance$category))
+# exceptional intermediate     orthodox   recalcitrant   NA's
+# 99          714              3896       891            173
+
+
+# species
+#na
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category))]))
+# 173
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "orthodox")]))
+# 3885
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "recalcitrant")]))
+# 889
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate")]))
+# 713
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "exceptional")]))
+# 98
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# classification level
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# of the orthodox species, what level were they identified at
+summary(as.factor(iucn_banked_recalcitrance$tax.level[
+  which(iucn_banked_recalcitrance$category == "orthodox")]))/
+  length(which(iucn_banked_recalcitrance$category == "orthodox"))
+# Family       Genus       Order     Species        NA's
+# 0.465349076 0.335728953 0.175564682 0.022843943 0.000513347
+
+
+
+summary(as.factor(iucn_banked_recalcitrance$tax.level[
+  which(iucn_banked_recalcitrance$category == "intermediate")]))/
+  length(which(iucn_banked_recalcitrance$category == "intermediate"))
+#    Family     Genus     Order
+# 0.6190476 0.2478992 0.1330532
+
+summary(as.factor(iucn_banked_recalcitrance$tax.level[
+  which(iucn_banked_recalcitrance$category == "recalcitrant")]))/
+  length(which(iucn_banked_recalcitrance$category == "recalcitrant"))
+#      Family       Genus       Order     Species
+# 0.355780022 0.616161616 0.019079686 0.008978676
+
+
+#~~~~~~~~~~~~~~~~~~~~~
+# in the bank
+#~~~~~~~~~~~~~~~~~~~~~~
+
+
+# orth in bank
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "orthodox"&
+          iucn_banked_recalcitrance$banked == T)]))
+# 339
+339/372 # 0.9112903
+
+# recalcitrant
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "recalcitrant"&
+          iucn_banked_recalcitrance$banked == T)]))
+# 5
+# reclcitrant names
+unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "recalcitrant"&
+          iucn_banked_recalcitrance$banked == T)])
+
+
+
+# intermediate
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate"&
+          iucn_banked_recalcitrance$banked == T)]))
+# 18
+
+
+# proportion intermediate
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate"&
+          iucn_banked_recalcitrance$banked == T)]))/ length(unique(iucn_banked_recalcitrance$taxon_name[
+            which(iucn_banked_recalcitrance$banked == T)]))
+# 0.0483871
+
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category) &
+          iucn_banked_recalcitrance$banked == T)]))
+# 10
+
+#~~~~~~~~~~~~~
+# prediction level overall: family, genus, order, sepcies
+#~~~~~~~~~~~~~~~~~~
+# family level
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$tax.level == "Species")]))
+# 112
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$tax.level == "Order")]))
+# 801
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$tax.level == "Genus")]))
+# 2054
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$tax.level == "Family")]))
+# 2614
+
+#~~~~~~~~~~~
+# exceptional
+#~~~~~~~~~~~~~~
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "exceptional")]))
+# 98
+
+# EF1
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$EF1_seed_unavailable == "Yes" )]))
+# 37
+
+# EF2
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$EF2_desiccation_sensitive == "Yes" )]))
+# 20
+
+# EF3
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$EF3_short.lived == "Yes" )]))
+# 57
+
+# EF4
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$EF4_deep_dormancy == "Yes" )]))
+# 2
+
+
+
+
+
+
+
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

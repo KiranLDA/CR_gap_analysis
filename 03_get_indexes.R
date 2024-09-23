@@ -277,9 +277,12 @@ site_counts$geographic_index = ifelse(site_counts$LAT == 0,
                                                           site_counts$geographic_index,
                                                           1)
 
-summary(as.factor(site_counts$geographic_index))
+summary(as.factor(site_counts$geographic_index))/length(site_counts$geographic_index)
+# 0           0.5         0.75           1
+# 0.008517888 0.106473595 0.378620102 0.506388416
+mean(site_counts$geographic_index)
+# 0.8435903
 
-length(site_counts$geographic_index)
 #####################################
 ####    taxonomy INDEX      #########
 #####################################
@@ -295,7 +298,11 @@ site_counts$taxonomy_index = ifelse(is.na(site_counts$taxonomic_backbone),
                                                         site_counts$taxonomy_index,
                                                         1)
 
-summary(as.factor(site_counts$taxonomy_index))
+summary(as.factor(site_counts$taxonomy_index))/length(site_counts$taxonomy_index)
+
+mean(site_counts$taxonomy_index)
+# 1
+
 
 #####################################
 ####    year INDEX          #########
@@ -312,8 +319,11 @@ site_counts$year_index = ifelse(is.na(site_counts$DateCollected),
                                                     site_counts$year_index,
                                                     1)
 
-summary(as.factor(site_counts$year_index))
-
+summary(as.factor(site_counts$year_index))/length(site_counts$year_index)
+# 0          1
+# 0.06516184 0.93483816
+mean(site_counts$year_index)
+# 0.9348382
 
 ############################################################
 ##     Combine for information index    ######################
@@ -348,8 +358,11 @@ site_counts$count_index = ifelse(is.na(site_counts$CURRCOUNT),
                                                      0,
                                                      1)
 
-summary(as.factor(site_counts$count_index))
-
+summary(as.factor(site_counts$count_index))/ length(site_counts$count_index)
+# 0         1
+# 0.5902896 0.4097104
+mean(site_counts$count_index)
+# 0.4097104
 
 #####################################
 ####   adjcount INDEX       #########
@@ -367,7 +380,11 @@ site_counts$adjcount_index = ifelse(is.na(site_counts$ADJSTCOUNT),
                                                         site_counts$adjcount_index,
                                                         1)
 
-summary(as.factor(site_counts$adjcount_index))
+summary(as.factor(site_counts$adjcount_index))/ length(site_counts$adjcount_index)
+# 0         1
+# 0.6899489 0.3100511
+mean(site_counts$adjcount_index)
+# 0.3100511
 
 #####################################
 ####  germination INDEX     #########
@@ -386,8 +403,11 @@ site_counts$germination_index = ifelse(as.numeric(format(as.Date(site_counts$LAS
 # no information
 site_counts$germination_index[is.na(site_counts$germination_index)] = 0
 
-summary(as.factor(site_counts$germination_index))
-
+summary(as.factor(site_counts$germination_index))/ length(site_counts$germination_index)
+# 0          0.5        1
+# 0.86328790 0.01660988 0.12010221
+mean(site_counts$germination_index)
+# 0.1284072
 
 ############################################################
 ##     Combine for Viability index    ######################
@@ -428,7 +448,12 @@ site_counts$cultivation_index = ifelse(!is.na(site_counts$Derived.From),
                                        site_counts$cultivation_index + 0)
 
 
-summary(as.factor(site_counts$cultivation_index))
+summary(as.factor(site_counts$cultivation_index))/ length(site_counts$cultivation_index)
+# 0           0.5         1
+# 0.926320273 0.067717206 0.005962521
+
+mean(site_counts$cultivation_index)
+# 0.03982112
 
 #####################################
 ####      ex situ INDEX     #########
@@ -487,7 +512,14 @@ site_counts$exsitu_index = ifelse((site_counts$PLANTTOTAL != "") &
 #                                                       site_counts$exsitu_index + 0.5)
 # site_counts$exsitu_index = ifelse(is.na(site_counts$exsitu_index),
 #                                                       0,site_counts$exsitu_index)
-summary(as.factor(site_counts$exsitu_index))
+summary(as.factor(site_counts$exsitu_index))/ length(site_counts$exsitu_index)
+# 0           0.2         0.6         0.8         1
+# 0.690800681 0.007240204 0.014480409 0.194633731 0.092844974
+
+
+mean(site_counts$exsitu_index)
+# 0.2586882
+
 
 ############################################################
 ##     Combine for genetic index    ######################
@@ -511,9 +543,9 @@ mean(site_counts$genetic_index) #  0.2755301
 ####      Get stats                         #########
 #####################################################
 
-mean(site_counts$information_index) #  0.9258117
-mean(site_counts$viability_index)   #  0.2844925
-mean(site_counts$genetic_index)     #  0.2755301
+mean(site_counts$information_index) #  0.9261428
+mean(site_counts$viability_index)   #  0.2827229
+mean(site_counts$genetic_index)     #  0.2743186
 
 site_counts$total_index = ((site_counts$information_index + site_counts$viability_index +
                               site_counts$genetic_index)/3)
@@ -560,6 +592,8 @@ cbind(site_counts$ADJSTCOUNT,
       site_counts$PLANTSAMP,
       site_counts$Target_1b,
       site_counts$Target_1)
+
+length(which(site_counts$Target_1))
 
 
 ##### TARGET 2   ###########################
