@@ -113,6 +113,35 @@ length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
 length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
 
 
+# how many CR collections are there?
+length(unique(indexes$ACCESSION)) #2348
+
+# how many have been germination tested
+indexes$LASTTEST = as.Date(indexes$LASTTEST, format =  "%d/%m/%Y")
+length(which(!is.na(indexes$LASTTEST))) #321
+length(which(!is.na(indexes$LASTTEST)))/length(unique(indexes$ACCESSION)) # 0.1367121
+
+# how many have >75% germination
+length(which(indexes$BESTEVER >= 75)) # 209
+# % total >75%
+length(which(indexes$BESTEVER >= 75))/length(unique(indexes$ACCESSION)) # 0.08901193
+# % tested >75%
+length(which(indexes$BESTEVER >= 75))/length(which(!is.na(indexes$LASTTEST))) # 0.6510903
+
+#how many have 100% germination
+length(which(indexes$BESTEVER == 100)) # 116
+
+#remaining that have not yet been tested
+length(unique(indexes$ACCESSION)) - length(which(indexes$BESTEVER < 75)) # 212
+
+summary(indexes$BESTEVER[which(indexes$BESTEVER < 75 & !is.na(indexes$LASTTEST))])
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+# 0.00    0.00   25.00   27.51   50.00   72.00
+
+# how many were tested but didn't germinate?
+length(which(indexes$BESTEVER == 0 & !is.na(indexes$LASTTEST))) # 34
+
+
 # how many names have been matched from IUCN predictions
 # how many of the predicted IUCN species were matched
 length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR")])) # 4812
@@ -977,9 +1006,12 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
           iucn_banked_recalcitrance$banked == T)]))
 # 10
 
-#~~~~~~~~~~~~~
+
+
+#~~~~~~~~~~~~~~~~~~
 # prediction level overall: family, genus, order, sepcies
 #~~~~~~~~~~~~~~~~~~
+
 # family level
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$tax.level == "Species")]))
@@ -997,9 +1029,36 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$tax.level == "Family")]))
 # 2614
 
-#~~~~~~~~~~~
+
+#~~~~~~~~~~~~~
+# # number of intermediate predicted at different precisions
+#~~~~~~~~~~~~~~~~~~
+# family level
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate" &
+          iucn_banked_recalcitrance$tax.level == "Species")]))
+# 0
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate" &
+          iucn_banked_recalcitrance$tax.level == "Order")]))
+# 95
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate" &
+          iucn_banked_recalcitrance$tax.level == "Genus")]))
+# 177
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category == "intermediate" &
+          iucn_banked_recalcitrance$tax.level == "Family")]))
+# 441
+
+
+#~~~~~~~~~~~~~~~~~~~~
 # exceptional
-#~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~
+
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$category == "exceptional")]))
 # 98
@@ -1023,12 +1082,6 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$EF4_deep_dormancy == "Yes" )]))
 # 2
-
-
-
-
-
-
 
 
 
