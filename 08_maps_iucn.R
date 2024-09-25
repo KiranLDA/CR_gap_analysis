@@ -84,7 +84,7 @@ wcvp_countries$plant_name_id <- as.numeric(wcvp_countries$plant_name_id)
 spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 
-spp_banked_recalcitrant %>% left_join(wcvp_accepted_id)
+# spp_banked_recalcitrant %>% left_join(wcvp_accepted_id)
 
 
 # put wcvp tdwg3 region data into iucn data

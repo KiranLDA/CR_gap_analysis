@@ -17,6 +17,8 @@ brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.c
 
 # iucn species and their categories
 iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+iucn_banked_recalcitrance$higher[iucn_banked_recalcitrance$higher == "A"] = "Angiosperms"
+
 
 # Access and benefits sharing data
 abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
@@ -132,7 +134,7 @@ length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / length(unique(iuc
 length(unique(iucn$scientificName)) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 
-summary(unique(paste0(iucn_banked_recalcitrance$banked, "_",iucn_banked_recalcitrance$redlistCriteria == "prediction")))
+summary(as.factor(unique(paste0(iucn_banked_recalcitrance$banked, "_",iucn_banked_recalcitrance$redlistCriteria == "prediction"))))
 summary(iucn_banked_recalcitrance$banked)
 
 ########################################
@@ -152,54 +154,6 @@ length(unique(indexes$SPECIES)) #379
 length(unique(indexes$SPECIES[indexes$accepted_name == T])) #366
 
 
-
-# families
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# unplaced
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-length(unique(indexes$SPECIES[which(is.na(indexes$wcvp_accepted_id))]))
-length(unique(indexes$SPECIES[which(is.na(indexes$wcvp_accepted_id))]))/
-  length(unique(indexes$SPECIES[indexes$accepted_name == T]))
-# 0.002724796
-
-length(unique(iucn_wcvp_matched$scientificName[which(is.na(iucn_wcvp_matched$wcvp_accepted_id))]))/length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
-# 0
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# non homotypic
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Synonym")[!(which(indexes$wcvp_status == "Synonym") %in%
-                                                                                   which(indexes$wcvp_homotypic))]]))
-below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
-above1/below1
-# 0.01912568
-
-
-above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Synonym")[!(which(iucn_wcvp_matched$wcvp_status == "Synonym") %in%
-                                                                                                              which(iucn_wcvp_matched$wcvp_homotypic))]]))
-below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
-above2/below2
-# 0.03331408
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# accepted
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~
-above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Accepted")[!(which(indexes$wcvp_status == "Accepted") %in%
-                                                                                    which(indexes$wcvp_homotypic))]]))
-below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
-above1/below1
-# 0.01907357
-
-
-above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Accepted")[!(which(iucn_wcvp_matched$wcvp_status == "Accepted") %in%
-                                                                                                               which(iucn_wcvp_matched$wcvp_homotypic))]]))
-below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
-above2/below2
-# 0.03331408
-
-
 #####################
 # Families
 length(unique(indexes$family[!duplicated(indexes$taxon_name)])) #82
@@ -212,17 +166,13 @@ summary(as.factor(indexes$higher[!duplicated(indexes$taxon_name)]))
 summary(as.factor(iucn_banked_recalcitrance$higher[which(!duplicated(iucn_banked_recalcitrance$taxon_name) &
                                                            iucn_banked_recalcitrance$banked)]))
 # Angiosperms       Ferns Gymnosperms  Lycophytes
-#         359           5           7           2
+#         359           5           6           2
 
 # what is the gymnosperm that is different
-sort(iucn_banked_recalcitrance$taxon_name[which((iucn_banked_recalcitrance$higher == "Gymnosperms") & (iucn_banked_recalcitrance$banked))])
-sort(unique(indexes$taxon_name[which(indexes$higher == "Gymnosperms")]))
-# "Widdringtonia cedarbergensis"
-
-
 iucn_banked_recalcitrance[which(iucn_banked_recalcitrance$taxon_name == "Widdringtonia cedarbergensis"),]
-brahms_wcvp_matched[which(brahms_wcvp_matched$taxon_name == "Widdringtonia cedarbergensis"),]
-brahms_unique_wcvp_matched[which(brahms_unique_wcvp_matched$taxon_name == "Widdringtonia cedarbergensis"),]
+
+
+
 
 # compare to total IUCN/PRED together
 # Families
@@ -231,9 +181,17 @@ length(unique(iucn_banked_recalcitrance$family[!duplicated(iucn_banked_recalcitr
 length(unique(iucn_banked_recalcitrance$order[!duplicated(iucn_banked_recalcitrance$taxon_name)])) #64
 # genera
 summary(as.factor(iucn_banked_recalcitrance$higher[!duplicated(iucn_banked_recalcitrance$taxon_name)]))
-# A     Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
-# 9            5526              27              92              72              14              10
+# Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta            NA's
+#        5535              27              92              72              14              10               8
 
+# angiosperms
+359/5535              # 0.06485998
+# gymnosperms
+6/72                  # 0.08333333
+# ferns
+5/92                  # 0.05434783
+# lycophytes
+2/14                  # 0.1428571
 
 (summary(as.factor(indexes$higher[!duplicated(indexes$taxon_name)])) /
     summary(as.factor(iucn_banked_recalcitrance$higher[!duplicated(iucn_banked_recalcitrance$taxon_name)])) )

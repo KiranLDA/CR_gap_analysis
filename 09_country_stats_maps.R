@@ -84,8 +84,8 @@ brahms_wcvp_matched = brahms_wcvp_matched %>% left_join(indexes[,c("ACCESSION","
                                                                    "DateDonated","DateGermplasmBanked", "geographic_index", "taxonomy_index",
                                                                    "year_index", "information_index", "count_index", "adjcount_index",
                                                                    "germination_index", "viability_index", "cultivation_index",
-                                                                   "exsitu_index", "genetic_index", "total_index", "Target_1a",
-                                                                   "Target_1b", "Target_1", "Target_2")],
+                                                                   "exsitu_index", "genetic_index", "total_index", "prop_range_banked",
+                                                                   "Target_1a", "Target_1b", "Target_1", "Target_2")],
                                                         by = c("AccessionNumber" = "ACCESSION"))
 
 
@@ -276,11 +276,42 @@ iucn_wcvp_matched_countries_tdwg3$Target_1 = ifelse((iucn_wcvp_matched_countries
                                                       (iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50), TRUE, FALSE)
 
 
-
+#======================================================
 # find species listed based on their range criteria
-iucn_wcvp_matched_countries_tdwg3$Target_2a = grepl("B", iucn_wcvp_matched_countries_tdwg3$redlistCriteria, ignore.case=FALSE)
-iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a == T) &
-                                                      (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1), T, F)
+# iucn_wcvp_matched_countries_tdwg3$Target_2a = grepl("B", iucn_wcvp_matched_countries_tdwg3$redlistCriteria, ignore.case=FALSE)
+# iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a == T) &
+#                                                       (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1), T, F)
+# site_counts$Target_2a = ifelse(site_counts$prop_range_banked == 1,
+#                                TRUE,FALSE)
+# site_counts$Target_2a[is.na(site_counts$Target_2a)] = FALSE
+#
+# site_counts$Target_2 = ifelse((site_counts$Target_2a & site_counts$Target_1b),
+#                               TRUE,FALSE)
+
+
+
+# add the proportion of range collected
+iucn_dict = unique(data.frame(cbind(indexes$taxon_name,
+                                    indexes$prop_range_banked)))
+colnames(iucn_dict) = c("taxon_name","prop_range_banked")
+
+iucn_wcvp_matched_countries_tdwg3 = iucn_wcvp_matched_countries_tdwg3 %>%
+  left_join(iucn_dict, by= c("taxon_name"))
+
+iucn_wcvp_matched_countries_tdwg3$prop_range_banked[which(is.na(iucn_wcvp_matched_countries_tdwg3$prop_range_banked))] = 0
+
+head(iucn_wcvp_matched_countries_tdwg3)
+
+# estimate targets
+
+iucn_wcvp_matched_countries_tdwg3$Target_2a = ifelse((iucn_wcvp_matched_countries_tdwg3$prop_range_banked == 1) , TRUE, FALSE)
+
+iucn_wcvp_matched_countries_tdwg3$Target_2b = ifelse((iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50) , TRUE, FALSE)
+
+iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a & iucn_wcvp_matched_countries_tdwg3$Target_2b), T, F)
+
+
+#======================================================
 
 #orthodoxy and recalcitrance
 iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
@@ -480,7 +511,7 @@ country_counts_map.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 ####    PLOT          ################################
 ######################################################
 # values
-dim=4
+dim=5
 
 col.matrix<-colmat(nquantiles=dim,
                    upperleft= "#1E88E5",#509dc2", #rgb(0,150,235, maxColorValue=255),
@@ -701,8 +732,8 @@ map
 
 legend <- bi_legend(pal = custom_pal4,#"GrPink",
                     dim = dim,
-                    xlab = "# recalcitrant (0-144)",
-                    ylab = "    # orthodox (0-340)",
+                    xlab = paste0("# recalcitrant (0-",max(data$sum_recalcitrant_unbanked),")"),
+                    ylab = paste0("    # orthodox (0-",max(data$sum_orthodox_unbanked),")"),
                     size = 10)
 
 # combine map with legend
