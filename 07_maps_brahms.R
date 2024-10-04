@@ -188,7 +188,7 @@ iucn_wcvp_matched_countries_tdwg3[which(iucn_wcvp_matched_countries_tdwg3$Gallag
                                   c("Gallagher_country","COUNTRY")]
 
 iucn_world = world %>% left_join(iucn_wcvp_matched_countries_tdwg3,
-                                 by = c("NewCountryName" = "NAME_0"))
+                                 by = c( "NAME_0" = "NewCountryName" ))
 
 #########################################################################################################
 ##### WHAT IS IN THE BANK? ##############################################################################
@@ -601,7 +601,7 @@ names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 data <- bi_class(country_counts_map.prj,
                  y=sum_seeds,#sum_accessions,
                  x=sum_spp,
-                 style = "quantile",#"jenks",#"fisher",#"equal",#  , "equal", "fisher""jenks",#
+                 style = "fisher",#"equal",#  , "equal", "fisher""jenks",#"quantile",#"jenks",#
                  dim = dim)
 
 # create map
@@ -758,7 +758,7 @@ names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 data <- bi_class(country_counts_map.prj,
                  y=sum_seeds,#sum_accessions,
                  x=sum_spp,
-                 style = "quantile",#"jenks",#"fisher",#"equal",#  , "equal", "fisher""jenks",#
+                 style = "equal",#"jenks",#"fisher",#  , "equal", "fisher""jenks",#"quantile",#
                  dim = dim)
 
 # create map

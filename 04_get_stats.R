@@ -103,7 +103,10 @@ length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 thi
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
 
 # how many of each order
+iucn_wcvp_matched$higher[which(iucn_wcvp_matched$higher == "A")] = "Angiosperms"
 summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
+# Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
+# 5452              27              92              72              14              10
 
 
 # how many species are in the bank?
@@ -122,11 +125,11 @@ length(which(!is.na(indexes$LASTTEST))) #321
 length(which(!is.na(indexes$LASTTEST)))/length(unique(indexes$ACCESSION)) # 0.1367121
 
 # how many have >75% germination
-length(which(indexes$BESTEVER >= 75)) # 209
+length(which(indexes$BESTEVER >= 75)) # 212
 # % total >75%
-length(which(indexes$BESTEVER >= 75))/length(unique(indexes$ACCESSION)) # 0.08901193
+length(which(indexes$BESTEVER >= 75))/length(unique(indexes$ACCESSION)) # 0.09028961
 # % tested >75%
-length(which(indexes$BESTEVER >= 75))/length(which(!is.na(indexes$LASTTEST))) # 0.6510903
+length(which(indexes$BESTEVER >= 75))/length(which(!is.na(indexes$LASTTEST))) # 0.6604361
 
 #how many have 100% germination
 length(which(indexes$BESTEVER == 100)) # 116
@@ -889,7 +892,7 @@ test2 = iucn_banked_recalcitrance %>% left_join(indexes[,c("taxon_name","Target_
                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
-length(unique(test2$taxon_name)) # 5705
+length(unique(test2$taxon_name)) # 5758
 
 # CR banked
 length(unique(test2$taxon_name[test2$category == "banked"])) # 373
@@ -912,6 +915,17 @@ length(which(test2$Target_1)) # 39
 summary(as.factor(iucn_banked_recalcitrance$category))
 # exceptional intermediate     orthodox   recalcitrant   NA's
 # 99          714              3896       891            173
+# exceptional intermediate     orthodox recalcitrant         NA's
+#          83          714         3896          907          173
+
+summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))
+# exceptional intermediate     orthodox recalcitrant         NA's
+#           83          696         3556          902          163
+
+summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))/
+  length(which(iucn_banked_recalcitrance$banked == FALSE))
+# exceptional intermediate     orthodox recalcitrant         NA's
+#   0.01537037   0.12888889   0.65851852   0.16703704   0.03018519
 
 
 # species
@@ -926,7 +940,7 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$category == "recalcitrant")]))
-# 889
+# 905
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$category == "intermediate")]))
@@ -934,7 +948,8 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$category == "exceptional")]))
-# 98
+# 82
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # classification level
@@ -1061,7 +1076,7 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
   which(iucn_banked_recalcitrance$category == "exceptional")]))
-# 98
+# 98  82
 
 # EF1
 length(unique(iucn_banked_recalcitrance$taxon_name[
@@ -1092,16 +1107,16 @@ test2 = iucn_banked_recalcitrance %>% left_join(spp_count[,c("taxon_name","Targe
                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
-length(unique(test2$taxon_name)) # 5705
+length(unique(test2$taxon_name)) # 5758
 
 # CR banked
-length(unique(test2$taxon_name[test2$category == "banked"])) #373
+length(unique(test2$taxon_name[test2$banked == TRUE])) #372
 
 # CR meeting target 1
-length(unique(test2$taxon_name[which(test2$Target_1)])) # 41
+length(unique(test2$taxon_name[which(test2$Target_1)])) # 43
 
 # CR meeting target
-length(which(test2$Target_1)) # 41
+length(which(test2$Target_1)) # 43
 
 # CR meeting target 1a
 length(unique(test2$taxon_name[which(test2$Target_1a)])) # 124

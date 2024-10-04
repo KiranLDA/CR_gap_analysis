@@ -698,7 +698,7 @@ names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 data <- bi_class(country_counts_map.prj,
                  y=sum_seeds,#sum_accessions,
                  x=sum_spp,
-                 style = "quantile",#"jenks",#"fisher",#"equal",#  , "equal", "fisher""jenks",#
+                 style = "jenks",#"fisher",#"equal",#  ,  "fisher""jenks",#"equal",#"quantile",#
                  dim = dim)
 
 # create map

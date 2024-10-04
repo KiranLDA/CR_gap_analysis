@@ -151,6 +151,8 @@ iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_B
 iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_Behaviour == "Recalcitrant") &
                                         is.na(iucn_storage_behaviour$category))] = "recalcitrant"
 
+iucn_storage_behaviour$category[which(iucn_storage_behaviour$EF2_desiccation_sensitive == "Yes")] = "recalcitrant"
+
 iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_Behaviour == "Intermediate") &
                                         is.na(iucn_storage_behaviour$category))] = "intermediate"
 
