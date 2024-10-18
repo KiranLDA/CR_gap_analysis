@@ -1195,3 +1195,33 @@ length(which(iucn_dict2$B == "FALSE"))/nrow(iucn_dict2) # 0.8102545
 # iucn_banked_recalcitrance = iucn_banked_recalcitrance %>%
 #   left_join(iucn_dict, by= c("taxon_name"),
 #             relationship = "many-to-many")
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Family data from trees
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# Get number of species per family that are CR and that are banked
+fam_count = iucn_banked_recalitrance[,c("family", "banked", "accessions", "category")] %>%
+  group_by(family) %>%
+  summarize(
+    CR_species = n(),
+    banked_species = length(which(banked)),
+    total_accessisions = sum(accessions[!is.na(accessions)]),
+    total_orthodox = sum(category == "orthodox")
+  )
+
+# What families have nothing banked?
+fam_count$family[which(fam_count$banked_species == 0)]
+
+# What CR families have nothing banked?
+fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)]
+
+# What CR families have nothing banked?
+fam_count$family[which(fam_count$CR_species > 0)]
+
+# what proportion of families with CR species are banked
+length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)])/length(fam_count$family[which(fam_count$CR_species > 0)])
+
+# what families have lots of bankable CR species and no collections
+fam_count$family[which(fam_count$banked_species == 0 &
+                         fam_count$total_orthodox > 30)]

@@ -53,6 +53,21 @@ fam_count = iucn_banked_recalitrance[,c("family", "banked", "accessions")] %>%
 test = data.frame(tr$tip.label) %>% left_join(fam_count,
                                               by = c("tr.tip.label" = "family"))
 
+# What families have nothing banked?
+fam_count$family[which(fam_count$banked_species == 0)]
+
+# What CR families have nothing banked?
+fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)]
+
+# What CR families have nothing banked?
+fam_count$family[which(fam_count$CR_species > 0)]
+
+# what proportion of families with CR species are banked
+length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)])/length(fam_count$family[which(fam_count$CR_species > 0)])
+
+# what families have lost of CR species and no collections
+fam_count$family[which(fam_count$banked_species == 0 &
+                                fam_count$CR_species > 50)]
 
 colorz  = ifelse(test$banked_species > 0, "darkolivegreen",
                  ifelse(test$CR_species >0, "#FFA500","grey"))

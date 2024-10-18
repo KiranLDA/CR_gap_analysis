@@ -461,6 +461,10 @@ country_counts_map$sum_recalcitrant_unbanked[is.na(country_counts_map$sum_recalc
 country_counts_map$sum_CR_pred[is.na(country_counts_map$sum_CR_pred)] = 0
 # CR_country_counts = CR_country_counts %>% left_join(country_names)
 
+
+# get some stats
+country_counts_map$NAME_0[ which(country_counts_map$prop_banked > 0.5)]
+
 ####  PROJECT in Mollweide
 
 # create a bounding box - world extent
