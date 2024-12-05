@@ -4,6 +4,7 @@ library(geodata)
 library(dplyr)
 library(stringdist)
 library(sf)
+library(sp)
 library(biscale)
 library(ggplot2)
 library(cowplot)
@@ -696,9 +697,9 @@ custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
 names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 
 data <- bi_class(country_counts_map.prj,
-                 y=sum_seeds,#sum_accessions,
-                 x=sum_spp,
-                 style = "jenks",#"fisher",#"equal",#  ,  "fisher""jenks",#"equal",#"quantile",#
+                 y=log_seeds,#sum_accessions,
+                 x=log_spp,
+                 style = "fisher",#"equal",#"jenks",# ,  "jenks",#"quantile",#
                  dim = dim)
 
 # create map
@@ -736,8 +737,8 @@ map
 
 legend <- bi_legend(pal = custom_pal4,#"GrPink",
                     dim = dim,
-                    xlab = "# species",
-                    ylab = "     # seeds",
+                    xlab = "log # species",
+                    ylab = "     log # seeds",
                     size = 10)
 # combine map with legend
 finalPlot <- ggdraw() +

@@ -4,6 +4,7 @@ library(geodata)
 library(dplyr)
 library(stringdist)
 library(sf)
+library(sp)
 library(biscale)
 library(ggplot2)
 library(cowplot)
@@ -514,7 +515,7 @@ country_counts_map = world %>% left_join(country_counts_map)
 b.box <- as(raster::extent(-180, 180, -90, 90), "SpatialPolygons")
 
 # assign CRS to box
-WGS84 <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+WGS84 <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 
 proj4string(b.box) <- WGS84
 
