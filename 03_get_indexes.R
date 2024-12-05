@@ -13,9 +13,25 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 # #iucn redlist data
 # iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-#
+
+
+# get rid of subspecies and varieties that could not be matched except at species level
+# cbind(iucn_wcvp_matched$scientificName[which(stringr::str_count(iucn_wcvp_matched$scientificName, "\\w+") >2)],
+#       iucn_wcvp_matched$taxon_name[which(stringr::str_count(iucn_wcvp_matched$scientificName, "\\w+") >2)])
+# cbind(iucn_wcvp_matched$scientificName[which(stringr::str_count(iucn_wcvp_matched$taxon_name, "\\w+") >3)],
+#       iucn_wcvp_matched$taxon_name[which(stringr::str_count(iucn_wcvp_matched$taxon_name, "\\w+") >3)])
+
+
 # # the MSB data
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
+
+# # get rid of subspecies and varieties that could not be matched except at species level
+# cbind(brahms_wcvp_matched$full_name[which((stringr::str_count(brahms_wcvp_matched$full_name, "\\w+") > 2) &
+#                                             (stringr::str_count(brahms_wcvp_matched$taxon_name, "\\w+") == 2))],
+#       brahms_wcvp_matched$taxon_name[which((stringr::str_count(brahms_wcvp_matched$full_name, "\\w+") > 2) &
+#                                              (stringr::str_count(brahms_wcvp_matched$taxon_name, "\\w+") == 2))])
+
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
 #
 # # the exceptional species )recalcitrant

@@ -119,7 +119,7 @@ iucn_wcvp_matched_orthodox$category = NA
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.25)] = "orthodox"
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.75 &
-                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25)] = "intermediate"
+                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25)] = "unknown"
 
 length(exceptional_wcvp_matched$taxon_name)
 length(unique(exceptional_wcvp_matched$taxon_name))
@@ -135,7 +135,7 @@ iucn_storage_behaviour = iucn_wcvp_matched_orthodox %>% left_join(exceptional_wc
 
 iucn_storage_behaviour = unique(iucn_storage_behaviour)
 
-iucn_storage_behaviour[iucn_storage_behaviour$category == "intermediate",]
+iucn_storage_behaviour[iucn_storage_behaviour$category == "unknown",]
 iucn_storage_behaviour[which(iucn_storage_behaviour$PlantSearch_cryopreservation_collections == 1),]
 iucn_storage_behaviour[which(iucn_storage_behaviour$PlantSearch_seed_collections >0),]
 
@@ -358,7 +358,7 @@ brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
 brahms_to_add$category = NA
 brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
 brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.75 & brahms_to_add$probability.of.recalcitrance > 0.25)] = "intermediate"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.75 & brahms_to_add$probability.of.recalcitrance > 0.25)] = "unknown"
 brahms_to_add["Exceptional_status"] = NA
 brahms_to_add["EF1_seed_unavailable"] = NA
 brahms_to_add["EF2_desiccation_sensitive"] = NA
@@ -422,7 +422,7 @@ CR_pred_to_add["category"] = NA
 # CR_pred_to_add$category[CR_pred_to_add$banked == T] = "banked"
 CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
 CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
-CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_pred_to_add$probability.of.recalcitrance > 0.25)] = "intermediate"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_pred_to_add$probability.of.recalcitrance > 0.25)] = "unknown"
 
 
 
