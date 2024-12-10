@@ -6,7 +6,7 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-###### Find the CR species in the dataset ##################################################################
+ ###### Find the CR species in the dataset ##################################################################
 
 # iucn data in the bank with calcualted targets
 indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
