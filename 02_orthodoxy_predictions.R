@@ -116,10 +116,10 @@ iucn_wcvp_matched_orthodox$banked = ifelse(iucn_wcvp_matched_orthodox$taxon_name
 # specify the categories
 iucn_wcvp_matched_orthodox$category = NA
 # iucn_wcvp_matched_orthodox$category[iucn_wcvp_matched_orthodox$banked == T] = "banked"
-iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.25)] = "orthodox"
-iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
-iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.75 &
-                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.25)] = "unknown"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.3)] = "orthodox"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
+iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.7 &
+                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.3)] = "unknown"
 
 length(exceptional_wcvp_matched$taxon_name)
 length(unique(exceptional_wcvp_matched$taxon_name))
@@ -195,9 +195,9 @@ iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_B
 #
 # #add in the categories
 # NA_storage$category[NA_storage$banked == T] = "banked"
-# NA_storage$category[NA_storage$probability.of.recalcitrance <= 0.25] = "orthodox"
-# NA_storage$category[NA_storage$probability.of.recalcitrance >= 0.75] = "recalcitrant"
-# NA_storage$category[NA_storage$probability.of.recalcitrance < 0.75 & NA_storage$probability.of.recalcitrance > 0.25] = "intermediate"
+# NA_storage$category[NA_storage$probability.of.recalcitrance <= 0.3] = "orthodox"
+# NA_storage$category[NA_storage$probability.of.recalcitrance >= 0.7] = "recalcitrant"
+# NA_storage$category[NA_storage$probability.of.recalcitrance < 0.7 & NA_storage$probability.of.recalcitrance > 0.3] = "intermediate"
 #
 # #remove the synonym row
 # # NA_storage = unique(NA_storage)
@@ -356,9 +356,9 @@ brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
 # brahms_to_add["storBehav"] = NA
 # brahms_to_add["category"] = "banked"
 brahms_to_add$category = NA
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.75 & brahms_to_add$probability.of.recalcitrance > 0.25)] = "unknown"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.3)] = "orthodox"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
+brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.7 & brahms_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
 brahms_to_add["Exceptional_status"] = NA
 brahms_to_add["EF1_seed_unavailable"] = NA
 brahms_to_add["EF2_desiccation_sensitive"] = NA
@@ -420,9 +420,9 @@ CR_pred_to_add = CR_pred_to_add %>% left_join(rWCVP::taxonomic_mapping,
                                             by=c("family" = "family"))
 CR_pred_to_add["category"] = NA
 # CR_pred_to_add$category[CR_pred_to_add$banked == T] = "banked"
-CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance <= 0.25)] = "orthodox"
-CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance >= 0.75)] = "recalcitrant"
-CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.75 & CR_pred_to_add$probability.of.recalcitrance > 0.25)] = "unknown"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance <= 0.3)] = "orthodox"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.7 & CR_pred_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
 
 
 
@@ -444,7 +444,14 @@ CR_pred_to_add = CR_pred_to_add[,colkeep]
 length(unique(CR_pred_to_add$taxon_name))
 iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred_to_add$taxon_name]
 
+
+
+
+
+
+
 ###### COMBINE DATA    #############################################################################################
+#combine the datasets
 spp_banked_recalcitrant = rbind(iucn_storage_behaviour, # banked and unbaked IUCN
                                 brahms_to_add, # banked IUCN prediction
                                 CR_pred_to_add) # unbanked IUCN prediction
@@ -491,6 +498,30 @@ dupl_nam = dupl_nam[order(dupl_nam)]
 # length(unique(test$taxon_name))
 spp_banked_recalcitrant = spp_banked_recalcitrant[which(!is.na(spp_banked_recalcitrant$taxon_name)),]
 
+####### add in the extra species categories from Dani and Hawaii ######################################
+extras <- read.csv(paste0(basepath, "extras_wcvp_matched_full_name.csv"))
+
+test = spp_banked_recalcitrant %>% left_join(extras[c("taxon_name","species_name_IUCN","Storage","source")],
+                                             by="taxon_name")
+
+
+which(spp_banked_recalcitrant$taxon_name == "Isoetes stephanseniae")
+extras[which(extras$taxon_name == "Isoetes stephanseniae"),]
+spp_banked_recalcitrant[which(spp_banked_recalcitrant$taxon_name == "Hesperomannia arborescens"),]
+
+
+test$category[which(test$category == "unknown"
+                    & !is.na(test$Storage))] = test$Storage[which(test$category == "unknown"
+                                                                  & !is.na(test$Storage))]
+
+test[which(test$tax.level %in% c("Order","Family")),
+     c("taxon_name","category","probability.of.recalcitrance", "tax.level")]
+
+hist(test$probability.of.recalcitrance[which(test$category == "unknown")])
+length(which(test$category == "unknown"))
+
+##### SAVE ################################################
+
 write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 
 ###################################################################################################
@@ -532,10 +563,10 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv
 #                       temp$probability.of.recalcitrance.x)
 #
 # temp$banked_category = NA
-# temp$banked_category[temp$probability.of.recalcitrance <= 0.25] = "orthodox"
-# temp$banked_category[temp$probability.of.recalcitrance >= 0.75] = "recalcitrant"
-# temp$banked_category[temp$probability.of.recalcitrance < 0.75 &
-#                        temp$probability.of.recalcitrance > 0.25] = "intermediate"
+# temp$banked_category[temp$probability.of.recalcitrance <= 0.3] = "orthodox"
+# temp$banked_category[temp$probability.of.recalcitrance >= 0.7] = "recalcitrant"
+# temp$banked_category[temp$probability.of.recalcitrance < 0.7 &
+#                        temp$probability.of.recalcitrance > 0.3] = "intermediate"
 #
 #
 #
@@ -549,10 +580,10 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv
 #
 #
 # new$banked_category = NA
-# new$banked_category[new$banked_recalcitrance <= 0.25] = "orthodox"
-# new$banked_category[new$banked_recalcitrance >= 0.75] = "recalcitrant"
-# new$banked_category[new$banked_recalcitrance < 0.75 &
-#                       new$banked_recalcitrance > 0.25] = "intermediate"
+# new$banked_category[new$banked_recalcitrance <= 0.3] = "orthodox"
+# new$banked_category[new$banked_recalcitrance >= 0.7] = "recalcitrant"
+# new$banked_category[new$banked_recalcitrance < 0.7 &
+#                       new$banked_recalcitrance > 0.3] = "intermediate"
 #
 # new = new[!is.na(new$taxon_name), ]
 # write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
