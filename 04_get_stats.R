@@ -13,6 +13,7 @@ indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 
 # seedbank data
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
 
 
 # iucn species and their categories

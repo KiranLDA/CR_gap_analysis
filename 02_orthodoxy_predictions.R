@@ -501,24 +501,125 @@ spp_banked_recalcitrant = spp_banked_recalcitrant[which(!is.na(spp_banked_recalc
 ####### add in the extra species categories from Dani and Hawaii ######################################
 extras <- read.csv(paste0(basepath, "extras_wcvp_matched_full_name.csv"))
 
+#combine the extra with the other data
 test = spp_banked_recalcitrant %>% left_join(extras[c("taxon_name","species_name_IUCN","Storage","source")],
                                              by="taxon_name")
 
+# # replace storage behaviour with the extras values
+# test$category[which(test$category == "unknown"
+#                     & !is.na(test$Storage))] = test$Storage[which(test$category == "unknown"
+#                                                                   & !is.na(test$Storage))]
+# create empty variable for the storage behaviour
+test$category_uncertain = NA
+test$category_certain = NA
+test$category_uncertain_ref = NA
+test$category_certain_ref = NA
 
-which(spp_banked_recalcitrant$taxon_name == "Isoetes stephanseniae")
-extras[which(extras$taxon_name == "Isoetes stephanseniae"),]
-spp_banked_recalcitrant[which(spp_banked_recalcitrant$taxon_name == "Hesperomannia arborescens"),]
+
+# step 1: SID
+# unique(test$SID_Seed_Storage_Behaviour)
+# c("Orthodox","Recalcitrant?","Orthodox p","Recalcitrant","Uncertain","Intermediate","Orthodox?","Intermediate?")
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Orthodox"))
+test$category_uncertain[id] = "orthodox"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_certain) & test$SID_Seed_Storage_Behaviour %in% c("Orthodox"))
+test$category_certain[id] = "orthodox"
+test$category_certain_ref[id] = "SID"
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Recalcitrant"))
+test$category_uncertain[id] = "recalcitrant"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_certain) & test$SID_Seed_Storage_Behaviour %in% c("Recalcitrant"))
+test$category_certain[id] = "recalcitrant"
+test$category_certain_ref[id] = "SID"
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Intermediate"))
+test$category_uncertain[id] = "intermediate"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Intermediate"))
+test$category_certain[id] = "intermediate"
+test$category_certain_ref[id] = "SID"
 
 
-test$category[which(test$category == "unknown"
-                    & !is.na(test$Storage))] = test$Storage[which(test$category == "unknown"
-                                                                  & !is.na(test$Storage))]
+#Step 2: add the litterature review
+id = which(is.na(test$category_uncertain) & !is.na(test$Storage))
+test$category_uncertain[id] = test$Storage[id]
+test$category_certain[id] = test$Storage[id]
+test$category_uncertain_ref[id] = test$source[id]
+test$category_certain_ref[id] = test$source[id]
+test$category_uncertain_ref[which(test$category_uncertain_ref == "")] = "expert (Ballesteros)"
+test$category_certain_ref[which(test$category_certain_ref == "")] = "expert (Ballesteros)"
 
-test[which(test$tax.level %in% c("Order","Family")),
-     c("taxon_name","category","probability.of.recalcitrance", "tax.level")]
 
-hist(test$probability.of.recalcitrance[which(test$category == "unknown")])
-length(which(test$category == "unknown"))
+# step 3: add in Pence
+id = which(is.na(test$category_uncertain) & test$Exceptional_status == "Exceptional")
+test$category_uncertain[id] = "exceptional"
+test$category_certain[id] = "exceptional"
+test$category_uncertain_ref[id] = "Pence et al. 2022"
+test$category_certain_ref[id] = "Pence et al. 2022"
+
+
+#step 4: add in seed storage predictor
+
+#orthodox uncertain
+id = which(is.na(test$category_uncertain) & test$probability.of.recalcitrance <= 0.3)
+test$category_uncertain[id] = "orthodox"
+test$category_uncertain_ref[id] = "Wyse and Dickie (2017)"
+
+# recalcitrant uncertain
+id = which(is.na(test$category_uncertain) & test$probability.of.recalcitrance >= 0.7)
+test$category_uncertain[id] = "recalcitrant"
+test$category_uncertain_ref[id] = "Wyse and Dickie (2017)"
+
+
+# orthodox certain
+id = which(is.na(test$category_certain) & test$probability.of.recalcitrance <= 0.3 & test$tax.level %in% c("Species", "Genus"))
+test$category_certain[id] = "orthodox"
+test$category_certain_ref[id] = "Wyse and Dickie (2017)"
+
+# recalcitrant certain
+id = which(is.na(test$category_certain) & test$probability.of.recalcitrance >= 0.7 & test$tax.level %in% c("Species", "Genus"))
+test$category_certain[id] = "recalcitrant"
+test$category_certain_ref[id] = "Wyse and Dickie (2017)"
+
+
+# Step 5: add in the uncertain SID
+# c("Orthodox","Recalcitrant?","Orthodox p","Recalcitrant","Uncertain","Intermediate","Orthodox?","Intermediate?")
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Orthodox?","Orthodox p"))
+test$category_uncertain[id] = "orthodox"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Recalcitrant?"))
+test$category_uncertain[id] = "recalcitrant"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Intermediate?"))
+test$category_uncertain[id] = "intermediate"
+test$category_uncertain_ref[id] = "SID"
+
+# Step 6: add in orthodox from Pence
+id = which(is.na(test$category_uncertain) & test$Exceptional_status %in% c("Probably non-exceptional","Non-exceptional" ))
+test$category_uncertain[id] = "orthodox"
+test$category_uncertain_ref[id] = "SID"
+
+id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Non-exceptional" ))
+test$category_certain[id] = "orthodox"
+test$category_certain_ref[id] = "SID"
+
+
+
+
+# have a look
+View(test[, c("storBehav","probability.of.recalcitrance","SID_Seed_Storage_Behaviour",
+         "Exceptional_status","Storage",
+         "category_uncertain", "category_certain")])
+
+
 
 ##### SAVE ################################################
 
