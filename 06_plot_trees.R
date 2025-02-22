@@ -6,16 +6,14 @@
 #
 
 #
-install.packages("installr")
-library("installr")
-uninstall.packages("cli")
+# install.packages("installr")
+# library("installr")
+# uninstall.packages("cli")
 # uninstall.packages("utf8")
 # uninstall.packages("vctrs")
 # install.packages("cli")
 # install.packages("utf8")
 # install.packages("vctrs")
-installr::uninstall.packages("rlang")
-install.packages("rlang", force = T)
 # BiocManager::install("GenomeInfoDbData")
 # BiocManager::install("ggtreeExtra")
 # BiocManager::install("ggtree", force = T)
@@ -67,10 +65,14 @@ fam_count$family[which(fam_count$CR_species > 0)]
 
 # what proportion of families with CR species are banked
 length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)])/length(fam_count$family[which(fam_count$CR_species > 0)])
+# 0.6260504
 
 # what families have lost of CR species and no collections
 fam_count$family[which(fam_count$banked_species == 0 &
                                 fam_count$CR_species > 50)]
+# "Annonaceae"       "Araliaceae"       "Bromeliaceae"     "Dipterocarpaceae"
+# "Fagaceae"         "Lauraceae"        "Zingiberaceae"
+
 
 colorz  = ifelse(test$banked_species > 0, "darkolivegreen",
                  ifelse(test$CR_species >0, "#FFA500","grey"))
@@ -105,29 +107,36 @@ proportions = dat$value[dat$group == "Banked CR species in family"]
 
 # % families with CR
 length(which(!is.na(proportions)))/length(proportions) *100
+# 47.24771
 
 # % families with banked CR
 length(which(proportions > 0))/length(proportions) *100
+# 19.26606
 
 # % CR that have some banked
 length(which(proportions > 0))/length(which(!is.na(proportions))) *100
 
 # % CR that have 50% banked
 length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
+# 40.7767
 
 # % CR that have 99% banked
 length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
+# 4.854369
 
 # Names of fanmilies with CR that are 99% banked
 dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
+# [1] "Moringaceae"     "Cistaceae"       "Onagraceae"      "Kewaceae"
+# [5] "Frankeniaceae"   "Byblidaceae"     "Calceolariaceae" "Stylidiaceae"
+# [9] "Pennantiaceae"   "Nyssaceae"
 
 # Stats for big families
-test$CR_species[test$tr.tip.label == "Rubiaceae"]
-test$CR_species[test$tr.tip.label == "Myrtaceae"]
-test$CR_species[test$tr.tip.label == "Lauraceae"]
-test$CR_species[test$tr.tip.label == "Fabaceae"]
-test$CR_species[test$tr.tip.label == "Orchidaceae"]
-test$CR_species[test$tr.tip.label == "Asteraceae"]
+test$CR_species[test$tr.tip.label == "Rubiaceae"] #342
+test$CR_species[test$tr.tip.label == "Myrtaceae"] #297
+test$CR_species[test$tr.tip.label == "Lauraceae"] #290
+test$CR_species[test$tr.tip.label == "Fabaceae"] #286
+test$CR_species[test$tr.tip.label == "Orchidaceae"] #268
+test$CR_species[test$tr.tip.label == "Asteraceae"] #247
 
 #############################################
 # Plot the phylogenetic tree
