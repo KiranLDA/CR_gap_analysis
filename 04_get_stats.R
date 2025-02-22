@@ -8,19 +8,16 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 
  ###### Find the CR species in the dataset ##################################################################
 
-# iucn data in the bank with calcualted targets
+# iucn data in the bank with calculated targets
 indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 
 # seedbank data
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
 
 
 # iucn species and their categories
 iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-
-
-
 
 
 # Access and benefits sharing data
@@ -91,7 +88,7 @@ CR_msbp
 
 
 ##############################################################
-###       GET some stats
+###                NAME MATCHING STATS
 ##############################################################
 
 # how many names have been matched from IUCN
@@ -101,7 +98,14 @@ length(unique(iucn$scientificName)) - length(unique(iucn_wcvp_matched$scientific
 test = iucn[which(!(iucn$scientificName %in% iucn_wcvp_matched$scientificName)),]
 length(unique(iucn_wcvp_matched$taxon_name)) # 5654 to this many new names
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")))/ length(unique(iucn$scientificName)) # 0.9852683
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
+
+# what names were doubled in the datasets
+doubled <- iucn_wcvp_matched$taxon_name[which(duplicated(iucn_wcvp_matched$taxon_name))]
+cbind(iucn_wcvp_matched$taxon_name[which(iucn_wcvp_matched$taxon_name %in% doubled)],
+      iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$taxon_name %in% doubled)])
+
 
 # how many of each order
 iucn_wcvp_matched$higher[which(iucn_wcvp_matched$higher == "A")] = "Angiosperms"
@@ -109,13 +113,11 @@ summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
 # Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
 # 5452              27              92              72              14              10
 
-
 # how many species are in the bank?
 length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
 length(unique(brahms_unique_wcvp_matched$full_name)) # 46787 had matches
 length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
 length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
-
 
 # how many CR collections are there?
 length(unique(indexes$ACCESSION)) #2348
@@ -145,45 +147,80 @@ summary(indexes$BESTEVER[which(indexes$BESTEVER < 75 & !is.na(indexes$LASTTEST))
 # how many were tested but didn't germinate?
 length(which(indexes$BESTEVER == 0 & !is.na(indexes$LASTTEST))) # 34
 
+###############################################################
+# how many names have been matched from IUCN predictions to wcvp
+###############################################################
 
-# how many names have been matched from IUCN predictions
 # how many of the predicted IUCN species were matched
 length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR")])) # 4812
 # iucn_CR_predictions = iucn_$taxon_name[which(iucn_predictions$category == "CR")]
 length(unique(iucn_predictions$taxon_name)) # 328553 before matching
-length(unique(iucn_predictions_wcvp_matched$scientificName)) # 5667 were matched
-length(unique(iucn_predictions_wcvp_matched$taxon_name)) # 5654 to this many new names
-length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
-length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
+length(unique(iucn_predictions_wcvp_matched$scientificName[which(iucn_predictions$category == "CR")])) # 4812 were matched
+length(unique(iucn_predictions_wcvp_matched$taxon_name[which(iucn_predictions$category == "CR")])) # 4810 to this many new names
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WCVP"))) # 4807 this many from WCVP
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WFO"))) # 5 from WFO
 
+length(unique(iucn_predictions_wcvp_matched$scientificName)) # 328498 were matched
+length(unique(iucn_predictions_wcvp_matched$taxon_name)) # 326877 to this many new names
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))) # 327989 this many from WCVP
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 537 from WFO
+
+length(unique(iucn_predictions_wcvp_matched$taxon_name))
+## IUCN predictions that are CR
+length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
+length(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))
+length(which(iucn_CR_predictions_wcvp_matched$taxonomic_backbone == "WFO"))
+
+
+
+#################################################################
+# Exceptional species matched  to wcvp
+#################################################################
 
 # how many species are the exceptional species
 length(unique(exceptional$Species_name)) # 23530 before matching
 length(unique(exceptional_wcvp_matched$Species_name)) # 22283 were matched
 length(unique(exceptional_wcvp_matched$taxon_name)) # 22298 to this many new names
-length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22250 this many from WCVP
-length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 48 from WFO
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WCVP"))) # 22251 this many from WCVP
+length(unique(which(exceptional_wcvp_matched$taxonomic_backbone == "WFO"))) # 47 from WFO
+
+###################################################################
+## CR in the MSB that are name matched to wcvp
+###################################################################
 
 
 # how many accessions
 length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
 
-length(which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")) # 197685
+# how many names were matched
+length(unique(brahms_wcvp_matched$Taxon))
+length(unique(brahms_wcvp_matched$Taxon[which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")])) # 197624
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")])) # 197624
+length(unique(brahms_wcvp_matched$Taxon[which(brahms_wcvp_matched$taxonomic_backbone == "WFO")])) # 197624
 
-#how many collections?
-length(unique(brahms_wcvp_matched$AccessionNumber)) # 197934
+
+# how many species names in WCVP
+length(unique(brahms_wcvp_matched$taxon_name))
+length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$taxonomic_backbone == "WCVP")])) # 197624
+
+
 
 # find the MSB species that are CR endangered
 length(unique(CR_msbp$taxon_name)) # 372
-length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")])) # 1
-length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")])) # 371
+
+# which species are predicted vs from IUCN
+pred_sp = unique(CR_msbp$taxon_name)[which(unique(CR_msbp$taxon_name) %in% unique(iucn_CR_predictions_wcvp_matched$taxon_name))]
+
+# how many species are CR or CRpred
+length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name == pred_sp)])) # 1
+length(unique(CR_msbp$taxon_name[which(CR_msbp$taxon_name != pred_sp)])) # 371
 
 # total accessions
-nrow(CR_msbp) #2348
-# how many accessions that are not CR_pred
-length(CR_msbp$taxon_name[which(CR_msbp$taxon_name != "Atocion compactum")]) # 2338
-length(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")]) # 10
+nrow(CR_msbp) # 2348
 
+# how many accessions that are not CR_pred
+length(CR_msbp$taxon_name[which(CR_msbp$taxon_name != pred_sp)]) # 2338
+length(CR_msbp$taxon_name[which(CR_msbp$taxon_name == pred_sp)]) # 10
 
 # brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
 # summary(brahms_wcvp_matched$CR)
@@ -194,8 +231,7 @@ length(CR_msbp$taxon_name[which(CR_msbp$taxon_name == "Atocion compactum")]) # 1
 # length(unique(brahms_wcvp_matched$taxon_name[which(brahms_wcvp_matched$CR)])) # 371
 
 # subset the CR data
-brahms_CR = CR_msbp#brahms_wcvp_matched[brahms_wcvp_matched$CR,]
-
+brahms_CR = CR_msbp #brahms_wcvp_matched[brahms_wcvp_matched$CR,]
 
 # number of IUCN listed species
 # length(unique(iucn_wcvp_matched$wcvp_accepted_id)) #5645
@@ -216,7 +252,7 @@ total_CR_CRpred = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn
 total_CR_CRpred
 total_CR = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
               length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")])))
-total_CR
+total_CR # 5654
 
 # iucn_wcvp_matched$banked = iucn_wcvp_matched$wcvp_accepted_id %in% brahms_wcvp_matched$wcvp_accepted_id
 # summary(iucn_wcvp_matched$banked)
@@ -247,19 +283,19 @@ sum(iucn_higher_list$n)
 
 ## What years are the IUCN assessments from
 length(which(iucn_banked_recalcitrance$yearPublished < 2000)) #334
-length(which(iucn_banked_recalcitrance$yearPublished >= 2000 & iucn_banked_recalcitrance$yearPublished < 2010)) #470
-length(which(iucn_banked_recalcitrance$yearPublished >= 2010 & iucn_banked_recalcitrance$yearPublished < 2020)) #1970
-length(which(iucn_banked_recalcitrance$yearPublished[which(iucn_banked_recalcitrance$redlistCriteria != "prediction")] >= 2020)) #2893
+length(which(iucn_banked_recalcitrance$yearPublished >= 2000 & iucn_banked_recalcitrance$yearPublished < 2010)) #472
+length(which(iucn_banked_recalcitrance$yearPublished >= 2010 & iucn_banked_recalcitrance$yearPublished < 2020)) #1973
+length(which(iucn_banked_recalcitrance$yearPublished[which(iucn_banked_recalcitrance$redlistCriteria != "prediction")] >= 2020)) #2895
  # because predictions are all from 2024
 
 length(wcvp$taxon_status == "Accepted")
-length(wcvp$taxon_status == "Accepted")
+
 
 # how many are in wcvp
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / length(unique(iucn$scientificName))
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))
-length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / length(unique(iucn$scientificName))
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) # 5618
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")) / length(unique(iucn$scientificName)) # 0.9852683
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) # 49
+length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) / length(unique(iucn$scientificName)) # 0.008593476
 length(unique(iucn$scientificName)) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WFO")) - length(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))
 
 

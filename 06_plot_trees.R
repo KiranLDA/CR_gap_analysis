@@ -4,19 +4,22 @@
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 #
-# BiocManager::install("ggtree")
+
 #
-# BiocManager::install("phyloseq")
-#
-# install.packages("installr")
-# library("installr")
-# uninstall.packages("cli")
+install.packages("installr")
+library("installr")
+uninstall.packages("cli")
 # uninstall.packages("utf8")
 # uninstall.packages("vctrs")
 # install.packages("cli")
 # install.packages("utf8")
 # install.packages("vctrs")
+installr::uninstall.packages("rlang")
+install.packages("rlang", force = T)
+# BiocManager::install("GenomeInfoDbData")
 # BiocManager::install("ggtreeExtra")
+# BiocManager::install("ggtree", force = T)
+# BiocManager::install("phyloseq", force=T)
 
 # Load packages
 library(ape)

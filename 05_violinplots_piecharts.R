@@ -125,6 +125,7 @@ spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv
 spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$probability.of.recalcitrance))] = "unknown"
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category
+spp_banked_recalcitrant$category2[which(spp_banked_recalcitrant$category2 =="recalcitrant")] = "exceptional"
 spp_banked_recalcitrant$category2 = ifelse(spp_banked_recalcitrant$banked == T, "banked", spp_banked_recalcitrant$category2)
 spp_banked_recalcitrant$labels = paste0( spp_banked_recalcitrant$category2, " (", spp_banked_recalcitrant$predictions,")")
 
@@ -133,34 +134,46 @@ single = spp_banked_recalcitrant[which(duplicated(spp_banked_recalcitrant$taxon_
 
 # Some are replicated but they are species that have bee split
 length(unique(spp_banked_recalcitrant$taxon_name)) # 5758
-length(spp_banked_recalcitrant$taxon_name) # 5773
+length(spp_banked_recalcitrant$taxon_name) # 5780, was 5773
 
 length(unique(single$taxon_name)) # 5758
 length(single$taxon_name) # 5758
 
 pie_data = single %>% count(labels)
-pie_data = pie_data[c(1,2,6,7,4,5,8,9,3,10,11),]
+pie_data = pie_data[c(5,6,7,8,3,4,1,2),]
 sum(pie_data$n)
 par(mar = c(0,0,1,10))
-pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn.pdf"),
+pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("darkolivegreen3","darkolivegreen4",
-          "darkgoldenrod1","darkgoldenrod3",
-          "chocolate1","chocolate3",
-          "brown3","brown4",
-          "black", "grey"))
+    col=c("#FFC107", "goldenrod3",
+          "#fe6100", "darkorange4",
+          "#D81B60", "#610A1A",
+          "#1E88E5", "#0F4777"))
+          # "#785ef0",
+          # "#004D40", "#00231D",
+      #     "darkolivegreen4","darkolivegreen4",
+      #     "darkolivegreen3","darkolivegreen4",
+      #     "darkgoldenrod1","darkgoldenrod3",
+      #     "chocolate1","chocolate3",
+      #     "brown3","brown4",
+          # "black", "grey"))
 dev.off()
 
 
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn.png"),
+png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("darkolivegreen3","darkolivegreen4",
-          "darkgoldenrod1","darkgoldenrod3",
-          "chocolate1","chocolate3",
-          "brown3","brown4",
-          "black", "grey"))
+    col=c("#FFC107", "goldenrod3",
+          "#fe6100", "darkorange4",
+          "#D81B60", "#610A1A",
+          "#1E88E5", "#0F4777"))
+# pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
+#     col=c("darkolivegreen3","darkolivegreen4",
+#           "darkgoldenrod1","darkgoldenrod3",
+#           "chocolate1","chocolate3",
+#           "brown3","brown4",
+#           "black", "grey"))
 dev.off()
 par(mar = c(5,5,3,3))
 
