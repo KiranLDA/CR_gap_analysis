@@ -563,9 +563,9 @@ test$category_uncertain_ref[id] = "Pence et al. 2022"
 test$category_certain_ref[id] = "Pence et al. 2022"
 
 
-#step 4: add in seed storage predictor
+# step 4: add in seed storage predictor
 
-#orthodox uncertain
+# orthodox uncertain
 id = which(is.na(test$category_uncertain) & test$probability.of.recalcitrance <= 0.3)
 test$category_uncertain[id] = "orthodox"
 test$category_uncertain_ref[id] = "Wyse and Dickie (2017)"

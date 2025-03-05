@@ -78,7 +78,9 @@ indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 permissions = read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
 
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
+
 brahms_wcvp_matched = brahms_wcvp_matched %>% left_join(indexes[,c("ACCESSION","ADJSTCOUNT", "PLANTSAMP",
                                                                    "Cultivated", "Derived.From","Result", "DateStarted", "DateCollected",
                                                                    "DateDonated","DateGermplasmBanked", "geographic_index", "taxonomy_index",
