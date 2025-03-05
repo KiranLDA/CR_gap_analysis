@@ -257,6 +257,7 @@ iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country = 0
 iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country = 0
 iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country = 0
 iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country = 0
+
 for(ID in unique(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id)){
   # ID = 3259908#2797442 #3144077#
   iucn_row = which(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id == ID)
@@ -314,8 +315,9 @@ iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries
 
 
 #======================================================
+# orthodoxy and recalcitrance OLD
+#======================================================
 
-#orthodoxy and recalcitrance
 iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
                                                                       iucn_wcvp_matched_countries_tdwg3$banked_category,
                                                                       iucn_wcvp_matched_countries_tdwg3$category)
@@ -342,6 +344,39 @@ iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countr
 iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
 iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked)] = 0
 iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked)] = 0
+
+
+#======================================================
+# orthodoxy and recalcitrance CERTAIN
+#======================================================
+
+iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$banked ,
+                                                                      iucn_wcvp_matched_countries_tdwg3$banked_category,
+                                                                      iucn_wcvp_matched_countries_tdwg3$category_certain)
+iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+                                                                    iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
+                                                                    iucn_wcvp_matched_countries_tdwg3$tax.level)
+iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+                                                                       iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
+                                                                       iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
+
+# orthodox banked unbanked
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                              iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+
+# recalcitrant banked unbanked
+iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                  iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                    iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked)] = 0
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
+iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked)] = 0
+iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked)] = 0
+
 
 ###### ESTIMATE HOW MANY COUNTRIES HAVE CR species banked   #######################################################
 
