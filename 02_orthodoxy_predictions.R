@@ -137,7 +137,7 @@ iucn_storage_behaviour = unique(iucn_storage_behaviour)
 
 iucn_storage_behaviour[iucn_storage_behaviour$category == "unknown",]
 iucn_storage_behaviour[which(iucn_storage_behaviour$PlantSearch_cryopreservation_collections == 1),]
-iucn_storage_behaviour[which(iucn_storage_behaviour$PlantSearch_seed_collections >0),]
+iucn_storage_behaviour[which(iucn_storage_behaviour$PlantSearch_seed_collections > 0),]
 
 iucn_storage_behaviour$category[which(iucn_storage_behaviour$Exceptional_status == "Exceptional")] = "exceptional"
 # View(iucn_storage_behaviour[is.na(iucn_storage_behaviour$category),])
