@@ -350,27 +350,32 @@ iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_
 # orthodoxy and recalcitrance CERTAIN
 #======================================================
 
-iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$banked ,
-                                                                      iucn_wcvp_matched_countries_tdwg3$banked_category,
-                                                                      iucn_wcvp_matched_countries_tdwg3$category_certain)
-iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                    iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
-                                                                    iucn_wcvp_matched_countries_tdwg3$tax.level)
-iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                       iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
-                                                                       iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
+# iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$banked ,
+#                                                                       iucn_wcvp_matched_countries_tdwg3$banked_category,
+#                                                                       iucn_wcvp_matched_countries_tdwg3$category_certain)
+# iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                     iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
+#                                                                     iucn_wcvp_matched_countries_tdwg3$tax.level)
+# iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                        iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
+#                                                                        iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
 
 # orthodox banked unbanked
-iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                              iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                              iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
 
 # recalcitrant banked unbanked
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                  iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                    iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                  iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                    iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                         iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                           iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional"), 1, 0)
+
 
 iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked)] = 0
 iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
