@@ -15,14 +15,12 @@ indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
 
-
 # iucn species and their categories
 iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 
 
 # Access and benefits sharing data
 abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
-
 
 #load data from previous session
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))

@@ -347,35 +347,64 @@ iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_
 
 
 #======================================================
-# orthodoxy and recalcitrance CERTAIN
+#orthodoxy and recalcitrance CERTAIN/UNCERTAIN
 #======================================================
 
-iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$banked ,
-                                                                      iucn_wcvp_matched_countries_tdwg3$banked_category,
-                                                                      iucn_wcvp_matched_countries_tdwg3$category_certain)
-iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                    iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
-                                                                    iucn_wcvp_matched_countries_tdwg3$tax.level)
-iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                       iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
-                                                                       iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
+# iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                       iucn_wcvp_matched_countries_tdwg3$banked_category,
+#                                                                       iucn_wcvp_matched_countries_tdwg3$category)
+# iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                     iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
+#                                                                     iucn_wcvp_matched_countries_tdwg3$tax.level)
+# iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                     iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
+#                                                                     iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
 
-# orthodox banked unbanked
-iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                              iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+# orthodox banked unbanked certain
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                      iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                        iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
 
-# recalcitrant banked unbanked
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                  iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                    iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+# orthodox banked unbanked uncertain
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked_uncertain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                        iucn_wcvp_matched_countries_tdwg3$category_uncertain == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_uncertain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                          iucn_wcvp_matched_countries_tdwg3$category_uncertain == "orthodox"), 1, 0)
 
-iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked)] = 0
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked)] = 0
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked)] = 0
+# recalcitrant/exceptional banked unbanked certain
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                          iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
+                                                                         (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
+
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
+                                                                           (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
+
+# recalcitrant/exceptional banked unbanked uncertain
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_uncertain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
+                                                                           (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
+
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_uncertain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
+                                                                             (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                                iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
+
+
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain)] = 0
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_certain[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_certain)] = 0
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain[is.na(iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain)] = 0
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain[is.na(iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain)] = 0
+
+iucn_wcvp_matched_countries_tdwg3$orthodox_banked_uncertain[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked_uncertain)] = 0
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_uncertain[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_uncertain)] = 0
+iucn_wcvp_matched_countries_tdwg3$exceptional_banked_uncertain[is.na(iucn_wcvp_matched_countries_tdwg3$exceptional_banked_uncertain)] = 0
+iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_uncertain[is.na(iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_uncertain)] = 0
+
 
 
 ###### ESTIMATE HOW MANY COUNTRIES HAVE CR species banked   #######################################################
@@ -388,11 +417,21 @@ country_stats = iucn_wcvp_matched_countries_tdwg3[,c("NewCountryName",
                                                      "banked_per_spp_country",
                                                      "accessions_per_spp_country",
                                                      "seeds_per_spp_country",
-                                                     "storage_behaviour_combined",
-                                                     "orthodox_banked",
-                                                     "orthodox_unbanked",
-                                                     "recalcitrant_banked",
-                                                     "recalcitrant_unbanked",
+                                                     # "storage_behaviour_combined",
+                                                     # "orthodox_banked",
+                                                     # "orthodox_unbanked",
+                                                     # "recalcitrant_banked",
+                                                     # "recalcitrant_unbanked",
+                                                     "category_certain",
+                                                     "orthodox_banked_certain",
+                                                     "exceptional_banked_certain",
+                                                     "orthodox_unbanked_certain",
+                                                     "exceptional_unbanked_certain",
+                                                     "category_uncertain",
+                                                     "orthodox_banked_uncertain",
+                                                     "exceptional_banked_uncertain",
+                                                     "orthodox_unbanked_uncertain",
+                                                     "exceptional_unbanked_uncertain",
                                                      "plants_sampled_per_spp_country",
                                                      "Target_1",
                                                      "Target_2")] %>%
@@ -403,12 +442,18 @@ country_stats = iucn_wcvp_matched_countries_tdwg3[,c("NewCountryName",
          sum_CR_banked = sum(banked_per_spp_country),
          sum_Target1 = sum(Target_1),
          sum_Target2 = sum(Target_2),
-         sum_orthodox = length(which(storage_behaviour_combined == "orthodox")),
-         sum_recalcitrance = length(which(storage_behaviour_combined == "recalcitrant")),
-         sum_orthodox_banked = sum(orthodox_banked),
-         sum_recalcitrant_banked = sum(recalcitrant_banked),
-         sum_orthodox_unbanked = sum(orthodox_unbanked),
-         sum_recalcitrant_unbanked = sum(recalcitrant_unbanked),
+         sum_orthodox_certain = length(which(category_certain == "orthodox")),
+         sum_exceptional_certain = length(which(category_certain == "recalcitrant" | category_certain == "exceptional")),
+         sum_orthodox_banked_certain = sum(orthodox_banked_certain),
+         sum_exceptional_banked_certain = sum(exceptional_banked_certain),
+         sum_orthodox_unbanked_certain = sum(orthodox_unbanked_certain),
+         sum_exceptional_unbanked_certain = sum(exceptional_unbanked_certain),
+         sum_orthodox_uncertain = length(which(category_uncertain == "orthodox")),
+         sum_exceptional_uncertain = length(which(category_uncertain == "recalcitrant"| category_uncertain == "exceptional")),
+         sum_orthodox_banked_uncertain = sum(orthodox_banked_uncertain),
+         sum_exceptional_banked_uncertain = sum(exceptional_banked_uncertain),
+         sum_orthodox_unbanked_uncertain = sum(orthodox_unbanked_uncertain),
+         sum_exceptional_unbanked_uncertain = sum(exceptional_unbanked_uncertain),
          sum_accessions = sum(accessions_per_spp_country),
          sum_seeds = sum(seeds_per_spp_country)) %>%
   ungroup()
@@ -419,12 +464,18 @@ country_stats = country_stats[, c("NewCountryName",
                                   "sum_CR_banked",
                                   "sum_Target1",
                                   "sum_Target2",
-                                  "sum_orthodox",
-                                  "sum_recalcitrance",
-                                  "sum_orthodox_banked",
-                                  "sum_recalcitrant_banked",
-                                  "sum_orthodox_unbanked",
-                                  "sum_recalcitrant_unbanked",
+                                  "sum_orthodox_certain",
+                                  "sum_exceptional_certain",
+                                  "sum_orthodox_banked_certain",
+                                  "sum_exceptional_banked_certain",
+                                  "sum_orthodox_unbanked_certain",
+                                  "sum_exceptional_unbanked_certain",
+                                  "sum_orthodox_uncertain",
+                                  "sum_exceptional_uncertain",
+                                  "sum_orthodox_banked_uncertain",
+                                  "sum_exceptional_banked_uncertain",
+                                  "sum_orthodox_unbanked_uncertain",
+                                  "sum_exceptional_unbanked_uncertain",
                                   "sum_accessions",
                                   "sum_seeds")]
 country_stats = unique(country_stats)
@@ -489,11 +540,15 @@ country_counts_map$permits[is.na(country_counts_map$permits_4)] = 0
 country_counts_map$prop_banked = country_counts_map$sum_CR_banked/(country_counts_map$sum_CR_pred+0.001)
 country_counts_map$prop_banked[is.na(country_counts_map$prop_banked)] = 0
 
-country_counts_map$sum_orthodox_banked[is.na(country_counts_map$sum_orthodox_banked)] = 0
-country_counts_map$sum_orthodox_unbanked[is.na(country_counts_map$sum_orthodox_unbanked)] = 0
-country_counts_map$sum_recalcitrant_banked[is.na(country_counts_map$sum_recalcitrant_banked)] = 0
-country_counts_map$sum_recalcitrant_unbanked[is.na(country_counts_map$sum_recalcitrant_unbanked)] = 0
+country_counts_map$sum_orthodox_banked_certain[is.na(country_counts_map$sum_orthodox_banked_certain)] = 0
+country_counts_map$sum_orthodox_unbanked_certain[is.na(country_counts_map$sum_orthodox_unbanked_certain)] = 0
+country_counts_map$sum_exceptional_banked_certain[is.na(country_counts_map$sum_exceptional_banked_certain)] = 0
+country_counts_map$sum_exceptional_unbanked_certain[is.na(country_counts_map$sum_exceptional_unbanked_certain)] = 0
 
+country_counts_map$sum_orthodox_banked_uncertain[is.na(country_counts_map$sum_orthodox_banked_uncertain)] = 0
+country_counts_map$sum_orthodox_unbanked_uncertain[is.na(country_counts_map$sum_orthodox_unbanked_uncertain)] = 0
+country_counts_map$sum_exceptional_banked_uncertain[is.na(country_counts_map$sum_exceptional_banked_uncertain)] = 0
+country_counts_map$sum_exceptional_unbanked_uncertain[is.na(country_counts_map$sum_exceptional_unbanked_uncertain)] = 0
 
 country_counts_map$sum_CR_pred[is.na(country_counts_map$sum_CR_pred)] = 0
 # CR_country_counts = CR_country_counts %>% left_join(country_names)
@@ -704,7 +759,7 @@ ggsave(paste0(plotpath, "ABS_CRbanked.png"), width = 30, height = 12, units = "c
 
 
 #############################
-### orthodoxy
+### orthodoxy certain
 #############################
 
 dim = 4
@@ -733,8 +788,8 @@ custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
 names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 
 data <- bi_class(country_counts_map.prj,
-                 y=sum_orthodox_unbanked,
-                 x=sum_recalcitrant_unbanked,
+                 y=sum_orthodox_unbanked_certain,
+                 x=sum_exceptional_unbanked_certain,
                  style = "fisher",#"equal",#"jenks",#""quantile", #
                  dim = dim)
 
@@ -773,8 +828,8 @@ map
 
 legend <- bi_legend(pal = custom_pal4,#"GrPink",
                     dim = dim,
-                    xlab = paste0("# recalcitrant (0-",max(data$sum_recalcitrant_unbanked),")"),
-                    ylab = paste0("    # orthodox (0-",max(data$sum_orthodox_unbanked),")"),
+                    xlab = paste0("# exceptional (0-",max(data$sum_exceptional_unbanked_certain),")"),
+                    ylab = paste0("    # orthodox (0-",max(data$sum_orthodox_unbanked_certain),")"),
                     size = 10)
 
 # combine map with legend
@@ -785,9 +840,93 @@ finalPlotc <- ggdraw() +
 
 finalPlotc
 
-ggsave(paste0(plotpath, "unbanked_CR_orth_recalc.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "unbanked_CR_orth_recalc.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_certain.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_certain.png"), width = 30, height = 12, units = "cm")
 
+#############################
+### orthodoxy uncertain
+#############################
+
+dim = 4
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#1E88E5",#509dc2", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "grey90",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#004D40",#"darkolivegreen4", #"black",
+#                    bottomright="#f3b300"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+col.matrix<-colmat(nquantiles=dim,
+                   upperleft= "#3970b3",#6eabbd", #rgb(0,150,235, maxColorValue=255),
+                   upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
+                   bottomleft= "#301d39",#"#554249", #"black",
+                   bottomright="#9c263c"#c15e5c"# brown3"#rgb(130,0,80, maxColorValue=255)
+)
+
+# col.matrix<-colmat(nquantiles=dim,
+#                    upperleft= "#1E88E5",#509dc2", #rgb(0,150,235, maxColorValue=255),
+#                    upperright= "grey90",  #"grey",# rgb(255,230,15, maxColorValue=255),
+#                    bottomleft="#004D40",#"darkolivegreen4", #"black",
+#                    bottomright="#f3b300"# brown3"#rgb(130,0,80, maxColorValue=255)
+# )
+
+
+custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
+names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
+
+data <- bi_class(country_counts_map.prj,
+                 y=sum_orthodox_unbanked_uncertain,
+                 x=sum_exceptional_unbanked_uncertain,
+                 style = "fisher",#"equal",#"jenks",#""quantile", #
+                 dim = dim)
+
+# create map
+map <- ggplot() +
+  geom_point( data = data,
+              aes(color =  bi_class, #fill = bi_class,
+                  geometry = geometry),
+              size = 2,
+              stat = "sf_coordinates" ) +
+  geom_sf(data = data, mapping = aes(fill = bi_class),
+          color = "black",#aes(fill = bi_class ),#NA,"black",#
+          size = 0.8, show.legend = FALSE) +
+  scale_alpha_continuous(range = c(0.1, 1)) +
+  bi_scale_fill(pal = custom_pal4, dim=dim,
+                na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
+  bi_scale_color(pal = custom_pal4, dim=dim,
+                 na.value="#e8e8e8")+#,flip_axes = TRUE, rotate_pal = TRUE) +
+  guides(color = "none") +
+  bi_theme() +
+  geom_path(data = grid.DT,
+            aes(x = X, y = Y, group = group),
+            linetype = "solid", colour = "black", linewidth = .3) +
+  theme(axis.title.y=element_blank(),
+        axis.title.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.text.x=element_blank(),
+        panel.border = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.text=element_text(size=8), #linewidth = 8),#
+        legend.title=element_text(size=10) # linewidth = 10)#
+  )
+
+map
+
+legend <- bi_legend(pal = custom_pal4,#"GrPink",
+                    dim = dim,
+                    xlab = paste0("# exceptional (0-",max(data$sum_exceptional_unbanked_uncertain),")"),
+                    ylab = paste0("    # orthodox (0-",max(data$sum_orthodox_unbanked_uncertain),")"),
+                    size = 10)
+
+# combine map with legend
+finalPlote <- ggdraw() +
+  theme(plot.background = element_rect(fill="white", color = NA))+
+  draw_plot(map, 0, 0, 1, 1) +
+  draw_plot(legend, 0.73, .65, 0.35, 0.35)
+
+finalPlote
+
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_uncertain.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_uncertain.png"), width = 30, height = 12, units = "cm")
 
 #############################
 ### banked vs unbanked
@@ -1446,6 +1585,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
 
 
 
+
 ##########################################
 ### GET STATS
 ##########################################
@@ -1523,6 +1663,224 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.pdf"),
        units = "cm")
 
 ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.png"),
+       width = 25,
+       height = 25,
+       units = "cm")
+
+##########################################
+# orthodox certain
+##########################################
+
+# Read the phylogenetic tree from Zuntini
+tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+
+# load tree data
+tr <- tree
+numtip <- length(tr$tip.label)
+
+# Get number of species per family that are CR and that are banked
+fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "category_certain")] %>%
+  group_by(family) %>%
+  summarize(
+    n_orthodox = length(which(category_certain == "orthodox")),
+    n_inter = length(which(category_certain == "intermediate")),
+    n_exceptional = (length(which(category_certain == "exceptional")) +
+                       length(which(category_certain == "recalcitrant"))),
+    n_unknown = (length(which(is.na(category_certain))) +
+                   length(which(category_certain == "unknown"))),
+    p_orthodox = length(which(category_certain == "orthodox"))/n(),
+    p_inter = length(which(category_certain == "intermediate"))/n(),
+    p_exceptional = (length(which(category_certain == "exceptional")) +
+                       length(which(category_certain == "recalcitrant")))/n(),
+    p_unknown = (length(which(is.na(category_certain))) +
+                   length(which(category_certain == "unknown")))/n(),
+    tot = n()
+  )
+
+test = data.frame(tr$tip.label) %>% left_join(fam_count,
+                                              by = c("tr.tip.label" = "family"))
+
+
+colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+                 # ifelse(test$p_recalc >= 0.5, "#DC267F",
+                        ifelse(test$p_inter >= 0.5,"#DC267F",#"#785EF0",
+                               ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85")))#)
+colorz[is.na(colorz)] = "grey45"
+
+test$no_CR = ifelse(colorz == "grey45",1,0)
+
+dat = rbind(data.frame(id = test$tr.tip.label,
+                       group = "Orthodox",
+                       value = test$p_orthodox,
+                       colour = colorz),
+            # data.frame(id = test$tr.tip.label,
+            #            group = "Recalcitrant",
+            #            value = test$p_recalc,
+            #            colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Intermediate",
+                       value = test$p_inter,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Exceptional",
+                       value = test$p_exceptional,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Unknown",
+                       value = test$p_unknown, #ifelse(is.na(test$p_unknown),1,test$p_unknown),
+                       # ifelse(is.na(test$tot),1,0),
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "No CR in family",
+                       value = test$no_CR,
+                       colour = colorz))
+
+
+# Plot the phylogenetic tree
+p <- ggtree(tr, layout = "circular") +
+  xlim(-10, 70) +
+  geom_fruit(data = dat,
+             geom = geom_bar,
+             mapping = aes(y = id, x = value, fill = group),
+             pwidth = 0.5,
+             stat = "identity",
+             orientation = "y",
+             offset = 0.05) +
+  scale_fill_manual(values = c( "#FFB000","#DC267F","grey45","#648FFF", "grey85"), # "#785EF0",
+                    # "darkolivegreen", "grey", "#FFA500"),
+                    name = "")
+
+# Extract tip labels from the tree data
+tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
+
+p <- p %<+% tip_data +
+  aes(color = colour) +
+  geom_tiplab(aes(label=label), offset=24, size=2) +
+  scale_color_identity() +
+  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
+  # scale_colour_manual(values =  c("grey85","#648FFF","#FFB000","#DC267F"),#"#FFB000","#648FFF", "grey85","#DC267F"),#c("#648FFF","#DC267F","#FFB000","grey85"),# "#785EF0",
+  #                     #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
+  #                     labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "NA")) +
+  guides(colour = "none")
+
+print(p)
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.pdf"),
+       width = 20,
+       height = 20,
+       units = "cm")
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.png"),
+       width = 25,
+       height = 25,
+       units = "cm")
+
+
+
+###########################################
+# orthodox uncertain
+###########################################
+
+# Read the phylogenetic tree from Zuntini
+tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+
+# load tree data
+tr <- tree
+numtip <- length(tr$tip.label)
+
+# Get number of species per family that are CR and that are banked
+fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "category_certain")] %>%
+  group_by(family) %>%
+  summarize(
+    n_orthodox = length(which(category_uncertain == "orthodox")),
+    n_inter = length(which(category_uncertain == "intermediate")),
+    n_exceptional = (length(which(category_uncertain == "exceptional")) +
+                       length(which(category_uncertain == "recalcitrant"))),
+    n_unknown = (length(which(is.na(category_uncertain))) +
+                   length(which(category_uncertain == "unknown"))),
+    p_orthodox = length(which(category_uncertain == "orthodox"))/n(),
+    p_inter = length(which(category_uncertain == "intermediate"))/n(),
+    p_exceptional = (length(which(category_uncertain == "exceptional")) +
+                       length(which(category_uncertain == "recalcitrant")))/n(),
+    p_unknown = (length(which(is.na(category_uncertain))) +
+                   length(which(category_uncertain == "unknown")))/n(),
+    tot = n()
+  )
+
+test = data.frame(tr$tip.label) %>% left_join(fam_count,
+                                              by = c("tr.tip.label" = "family"))
+
+
+colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+                 # ifelse(test$p_recalc >= 0.5, "#DC267F",
+                 ifelse(test$p_inter >= 0.5,"#DC267F",#"#785EF0",
+                        ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85")))#)
+colorz[is.na(colorz)] = "grey45"
+
+test$no_CR = ifelse(colorz == "grey45",1,0)
+
+dat = rbind(data.frame(id = test$tr.tip.label,
+                       group = "Orthodox",
+                       value = test$p_orthodox,
+                       colour = colorz),
+            # data.frame(id = test$tr.tip.label,
+            #            group = "Recalcitrant",
+            #            value = test$p_recalc,
+            #            colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Intermediate",
+                       value = test$p_inter,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Exceptional",
+                       value = test$p_exceptional,
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "Unknown",
+                       value = test$p_unknown, #ifelse(is.na(test$p_unknown),1,test$p_unknown),
+                       # ifelse(is.na(test$tot),1,0),
+                       colour = colorz),
+            data.frame(id = test$tr.tip.label,
+                       group = "No CR in family",
+                       value = test$no_CR,
+                       colour = colorz))
+
+
+# Plot the phylogenetic tree
+p <- ggtree(tr, layout = "circular") +
+  xlim(-10, 70) +
+  geom_fruit(data = dat,
+             geom = geom_bar,
+             mapping = aes(y = id, x = value, fill = group),
+             pwidth = 0.5,
+             stat = "identity",
+             orientation = "y",
+             offset = 0.05) +
+  scale_fill_manual(values = c( "#FFB000","#DC267F","grey45","#648FFF", "grey85"), # "#785EF0",
+                    # "darkolivegreen", "grey", "#FFA500"),
+                    name = "")
+
+# Extract tip labels from the tree data
+tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
+
+p <- p %<+% tip_data +
+  aes(color = colour) +
+  geom_tiplab(aes(label=label), offset=24, size=2) +
+  scale_color_identity() +
+  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
+  # scale_colour_manual(values =  c("grey85","#648FFF","#FFB000","#DC267F"),#"#FFB000","#648FFF", "grey85","#DC267F"),#c("#648FFF","#DC267F","#FFB000","grey85"),# "#785EF0",
+  #                     #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
+  #                     labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "NA")) +
+  guides(colour = "none")
+
+print(p)
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_uncertain.pdf"),
+       width = 20,
+       height = 20,
+       units = "cm")
+
+ggsave(paste0(plotpath, "/phylo_orthodoxy_uncertain.png"),
        width = 25,
        height = 25,
        units = "cm")
