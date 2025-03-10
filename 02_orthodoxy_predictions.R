@@ -119,7 +119,7 @@ iucn_wcvp_matched_orthodox$category = NA
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance <= 0.3)] = "orthodox"
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
 iucn_wcvp_matched_orthodox$category[which(iucn_wcvp_matched_orthodox$probability.of.recalcitrance < 0.7 &
-                                      iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.3)] = "unknown"
+                                            iucn_wcvp_matched_orthodox$probability.of.recalcitrance > 0.3)] = "unknown"
 
 length(exceptional_wcvp_matched$taxon_name)
 length(unique(exceptional_wcvp_matched$taxon_name))
@@ -350,7 +350,7 @@ brahms_to_add["banked"] = TRUE
 # brahms_to_add["order"] = NA
 # brahms_to_add["higher"] = NA
 brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
-          by=c("family" = "family"))
+                                            by=c("family" = "family"))
 # brahms_to_add["tax.level"] = NA
 # brahms_to_add["probability.of.recalcitrance"] = NA
 # brahms_to_add["storBehav"] = NA
@@ -398,7 +398,7 @@ CR_pred_to_add = CR_pred_to_add %>% left_join(wcvp[,c("taxon_name", # "plant_nam
                                                       "family","genus",
                                                       "climate_description", "geographic_area")],
                                               by = c("Initial_List" = "taxon_name"))
-                                              #by=c("Accepted_wcvp_name_id"="plant_name_id"))
+#by=c("Accepted_wcvp_name_id"="plant_name_id"))
 
 CR_pred_to_add["taxon_name"] = CR_pred_to_add["Initial_List"]
 CR_pred_to_add["scientificName"] = NA
@@ -417,13 +417,12 @@ CR_pred_to_add["scopes"] = CR_pred_to_add["geographic_area"]
 CR_pred_to_add["banked"] = FALSE
 
 CR_pred_to_add = CR_pred_to_add %>% left_join(rWCVP::taxonomic_mapping,
-                                            by=c("family" = "family"))
+                                              by=c("family" = "family"))
 CR_pred_to_add["category"] = NA
 # CR_pred_to_add$category[CR_pred_to_add$banked == T] = "banked"
 CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance <= 0.3)] = "orthodox"
 CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
-CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.7 &
-                                CR_pred_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
+CR_pred_to_add$category[which(CR_pred_to_add$probability.of.recalcitrance < 0.7 & CR_pred_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
 
 
 
@@ -444,6 +443,10 @@ CR_pred_to_add = CR_pred_to_add[,colkeep]
 
 length(unique(CR_pred_to_add$taxon_name))
 iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred_to_add$taxon_name]
+
+
+
+
 
 
 
@@ -512,9 +515,8 @@ test$category_certain = NA
 test$category_uncertain_ref = NA
 test$category_certain_ref = NA
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# step 1: Get SID (Seed Information Database data)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# step 1: SID
 # unique(test$SID_Seed_Storage_Behaviour)
 # c("Orthodox","Recalcitrant?","Orthodox p","Recalcitrant","Uncertain","Intermediate","Orthodox?","Intermediate?")
 
@@ -542,9 +544,8 @@ id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Interm
 test$category_certain[id] = "intermediate"
 test$category_certain_ref[id] = "SID"
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #Step 2: add the litterature review
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 id = which(is.na(test$category_uncertain) & !is.na(test$Storage))
 test$category_uncertain[id] = test$Storage[id]
 test$category_certain[id] = test$Storage[id]
@@ -553,18 +554,16 @@ test$category_certain_ref[id] = test$source[id]
 test$category_uncertain_ref[which(test$category_uncertain_ref == "")] = "expert (Ballesteros)"
 test$category_certain_ref[which(test$category_certain_ref == "")] = "expert (Ballesteros)"
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # step 3: add in Pence
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 id = which(is.na(test$category_uncertain) & test$Exceptional_status == "Exceptional")
 test$category_uncertain[id] = "exceptional"
 test$category_certain[id] = "exceptional"
 test$category_uncertain_ref[id] = "Pence et al. 2022"
 test$category_certain_ref[id] = "Pence et al. 2022"
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 # step 4: add in seed storage predictor
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # orthodox uncertain
 id = which(is.na(test$category_uncertain) & test$probability.of.recalcitrance <= 0.3)
@@ -615,8 +614,8 @@ test$category_certain_ref[id] = "SID"
 
 # have a look
 View(test[, c("storBehav","probability.of.recalcitrance","tax.level","SID_Seed_Storage_Behaviour",
-         "Exceptional_status","Storage",
-         "category_uncertain", "category_certain","category_certain_ref")])
+              "Exceptional_status","Storage",
+              "category_uncertain", "category_certain")])
 
 
 spp_banked_recalcitrant = test

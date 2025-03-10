@@ -187,8 +187,8 @@ germination_last_test = read.csv(paste0(basepath, "germination_last_test.csv"))
 #           paste0(basepath, "brahms_germination_wcvp_matched.csv"))
 
 site_counts = site_counts %>% left_join(germination_last_test[,c("PassFail", "Result",
-                                                          "DateStarted", "AccessionNumber")],
-                                 by= c("ACCESSION" =  "AccessionNumber"))
+                                                                 "DateStarted", "AccessionNumber")],
+                                        by= c("ACCESSION" =  "AccessionNumber"))
 
 
 site_counts = site_counts %>% left_join(seed_data_to_add_1[,c("AccessionNumber",
@@ -282,16 +282,16 @@ site_counts$geographic_index = 0
 
 # country
 site_counts$geographic_index = ifelse(site_counts$COUNTRY %in% c("?", "Unknown" ),
-                                                          site_counts$geographic_index,
-                                                          0.5)
+                                      site_counts$geographic_index,
+                                      0.5)
 # area (locality)
 site_counts$geographic_index = ifelse(site_counts$LOCNOTES == "",
-                                                          site_counts$geographic_index,
-                                                          0.75)
+                                      site_counts$geographic_index,
+                                      0.75)
 # coordinates
 site_counts$geographic_index = ifelse(site_counts$LAT == 0,
-                                                          site_counts$geographic_index,
-                                                          1)
+                                      site_counts$geographic_index,
+                                      1)
 
 summary(as.factor(site_counts$geographic_index))/length(site_counts$geographic_index)
 # 0           0.5         0.75           1
@@ -311,8 +311,8 @@ site_counts$taxonomy_index = 0
 
 # name matched
 site_counts$taxonomy_index = ifelse(is.na(site_counts$taxonomic_backbone),
-                                                        site_counts$taxonomy_index,
-                                                        1)
+                                    site_counts$taxonomy_index,
+                                    1)
 
 summary(as.factor(site_counts$taxonomy_index))/length(site_counts$taxonomy_index)
 
@@ -332,8 +332,8 @@ site_counts$year_index = 0
 
 # name matched  # DONORDATE
 site_counts$year_index = ifelse(is.na(site_counts$DateCollected),
-                                                    site_counts$year_index,
-                                                    1)
+                                site_counts$year_index,
+                                1)
 
 summary(as.factor(site_counts$year_index))/length(site_counts$year_index)
 # 0          1
@@ -371,8 +371,8 @@ site_counts$count_index = 0
 # name matched
 site_counts$CURRCOUNT[site_counts$CURRCOUNT == 0] = NA
 site_counts$count_index = ifelse(is.na(site_counts$CURRCOUNT),
-                                                     0,
-                                                     1)
+                                 0,
+                                 1)
 
 summary(as.factor(site_counts$count_index))/ length(site_counts$count_index)
 # 0         1
@@ -393,8 +393,8 @@ site_counts$adjcount_index = 0
 # name matched
 site_counts$ADJSTCOUNT[site_counts$ADJSTCOUNT == 0] = NA
 site_counts$adjcount_index = ifelse(is.na(site_counts$ADJSTCOUNT),
-                                                        site_counts$adjcount_index,
-                                                        1)
+                                    site_counts$adjcount_index,
+                                    1)
 
 summary(as.factor(site_counts$adjcount_index))/ length(site_counts$adjcount_index)
 # 0         1
@@ -455,7 +455,7 @@ mean(site_counts$viability_index) #  0.2844925
 
 # If it comes from a cultivated plant
 site_counts$cultivation_index = ifelse(site_counts$CultivatedAll == TRUE,
-                                                           0.5,0)
+                                       0.5,0)
 # no information
 site_counts$cultivation_index[is.na(site_counts$cultivation_index)] = 0
 
@@ -496,12 +496,12 @@ data.frame(cbind(site_counts$NumberPlantsSampled,
                  site_counts$exsitu_index))
 
 site_counts$exsitu_index = ifelse((site_counts$PLANTTOTAL != "") &
-                                  (site_counts$PLANTSAMP != "") &
-                                  (!is.na(site_counts$PCSEED)),
+                                    (site_counts$PLANTSAMP != "") &
+                                    (!is.na(site_counts$PCSEED)),
                                   1,
                                   ifelse((((site_counts$PLANTTOTAL != "") &
-                                           (site_counts$PLANTSAMP != "")) |
-                                           (!is.na(site_counts$PCSEED))),
+                                             (site_counts$PLANTSAMP != "")) |
+                                            (!is.na(site_counts$PCSEED))),
                                          0.8,
                                          ifelse((site_counts$PLANTSAMP != ""),
                                                 0.6,
@@ -512,11 +512,11 @@ site_counts$exsitu_index = ifelse((site_counts$PLANTTOTAL != "") &
                                                                  (!is.na(site_counts$PCSEED))),
                                                               0.2,
                                                               0
-                                                              )
                                                        )
                                                 )
                                          )
                                   )
+)
 
 
 
@@ -588,20 +588,20 @@ mean(site_counts$total_index)       #  0.4953397
 # achieve this target.
 
 site_counts$Target_1a = ifelse(site_counts$ADJSTCOUNT >= 1050,
-                                                  TRUE,FALSE)
+                               TRUE,FALSE)
 site_counts$Target_1a[is.na(site_counts$Target_1a)] = FALSE
 
 
 # from at least 50 different plants stored ex situ
 site_counts$Target_1b = ifelse((as.numeric(site_counts$PLANTSAMP) >= 50) | (site_counts$PLANTSAMP %in% c("11-100","100-1000","25-50",">100","200-500")),
-       TRUE,
-       FALSE)
+                               TRUE,
+                               FALSE)
 site_counts$Target_1b[is.na(site_counts$Target_1b)] = FALSE
 
 # Combine for target 1
 
 site_counts$Target_1 = ifelse((site_counts$Target_1a & site_counts$Target_1b),
-                               TRUE,FALSE)
+                              TRUE,FALSE)
 
 cbind(site_counts$ADJSTCOUNT,
       site_counts$Target_1a,
@@ -654,8 +654,8 @@ for (spp_i in unique(site_counts$taxon_name)){
   # get tdwg that spp is founds in
   index = which(site_counts$taxon_name %in% spp_i)
   country_data = site_counts[index,] %>% left_join(wcvp_countries[,c("plant_name_id", "area_code_l3","area")],
-                           by = c("wcvp_accepted_id" = "plant_name_id"),
-                           relationship = "many-to-many")
+                                                   by = c("wcvp_accepted_id" = "plant_name_id"),
+                                                   relationship = "many-to-many")
 
   # get code
   TDWG_codes = unique(country_data$area_code_l3)

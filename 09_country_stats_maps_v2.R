@@ -108,11 +108,11 @@ tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 spp_banked_recalcitrant <- read.csv(paste0(basepath,"spp_banked_recalcitrant.csv"))
 
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(brahms_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                                      by = "taxon_name")
+                                                                by = "taxon_name")
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(iucn_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                                             by = "taxon_name")
+                                                                by = "taxon_name")
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(iucn_predictions_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                          by = "taxon_name")
+                                                                by = "taxon_name")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # add the ID to the recalcitrant species
@@ -122,7 +122,7 @@ spp_banked_recalcitrant$wcvp_accepted_id <- ifelse(is.na(spp_banked_recalcitrant
                                                    ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id.y),
                                                           spp_banked_recalcitrant$wcvp_accepted_id.x,
                                                           spp_banked_recalcitrant$wcvp_accepted_id.y),
-                           spp_banked_recalcitrant$wcvp_accepted_id)
+                                                   spp_banked_recalcitrant$wcvp_accepted_id)
 spp_banked_recalcitrant$wcvp_accepted_id = as.numeric(spp_banked_recalcitrant$wcvp_accepted_id)
 spp_banked_recalcitrant = spp_banked_recalcitrant[ , !(names(spp_banked_recalcitrant) %in% c("wcvp_accepted_id.x","wcvp_accepted_id.y"))]
 
@@ -133,10 +133,10 @@ wcvp_countries$plant_name_id <- as.numeric(wcvp_countries$plant_name_id)
 
 # put wcvp tdwg3 region data into iucn data
 iucn_wcvp_matched_countries = spp_banked_recalcitrant %>% left_join(wcvp_countries[,c("plant_name_id",
-                                                                                "area_code_l3",
-                                                                                "area")],
-                                                              by = c("wcvp_accepted_id" = "plant_name_id"),
-                                                              relationship = "many-to-many")
+                                                                                      "area_code_l3",
+                                                                                      "area")],
+                                                                    by = c("wcvp_accepted_id" = "plant_name_id"),
+                                                                    relationship = "many-to-many")
 
 rm(wcvp_countries)
 
@@ -361,37 +361,37 @@ iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_
 
 # orthodox banked unbanked certain
 iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                             iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
+                                                                      iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
 iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_certain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                              iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
+                                                                        iucn_wcvp_matched_countries_tdwg3$category_certain == "orthodox"), 1, 0)
 
 # orthodox banked unbanked uncertain
 iucn_wcvp_matched_countries_tdwg3$orthodox_banked_uncertain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                      iucn_wcvp_matched_countries_tdwg3$category_uncertain == "orthodox"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_uncertain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
                                                                         iucn_wcvp_matched_countries_tdwg3$category_uncertain == "orthodox"), 1, 0)
+iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked_uncertain = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                          iucn_wcvp_matched_countries_tdwg3$category_uncertain == "orthodox"), 1, 0)
 
 # recalcitrant/exceptional banked unbanked certain
 iucn_wcvp_matched_countries_tdwg3$exceptional_banked_certain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                              iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
-                                                                (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                   iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
+                                                                          iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
+                                                                         (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
 
 iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_certain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
-                                                                  (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                     iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_certain == "recalcitrant") |
+                                                                           (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_certain == "exceptional")), 1, 0)
 
 # recalcitrant/exceptional banked unbanked uncertain
 iucn_wcvp_matched_countries_tdwg3$exceptional_banked_uncertain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                          iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
-                                                                         (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                            iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
+                                                                            iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
+                                                                           (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
 
 iucn_wcvp_matched_countries_tdwg3$exceptional_unbanked_uncertain = ifelse(((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                            iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
-                                                                           (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                              iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
+                                                                              iucn_wcvp_matched_countries_tdwg3$category_uncertain == "recalcitrant") |
+                                                                             (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+                                                                                iucn_wcvp_matched_countries_tdwg3$category_uncertain == "exceptional")), 1, 0)
 
 
 iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked_certain)] = 0
@@ -509,9 +509,9 @@ country_counts_map$IRCC[is.na(country_counts_map$IRCC)] = 0
 country_counts_map$NR[is.na(country_counts_map$NR)] = 0
 
 country_counts_map$permits = (country_counts_map$NFP  +
-                           country_counts_map$CNA  +
-                           country_counts_map$IRCC  +
-                           country_counts_map$NR)
+                                country_counts_map$CNA  +
+                                country_counts_map$IRCC  +
+                                country_counts_map$NR)
 country_counts_map$permits[is.na(country_counts_map$permits_4)] = 0
 
 # proportion banked
@@ -1385,7 +1385,7 @@ length(iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined[which(iucn_
 
 ## exceptional species characteristics
 length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
-                                                            iucn_wcvp_matched_countries_tdwg3$EF1_seed_unavailable == "Yes")]))
+                                                                   iucn_wcvp_matched_countries_tdwg3$EF1_seed_unavailable == "Yes")]))
 
 length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "exceptional" &
                                                                    iucn_wcvp_matched_countries_tdwg3$EF2_desiccation_sensitive == "Yes")]))
@@ -1476,7 +1476,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
             data.frame(id = test$tr.tip.label,
                        group = "No CR species in family",
                        value = ifelse(is.na(test$p_unknown),1,test$p_unknown),
-                         # ifelse(is.na(test$tot),1,0),
+                       # ifelse(is.na(test$tot),1,0),
                        colour = colorz))
 
 
@@ -1534,7 +1534,7 @@ p <- ggtree(tr, layout = "circular") +
              orientation = "y",
              offset = 0.05) +
   scale_fill_manual(values = c( "#FFB000","#785EF0","grey85","#648FFF", "#DC267F"),
-    # "darkolivegreen", "grey", "#FFA500"),
+                    # "darkolivegreen", "grey", "#FFA500"),
                     name = "")
 
 # Extract tip labels from the tree data
@@ -1546,7 +1546,7 @@ p <- p %<+% tip_data +
   scale_color_identity() +
   # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
   scale_colour_manual(values = c("#648FFF","#785EF0","#DC267F","#FFB000","grey85"),
-                        #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
+                      #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
                       labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "Recalcitrant", "NA")) +
   guides(colour = "none")
 
