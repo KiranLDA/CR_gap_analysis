@@ -1525,147 +1525,6 @@ plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 iucn_wcvp_matched_countries_tdwg3
 
 
-# Read the phylogenetic tree from Zuntini
-tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
-
-# load tree data
-tr <- tree
-numtip <- length(tr$tip.label)
-
-# Get number of species per family that are CR and that are banked
-fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "storage_behaviour_combined", "taxonomic_level_combined")] %>%
-  group_by(family) %>%
-  summarize(
-    n_orthodox = length(which(storage_behaviour_combined == "orthodox")),
-    n_recalc = length(which(storage_behaviour_combined == "recalcitrant")),
-    n_inter = length(which(storage_behaviour_combined == "intermediate")),
-    n_exceptional = length(which(storage_behaviour_combined == "exceptional")),
-    n_unknown = length(which(is.na(storage_behaviour_combined))),
-    p_orthodox = length(which(storage_behaviour_combined == "orthodox"))/n(),
-    p_recalc = length(which(storage_behaviour_combined == "recalcitrant"))/n(),
-    p_inter = length(which(storage_behaviour_combined == "intermediate"))/n(),
-    p_exceptional = length(which(storage_behaviour_combined == "exceptional"))/n(),
-    p_unknown = length(which(is.na(storage_behaviour_combined)))/n(),
-    tot = n()
-  )
-
-test = data.frame(tr$tip.label) %>% left_join(fam_count,
-                                              by = c("tr.tip.label" = "family"))
-
-
-colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-                 ifelse(test$p_recalc >= 0.5, "#DC267F",
-                        ifelse(test$p_inter >= 0.5,"#785EF0",
-                               ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85"))))
-colorz[is.na(colorz)] = "grey85"
-
-
-
-dat = rbind(data.frame(id = test$tr.tip.label,
-                       group = "Orthodox",
-                       value = test$p_orthodox,
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "Recalcitrant",
-                       value = test$p_recalc,
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "Intermediate",
-                       value = test$p_inter,
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "Exceptional",
-                       value = test$p_exceptional,
-                       colour = colorz),
-            data.frame(id = test$tr.tip.label,
-                       group = "No CR species in family",
-                       value = ifelse(is.na(test$p_unknown),1,test$p_unknown),
-                       # ifelse(is.na(test$tot),1,0),
-                       colour = colorz))
-
-
-
-
-##########################################
-### GET STATS
-##########################################
-#
-length(test$tr.tip.label[which(test$p_orthodox >=0.5)])/length(which(test$p_unknown != 1))
-length(test$tr.tip.label[which(test$p_recalc >=0.5)])
-length(test$tr.tip.label[which(test$p_inter >=0.5)])
-length(test$tr.tip.label[which(test$p_exceptional >=0.5)])
-test$tr.tip.label[which(test$p_exceptional >=0.5)]
-
-
-# proportions = dat$value[dat$group == "Banked CR species in family"]
-#
-# # % families with CR
-# length(which(!is.na(proportions)))/length(proportions) *100
-#
-# # % families with banked CR
-# length(which(proportions > 0))/length(proportions) *100
-#
-# # % CR that have some banked
-# length(which(proportions > 0))/length(which(!is.na(proportions))) *100
-#
-# # % CR that have 50% banked
-# length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
-#
-# # % CR that have 99% banked
-# length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
-#
-# # Names of fanmilies with CR that are 99% banked
-# dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
-#
-# # Stats for big families
-# test$CR_species[test$tr.tip.label == "Rubiaceae"]
-# test$CR_species[test$tr.tip.label == "Myrtaceae"]
-# test$CR_species[test$tr.tip.label == "Lauraceae"]
-# test$CR_species[test$tr.tip.label == "Fabaceae"]
-# test$CR_species[test$tr.tip.label == "Orchidaceae"]
-# test$CR_species[test$tr.tip.label == "Asteraceae"]
-
-#############################################
-# Plot the phylogenetic tree
-#############################################
-
-p <- ggtree(tr, layout = "circular") +
-  xlim(-10, 70) +
-  geom_fruit(data = dat,
-             geom = geom_bar,
-             mapping = aes(y = id, x = value, fill = group),
-             pwidth = 0.5,
-             stat = "identity",
-             orientation = "y",
-             offset = 0.05) +
-  scale_fill_manual(values = c( "#FFB000","#785EF0","grey85","#648FFF", "#DC267F"),
-                    # "darkolivegreen", "grey", "#FFA500"),
-                    name = "")
-
-# Extract tip labels from the tree data
-tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
-
-p <- p %<+% tip_data +
-  aes(color = colour) +
-  geom_tiplab(aes(label=label), offset=24, size=2) +
-  scale_color_identity() +
-  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
-  scale_colour_manual(values = c("#648FFF","#785EF0","#DC267F","#FFB000","grey85"),
-                      #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
-                      labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "Recalcitrant", "NA")) +
-  guides(colour = "none")
-
-print(p)
-
-ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.pdf"),
-       width = 20,
-       height = 20,
-       units = "cm")
-
-ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.png"),
-       width = 25,
-       height = 25,
-       units = "cm")
 
 ##########################################
 # orthodox certain
@@ -1702,21 +1561,16 @@ test = data.frame(tr$tip.label) %>% left_join(fam_count,
 
 
 colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-                 # ifelse(test$p_recalc >= 0.5, "#DC267F",
-                 ifelse(test$p_inter >= 0.5,"#DC267F",#"#785EF0",
-                        ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85")))#)
-colorz[is.na(colorz)] = "grey45"
+                 ifelse(test$p_inter >= 0.5,"darkorange2",
+                        ifelse(test$p_exceptional >= 0.5, "#FFB000","#DC267F")))
+colorz[is.na(colorz)] = "grey85"
 
-test$no_CR = ifelse(colorz == "grey45",1,0)
+test$no_CR = ifelse(colorz == "grey85",1,0)
 
 dat = rbind(data.frame(id = test$tr.tip.label,
                        group = "Orthodox",
                        value = test$p_orthodox,
                        colour = colorz),
-            # data.frame(id = test$tr.tip.label,
-            #            group = "Recalcitrant",
-            #            value = test$p_recalc,
-            #            colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "Intermediate",
                        value = test$p_inter,
@@ -1727,8 +1581,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
                        colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "Unknown",
-                       value = test$p_unknown, #ifelse(is.na(test$p_unknown),1,test$p_unknown),
-                       # ifelse(is.na(test$tot),1,0),
+                       value = test$p_unknown,
                        colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "No CR in family",
@@ -1746,8 +1599,7 @@ p <- ggtree(tr, layout = "circular") +
              stat = "identity",
              orientation = "y",
              offset = 0.05) +
-  scale_fill_manual(values = c( "#FFB000","#DC267F","grey45","#648FFF", "grey85"), # "#785EF0",
-                    # "darkolivegreen", "grey", "#FFA500"),
+  scale_fill_manual(values = c("#FFB000","darkorange2", "grey85","#648FFF", "#DC267F"),
                     name = "")
 
 # Extract tip labels from the tree data
@@ -1757,10 +1609,8 @@ p <- p %<+% tip_data +
   aes(color = colour) +
   geom_tiplab(aes(label=label), offset=24, size=2) +
   scale_color_identity() +
-  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
-  # scale_colour_manual(values =  c("grey85","#648FFF","#FFB000","#DC267F"),#"#FFB000","#648FFF", "grey85","#DC267F"),#c("#648FFF","#DC267F","#FFB000","grey85"),# "#785EF0",
-  #                     #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
-  #                     labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "NA")) +
+  scale_colour_manual(values =  c("#648FFF", "#DC267F","darkorange2","#FFB000", "grey85"),
+                      labels = c("Exceptional", "Intermediate", "no CR in family", "Orthodox", "Unknown")) +
   guides(colour = "none")
 
 print(p)
@@ -1781,6 +1631,7 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.png"),
 # orthodox uncertain
 ###########################################
 
+
 # Read the phylogenetic tree from Zuntini
 tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
 
@@ -1789,7 +1640,7 @@ tr <- tree
 numtip <- length(tr$tip.label)
 
 # Get number of species per family that are CR and that are banked
-fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "category_certain")] %>%
+fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "category_uncertain")] %>%
   group_by(family) %>%
   summarize(
     n_orthodox = length(which(category_uncertain == "orthodox")),
@@ -1812,21 +1663,16 @@ test = data.frame(tr$tip.label) %>% left_join(fam_count,
 
 
 colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-                 # ifelse(test$p_recalc >= 0.5, "#DC267F",
-                 ifelse(test$p_inter >= 0.5,"#DC267F",#"#785EF0",
-                        ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85")))#)
-colorz[is.na(colorz)] = "grey45"
+                 ifelse(test$p_inter >= 0.5,"darkorange2",
+                        ifelse(test$p_exceptional >= 0.5, "#FFB000","#DC267F")))
+colorz[is.na(colorz)] = "grey85"
 
-test$no_CR = ifelse(colorz == "grey45",1,0)
+test$no_CR = ifelse(colorz == "grey85",1,0)
 
 dat = rbind(data.frame(id = test$tr.tip.label,
                        group = "Orthodox",
                        value = test$p_orthodox,
                        colour = colorz),
-            # data.frame(id = test$tr.tip.label,
-            #            group = "Recalcitrant",
-            #            value = test$p_recalc,
-            #            colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "Intermediate",
                        value = test$p_inter,
@@ -1837,8 +1683,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
                        colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "Unknown",
-                       value = test$p_unknown, #ifelse(is.na(test$p_unknown),1,test$p_unknown),
-                       # ifelse(is.na(test$tot),1,0),
+                       value = test$p_unknown,
                        colour = colorz),
             data.frame(id = test$tr.tip.label,
                        group = "No CR in family",
@@ -1856,8 +1701,7 @@ p <- ggtree(tr, layout = "circular") +
              stat = "identity",
              orientation = "y",
              offset = 0.05) +
-  scale_fill_manual(values = c( "#FFB000","#DC267F","grey45","#648FFF", "grey85"), # "#785EF0",
-                    # "darkolivegreen", "grey", "#FFA500"),
+  scale_fill_manual(values = c("#FFB000","darkorange2", "grey85","#648FFF", "#DC267F"),
                     name = "")
 
 # Extract tip labels from the tree data
@@ -1867,10 +1711,8 @@ p <- p %<+% tip_data +
   aes(color = colour) +
   geom_tiplab(aes(label=label), offset=24, size=2) +
   scale_color_identity() +
-  # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
-  # scale_colour_manual(values =  c("grey85","#648FFF","#FFB000","#DC267F"),#"#FFB000","#648FFF", "grey85","#DC267F"),#c("#648FFF","#DC267F","#FFB000","grey85"),# "#785EF0",
-  #                     #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
-  #                     labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "NA")) +
+  scale_colour_manual(values =  c("#648FFF", "#DC267F","darkorange2","#FFB000", "grey85"),
+                      labels = c("Exceptional", "Intermediate", "no CR in family", "Orthodox", "Unknown")) +
   guides(colour = "none")
 
 print(p)
@@ -1885,4 +1727,148 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_uncertain.png"),
        height = 25,
        units = "cm")
 
+###########################################################
+# old tree
+###########################################################
 
+# # Read the phylogenetic tree from Zuntini
+# tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+#
+# # load tree data
+# tr <- tree
+# numtip <- length(tr$tip.label)
+#
+# # Get number of species per family that are CR and that are banked
+# fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "storage_behaviour_combined", "taxonomic_level_combined")] %>%
+#   group_by(family) %>%
+#   summarize(
+#     n_orthodox = length(which(storage_behaviour_combined == "orthodox")),
+#     n_recalc = length(which(storage_behaviour_combined == "recalcitrant")),
+#     n_inter = length(which(storage_behaviour_combined == "intermediate")),
+#     n_exceptional = length(which(storage_behaviour_combined == "exceptional")),
+#     n_unknown = length(which(is.na(storage_behaviour_combined))),
+#     p_orthodox = length(which(storage_behaviour_combined == "orthodox"))/n(),
+#     p_recalc = length(which(storage_behaviour_combined == "recalcitrant"))/n(),
+#     p_inter = length(which(storage_behaviour_combined == "intermediate"))/n(),
+#     p_exceptional = length(which(storage_behaviour_combined == "exceptional"))/n(),
+#     p_unknown = length(which(is.na(storage_behaviour_combined)))/n(),
+#     tot = n()
+#   )
+#
+# test = data.frame(tr$tip.label) %>% left_join(fam_count,
+#                                               by = c("tr.tip.label" = "family"))
+#
+#
+# colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+#                  ifelse(test$p_recalc >= 0.5, "#DC267F",
+#                         ifelse(test$p_inter >= 0.5,"#785EF0",
+#                                ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85"))))
+# colorz[is.na(colorz)] = "grey85"
+#
+#
+#
+# dat = rbind(data.frame(id = test$tr.tip.label,
+#                        group = "Orthodox",
+#                        value = test$p_orthodox,
+#                        colour = colorz),
+#             data.frame(id = test$tr.tip.label,
+#                        group = "Recalcitrant",
+#                        value = test$p_recalc,
+#                        colour = colorz),
+#             data.frame(id = test$tr.tip.label,
+#                        group = "Intermediate",
+#                        value = test$p_inter,
+#                        colour = colorz),
+#             data.frame(id = test$tr.tip.label,
+#                        group = "Exceptional",
+#                        value = test$p_exceptional,
+#                        colour = colorz),
+#             data.frame(id = test$tr.tip.label,
+#                        group = "No CR species in family",
+#                        value = ifelse(is.na(test$p_unknown),1,test$p_unknown),
+#                        # ifelse(is.na(test$tot),1,0),
+#                        colour = colorz))
+#
+#
+#
+#
+# ##########################################
+# ### GET STATS
+# ##########################################
+# #
+# length(test$tr.tip.label[which(test$p_orthodox >=0.5)])/length(which(test$p_unknown != 1))
+# length(test$tr.tip.label[which(test$p_recalc >=0.5)])
+# length(test$tr.tip.label[which(test$p_inter >=0.5)])
+# length(test$tr.tip.label[which(test$p_exceptional >=0.5)])
+# test$tr.tip.label[which(test$p_exceptional >=0.5)]
+#
+#
+# # proportions = dat$value[dat$group == "Banked CR species in family"]
+# #
+# # # % families with CR
+# # length(which(!is.na(proportions)))/length(proportions) *100
+# #
+# # # % families with banked CR
+# # length(which(proportions > 0))/length(proportions) *100
+# #
+# # # % CR that have some banked
+# # length(which(proportions > 0))/length(which(!is.na(proportions))) *100
+# #
+# # # % CR that have 50% banked
+# # length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
+# #
+# # # % CR that have 99% banked
+# # length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
+# #
+# # # Names of fanmilies with CR that are 99% banked
+# # dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
+# #
+# # # Stats for big families
+# # test$CR_species[test$tr.tip.label == "Rubiaceae"]
+# # test$CR_species[test$tr.tip.label == "Myrtaceae"]
+# # test$CR_species[test$tr.tip.label == "Lauraceae"]
+# # test$CR_species[test$tr.tip.label == "Fabaceae"]
+# # test$CR_species[test$tr.tip.label == "Orchidaceae"]
+# # test$CR_species[test$tr.tip.label == "Asteraceae"]
+#
+# #############################################
+# # Plot the phylogenetic tree
+# #############################################
+#
+# p <- ggtree(tr, layout = "circular") +
+#   xlim(-10, 70) +
+#   geom_fruit(data = dat,
+#              geom = geom_bar,
+#              mapping = aes(y = id, x = value, fill = group),
+#              pwidth = 0.5,
+#              stat = "identity",
+#              orientation = "y",
+#              offset = 0.05) +
+#   scale_fill_manual(values = c( "#FFB000","#785EF0","grey85","#648FFF", "#DC267F"),
+#                     # "darkolivegreen", "grey", "#FFA500"),
+#                     name = "")
+#
+# # Extract tip labels from the tree data
+# tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
+#
+# p <- p %<+% tip_data +
+#   aes(color = colour) +
+#   geom_tiplab(aes(label=label), offset=24, size=2) +
+#   scale_color_identity() +
+#   # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
+#   scale_colour_manual(values = c("#648FFF","#785EF0","#DC267F","#FFB000","grey85"),
+#                       #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
+#                       labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "Recalcitrant", "NA")) +
+#   guides(colour = "none")
+#
+# print(p)
+#
+# ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.pdf"),
+#        width = 20,
+#        height = 20,
+#        units = "cm")
+#
+# ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.png"),
+#        width = 25,
+#        height = 25,
+#        units = "cm")
