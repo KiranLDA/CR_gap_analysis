@@ -613,14 +613,13 @@ test$category_certain[id] = "orthodox"
 test$category_certain_ref[id] = "SID"
 
 
-
-
 # have a look
 View(test[, c("storBehav","probability.of.recalcitrance","tax.level","SID_Seed_Storage_Behaviour",
          "Exceptional_status","Storage",
          "category_uncertain", "category_certain","category_certain_ref")])
 
 
+spp_banked_recalcitrant = test
 
 ##### SAVE ################################################
 
