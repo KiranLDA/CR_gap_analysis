@@ -69,7 +69,7 @@ length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_speci
 
 # what families have lost of CR species and no collections
 fam_count$family[which(fam_count$banked_species == 0 &
-                                fam_count$CR_species > 50)]
+                         fam_count$CR_species > 50)]
 # "Annonaceae"       "Araliaceae"       "Bromeliaceae"     "Dipterocarpaceae"
 # "Fagaceae"         "Lauraceae"        "Zingiberaceae"
 

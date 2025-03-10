@@ -29,10 +29,10 @@ indexes$exsitu_index = ifelse(indexes$CultivatedAll == TRUE, NA, indexes$exsitu_
 #########################
 
 stacked_MSBP <- stack(indexes[, c("information_index", "viability_index", "cultivation_index",
-                            "exsitu_index", "total_index")])
+                                  "exsitu_index", "total_index")])
 stacked_MSBP = stacked_MSBP[!is.na(stacked_MSBP$values),]
 stacked_MSBP$ind<- factor(stacked_MSBP$ind, levels=c("information_index", "viability_index", "cultivation_index",
-                                           "exsitu_index", "total_index"))
+                                                     "exsitu_index", "total_index"))
 
 
 par(mar = c(5,5,3,3))
@@ -49,17 +49,17 @@ legend("bottomleft", legend = c("MSB-P"), fill = c("darkmagenta"), cex = 1)
 
 # MSB
 stacked_MSB <- stack(indexes[indexes$SEEDBANK == "MSB", c("information_index", "viability_index", "cultivation_index",
-                                                           "exsitu_index", "total_index")])
+                                                          "exsitu_index", "total_index")])
 stacked_MSB = stacked_MSB[!is.na(stacked_MSB$values),]
 stacked_MSB$ind<- factor(stacked_MSB$ind, levels=c("information_index", "viability_index", "cultivation_index",
-                                                     "exsitu_index", "total_index"))
+                                                   "exsitu_index", "total_index"))
 
 # Partners
 stacked_P <- stack(indexes[indexes$SEEDBANK != "MSB", c("information_index", "viability_index", "cultivation_index",
-                                                           "exsitu_index", "total_index")])
+                                                        "exsitu_index", "total_index")])
 stacked_P = stacked_P[!is.na(stacked_P$values),]
 stacked_P$ind<- factor(stacked_P$ind, levels=c("information_index", "viability_index", "cultivation_index",
-                                                     "exsitu_index", "total_index"))
+                                               "exsitu_index", "total_index"))
 
 
 # Plot
@@ -109,7 +109,7 @@ ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/
 
 par(mar = c(5,5,3,3))
 png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index.png"),
-        width = 6, height = 3.5, units = "in", res = 300)
+    width = 6, height = 3.5, units = "in", res = 300)
 vio
 dev.off()
 
@@ -150,14 +150,14 @@ pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
           "#fe6100", "darkorange4",
           "#D81B60", "#610A1A",
           "#1E88E5", "#0F4777"))
-          # "#785ef0",
-          # "#004D40", "#00231D",
-      #     "darkolivegreen4","darkolivegreen4",
-      #     "darkolivegreen3","darkolivegreen4",
-      #     "darkgoldenrod1","darkgoldenrod3",
-      #     "chocolate1","chocolate3",
-      #     "brown3","brown4",
-          # "black", "grey"))
+# "#785ef0",
+# "#004D40", "#00231D",
+#     "darkolivegreen4","darkolivegreen4",
+#     "darkolivegreen3","darkolivegreen4",
+#     "darkgoldenrod1","darkgoldenrod3",
+#     "chocolate1","chocolate3",
+#     "brown3","brown4",
+# "black", "grey"))
 dev.off()
 
 

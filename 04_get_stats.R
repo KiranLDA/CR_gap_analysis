@@ -6,7 +6,7 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
- ###### Find the CR species in the dataset ##################################################################
+###### Find the CR species in the dataset ##################################################################
 
 # iucn data in the bank with calculated targets
 indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
@@ -243,9 +243,9 @@ length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitran
 
 # make sure they all add up
 total_CR_CRpred = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria == "prediction")])) +
-  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria == "prediction")])) +
-  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
-  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")]))
+                     length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria == "prediction")])) +
+                     length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
+                     length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F & iucn_banked_recalcitrance$redlistCriteria != "prediction")]))
 )
 total_CR_CRpred
 total_CR = (length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T  & iucn_banked_recalcitrance$redlistCriteria != "prediction")])) +
@@ -284,7 +284,7 @@ length(which(iucn_banked_recalcitrance$yearPublished < 2000)) #334
 length(which(iucn_banked_recalcitrance$yearPublished >= 2000 & iucn_banked_recalcitrance$yearPublished < 2010)) #472
 length(which(iucn_banked_recalcitrance$yearPublished >= 2010 & iucn_banked_recalcitrance$yearPublished < 2020)) #1973
 length(which(iucn_banked_recalcitrance$yearPublished[which(iucn_banked_recalcitrance$redlistCriteria != "prediction")] >= 2020)) #2895
- # because predictions are all from 2024
+# because predictions are all from 2024
 
 length(wcvp$taxon_status == "Accepted")
 
@@ -336,7 +336,7 @@ above1/below1
 
 
 above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Synonym")[!(which(iucn_wcvp_matched$wcvp_status == "Synonym") %in%
-                                                                                   which(iucn_wcvp_matched$wcvp_homotypic))]]))
+                                                                                                              which(iucn_wcvp_matched$wcvp_homotypic))]]))
 below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
 above2/below2
 # 0.03331408
@@ -346,14 +346,14 @@ above2/below2
 # accepted
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~
 above1 = length(unique(indexes$SPECIES[which(indexes$wcvp_status == "Accepted")[!(which(indexes$wcvp_status == "Accepted") %in%
-                                                                                   which(indexes$wcvp_homotypic))]]))
+                                                                                    which(indexes$wcvp_homotypic))]]))
 below1 = length(unique(indexes$SPECIES[indexes$accepted_name ==T]))
 above1/below1
 # 0.01907357
 
 
 above2 = length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$wcvp_status == "Accepted")[!(which(iucn_wcvp_matched$wcvp_status == "Accepted") %in%
-                                                                                                              which(iucn_wcvp_matched$wcvp_homotypic))]]))
+                                                                                                               which(iucn_wcvp_matched$wcvp_homotypic))]]))
 below2 = length(unique(iucn_wcvp_matched$scientificName[iucn_wcvp_matched$accepted_name ==T]))
 above2/below2
 # 0.03331408
@@ -372,7 +372,7 @@ iucn_banked_recalcitrance$banked_category = NA
 iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance <= 0.25] = "orthodox"
 iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance >= 0.75] = "recalcitrant"
 iucn_banked_recalcitrance$banked_category[iucn_banked_recalcitrance$probability.of.recalcitrance < 0.75 &
-                                           iucn_banked_recalcitrance$probability.of.recalcitrance > 0.25] = "intermediate"
+                                            iucn_banked_recalcitrance$probability.of.recalcitrance > 0.25] = "intermediate"
 
 iucn_banked_recalcitrance$probability.of.recalcitrance[which(iucn_banked_recalcitrance$banked == T)]
 
@@ -389,7 +389,7 @@ prop[prop$banked_category == "intermediate",]
 prop[prop$banked_category == "recalcitrant",]
 
 prop = iucn_banked_recalcitrance[which(iucn_banked_recalcitrance$category == "banked"),
-                                c("taxon_name", "banked_category", "probability.of.recalcitrance")] #"banked_recalcitrance.y")]
+                                 c("taxon_name", "banked_category", "probability.of.recalcitrance")] #"banked_recalcitrance.y")]
 prop[is.na(prop$banked_category),"taxon_name"]
 nrow(prop[is.na(prop$banked_category),])
 
@@ -486,7 +486,7 @@ indexes$COUNTRY_ABS[indexes$COUNTRY_ABS == "Tanzania"] = "United Republic of Tan
 
 # merge with the data
 indexes = left_join(indexes, abs,
-                 by=c("COUNTRY_ABS"="Country"))
+                    by=c("COUNTRY_ABS"="Country"))
 unique(indexes$COUNTRY_ABS[is.na(indexes$status)])
 
 # Countries with nagoya
@@ -643,7 +643,7 @@ brahms_wcvp_matched$COUNTRY_ABS[brahms_wcvp_matched$COUNTRY_ABS == "Brasil"] = "
 
 # merge with the data
 brahms_wcvp_matched = left_join(brahms_wcvp_matched, abs,
-                    by=c("COUNTRY_ABS"="Country"))
+                                by=c("COUNTRY_ABS"="Country"))
 # unique(brahms_wcvp_matched[is.na(test$status)])
 
 # Countries with nagoya
@@ -717,7 +717,7 @@ indexes$ADJSTCOUNT[is.na(indexes$ADJSTCOUNT)] = 0
 # per species data
 # rm(spp_count)
 spp_count = indexes[,c("taxon_name", "ADJSTCOUNT", "plants_sampled")] %>%
-# , "redlistCriteria")] %>%
+  # , "redlistCriteria")] %>%
   group_by(taxon_name) %>%
   summarize(
     accessions = n(), # Number of times the species appears
@@ -750,7 +750,7 @@ length(unique(indexes$taxon_name[which(indexes$Target_1)]))
 
 # define new comboned target 1
 spp_count$Target_1 = (spp_count$summed_count >= 1050 &
-                               spp_count$summed_sampled >= 50)
+                        spp_count$summed_sampled >= 50)
 
 # how many species meet target 1 once collections are merged?
 length(which(spp_count$Target_1))
@@ -799,14 +799,14 @@ length(which(spp_count$summed_sampled == 0))/ length(spp_count$summed_sampled)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 spp_count$need_more = ifelse(spp_count$summed_count  < 250,
-                            TRUE,FALSE)
+                             TRUE,FALSE)
 
 length(which(spp_count$need_more))
 length(which(spp_count$need_more))/nrow(spp_count)
 
 
 spp_count$bankable = ifelse(spp_count$summed_count >= 250 & spp_count$summed_count < 1050,
-                             TRUE,FALSE)
+                            TRUE,FALSE)
 
 length(which(spp_count$bankable))
 length(which(spp_count$bankable))/nrow(spp_count)
@@ -814,27 +814,27 @@ length(which(spp_count$bankable))/nrow(spp_count)
 
 
 spp_count$restorable = ifelse(spp_count$summed_count >= 1050,
-                            TRUE,FALSE)
+                              TRUE,FALSE)
 
 length(which(spp_count$restorable))
 length(which(spp_count$restorable))/nrow(spp_count)
 
 
 spp_count$Target_1a = ifelse(spp_count$summed_count >= 1050,
-                               TRUE,FALSE)
+                             TRUE,FALSE)
 spp_count$Target_1a[is.na(spp_count$Target_1a)] = FALSE
 
 
 # from at least 50 different plants stored ex situ
 spp_count$Target_1b = ifelse((as.numeric(spp_count$summed_sampled) >= 50),
-                               TRUE,
-                               FALSE)
+                             TRUE,
+                             FALSE)
 spp_count$Target_1b[is.na(spp_count$Target_1b)] = FALSE
 
 # Combine for target 1
 
 spp_count$Target_1 = ifelse((spp_count$Target_1a & spp_count$Target_1b),
-                              TRUE,FALSE)
+                            TRUE,FALSE)
 
 
 #~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~#~~~~~~~~~~~~~~~~~~~~
@@ -924,7 +924,7 @@ length(unique(spp_count$taxon_name)) -
 
 # Add the targets to the IUCN data
 test2 = iucn_banked_recalcitrance %>% left_join(indexes[,c("taxon_name","Target_1","Target_1a","Target_1b","Target_2")],
-                                               by = c("taxon_name"="taxon_name"))
+                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
 length(unique(test2$taxon_name)) # 5758
@@ -1139,7 +1139,7 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Add the targets to the IUCN data
 test2 = iucn_banked_recalcitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_2")],
-                                               by = c("taxon_name"="taxon_name"))
+                                                by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
 length(unique(test2$taxon_name)) # 5758
