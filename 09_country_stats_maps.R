@@ -1560,10 +1560,23 @@ test = data.frame(tr$tip.label) %>% left_join(fam_count,
                                               by = c("tr.tip.label" = "family"))
 
 
-colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-                 ifelse(test$p_inter >= 0.5,"darkorange2",
-                        ifelse(test$p_exceptional >= 0.5, "#FFB000","#DC267F")))
-colorz[is.na(colorz)] = "grey85"
+# colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+#                 ifelse(test$p_exceptional >= 0.5, "#FFB000",
+#                        ifelse(test$p_inter >= 0.5,"darkorange2", "#DC267F")))
+
+df = test[,c("p_orthodox","p_exceptional", "p_inter","p_unknown")]
+df_with_max_col <- df %>%
+  mutate(Max_Column = apply(., 1, function(x) names(.)[which.max(x)]))
+print(df_with_max_col)
+colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
+                ifelse(df_with_max_col$Max_Column == "p_exceptional", "#FFB000",
+                       ifelse(df_with_max_col$Max_Column == "p_inter","darkorange2",
+                              ifelse(df_with_max_col$Max_Column == "p_unknown","#DC267F","grey85"))))
+
+
+
+
+# colorz[is.na(colorz)] = "grey85"
 
 test$no_CR = ifelse(colorz == "grey85",1,0)
 
@@ -1599,7 +1612,7 @@ p <- ggtree(tr, layout = "circular") +
              stat = "identity",
              orientation = "y",
              offset = 0.05) +
-  scale_fill_manual(values = c("#FFB000","darkorange2", "grey85","#648FFF", "#DC267F"),
+  scale_fill_manual(values = c("darkorange2","#FFB000", "grey85","#648FFF", "#DC267F"),
                     name = "")
 
 # Extract tip labels from the tree data
@@ -1662,10 +1675,23 @@ test = data.frame(tr$tip.label) %>% left_join(fam_count,
                                               by = c("tr.tip.label" = "family"))
 
 
-colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-                 ifelse(test$p_inter >= 0.5,"darkorange2",
-                        ifelse(test$p_exceptional >= 0.5, "#FFB000","#DC267F")))
-colorz[is.na(colorz)] = "grey85"
+# colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
+#                 ifelse(test$p_exceptional >= 0.5, "#FFB000",
+#                        ifelse(test$p_inter >= 0.5,"darkorange2", "#DC267F")))
+
+df = test[,c("p_orthodox","p_exceptional", "p_inter","p_unknown")]
+df_with_max_col <- df %>%
+  mutate(Max_Column = apply(., 1, function(x) names(.)[which.max(x)]))
+print(df_with_max_col)
+colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
+                ifelse(df_with_max_col$Max_Column == "p_exceptional", "#FFB000",
+                       ifelse(df_with_max_col$Max_Column == "p_inter","darkorange2",
+                              ifelse(df_with_max_col$Max_Column == "p_unknown","#DC267F","grey85"))))
+
+
+
+
+# colorz[is.na(colorz)] = "grey85"
 
 test$no_CR = ifelse(colorz == "grey85",1,0)
 
@@ -1701,7 +1727,7 @@ p <- ggtree(tr, layout = "circular") +
              stat = "identity",
              orientation = "y",
              offset = 0.05) +
-  scale_fill_manual(values = c("#FFB000","darkorange2", "grey85","#648FFF", "#DC267F"),
+  scale_fill_manual(values = c("darkorange2","#FFB000", "grey85","#648FFF", "#DC267F"),
                     name = "")
 
 # Extract tip labels from the tree data

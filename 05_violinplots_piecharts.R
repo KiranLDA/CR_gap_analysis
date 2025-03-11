@@ -140,16 +140,17 @@ length(unique(single$taxon_name)) # 5758
 length(single$taxon_name) # 5758
 
 pie_data = single %>% count(labels)
-pie_data = pie_data[c(5,6,7,8,3,4,1,2),]
+pie_data = pie_data[c(1,2,5,6,3,4,7,8),]
 sum(pie_data$n)
 par(mar = c(0,0,1,10))
 pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
-          "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777"))
+    col=c("#fe6100", "darkorange4",
+          "#1E88E5", "#0F4777",
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+          ))
 # "#785ef0",
 # "#004D40", "#00231D",
 #     "darkolivegreen4","darkolivegreen4",
@@ -164,10 +165,11 @@ dev.off()
 png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
-          "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777"))
+    col=c("#fe6100", "darkorange4",
+          "#1E88E5", "#0F4777",
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
 # pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
 #     col=c("darkolivegreen3","darkolivegreen4",
 #           "darkgoldenrod1","darkgoldenrod3",
@@ -207,11 +209,17 @@ par(mar = c(0,0,1,10))
 pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_certain.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
+    # col=c("#FFC107", "goldenrod3",
+    #       "#fe6100", "darkorange4",
+    #       "#D81B60", "#610A1A",
+    #       "#1E88E5", "#0F4777",
+    #       "grey40","grey20"))
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777",
-          "grey40","grey20"))
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+          ))
 # "#785ef0",
 # "#004D40", "#00231D",
 #     "darkolivegreen4","darkolivegreen4",
@@ -226,11 +234,17 @@ dev.off()
 png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_certain.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
+    # col=c("#FFC107", "goldenrod3",
+    #       "#fe6100", "darkorange4",
+    #       "#D81B60", "#610A1A",
+    #       "#1E88E5", "#0F4777",
+    #       "grey40","grey20"))
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777",
-          "grey40","grey20"))
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
 # pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
 #     col=c("darkolivegreen3","darkolivegreen4",
 #           "darkgoldenrod1","darkgoldenrod3",
@@ -270,22 +284,34 @@ par(mar = c(0,0,1,10))
 pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_uncertain.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
+    # col=c("#FFC107", "goldenrod3",
+    #       "#fe6100", "darkorange4",
+    #       "#D81B60", "#610A1A",
+    #       "#1E88E5", "#0F4777",
+    #       "grey40","grey20"))
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777",
-          "grey40","grey20"))
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
 dev.off()
 
 
 png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_uncertain.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#FFC107", "goldenrod3",
+    # col=c("#FFC107", "goldenrod3",
+    #       "#fe6100", "darkorange4",
+    #       "#D81B60", "#610A1A",
+    #       "#1E88E5", "#0F4777",
+    #       "grey40","grey20"))
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
-          "#D81B60", "#610A1A",
-          "#1E88E5", "#0F4777",
-          "grey40","grey20"))
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
 dev.off()
 par(mar = c(5,5,3,3))
 
