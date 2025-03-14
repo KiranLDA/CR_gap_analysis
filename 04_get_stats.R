@@ -99,6 +99,33 @@ length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 thi
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")))/ length(unique(iucn$scientificName)) # 0.9852683
 length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
 
+# what proportion accepted, synonym, homotypic
+summary(as.factor(iucn_wcvp_matched$wcvp_status))/nrow(iucn_wcvp_matched)
+#     Accepted   Artificial Hybrid      Illegitimate           Invalid           Synonym
+# 0.9163578613        0.0001764602      0.0008823010      0.0001764602      0.0824069172
+
+# separate out the synonyms
+length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
+               iucn_wcvp_matched$wcvp_homotypic))/nrow(iucn_wcvp_matched)
+# 0.0518793
+
+length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
+               is.na(iucn_wcvp_matched$wcvp_homotypic)))/nrow(iucn_wcvp_matched)
+# 0.03052762
+
+#### Synonyms for wcvp
+length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
+               iucn_wcvp_matched$wcvp_homotypic &
+               iucn_wcvp_matched$taxonomic_backbone == "WCVP"))/nrow(iucn_wcvp_matched)
+# 0.0518793
+
+length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
+               is.na(iucn_wcvp_matched$wcvp_homotypic) &
+                       iucn_wcvp_matched$taxonomic_backbone == "WCVP"))/nrow(iucn_wcvp_matched)
+# 0.03052762
+
+
+
 # what names were doubled in the datasets
 doubled <- iucn_wcvp_matched$taxon_name[which(duplicated(iucn_wcvp_matched$taxon_name))]
 cbind(iucn_wcvp_matched$taxon_name[which(iucn_wcvp_matched$taxon_name %in% doubled)],
@@ -109,7 +136,7 @@ cbind(iucn_wcvp_matched$taxon_name[which(iucn_wcvp_matched$taxon_name %in% doubl
 iucn_wcvp_matched$higher[which(iucn_wcvp_matched$higher == "A")] = "Angiosperms"
 summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
 # Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
-# 5452              27              92              72              14              10
+#        5452              27              92              72              14              10
 
 # how many species are in the bank?
 length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
@@ -396,34 +423,63 @@ nrow(prop[is.na(prop$banked_category),])
 #####################################################
 ##  accession viability
 #####################################################
+#
+# nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+# nrow(indexes)
+# # proportioin of accessions tested
+# nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])/nrow(indexes)
+#
+#
+# # of those tested, what is their quality (75% viability)
+# ## Best ever test
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+#
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))
+# length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+#
+# length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75)])
+#
+# length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER == 0 )])
+# summary(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75 )])
+#
+#
+# ## last test
+# length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))
+# length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))
+# length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+# length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+#
 
-nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+nrow(indexes[which(!is.na(indexes$LASTTEST)),])
 nrow(indexes)
 # proportioin of accessions tested
-nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])/nrow(indexes)
+nrow(indexes[which(!is.na(indexes$LASTTEST)),])/nrow(indexes)
 
 
 # of those tested, what is their quality (75% viability)
 ## Best ever test
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] >= 75))
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] < 75))
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] >= 75))/nrow(indexes[which(!is.na(indexes$LASTTEST)),])
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] < 75))/nrow(indexes[which(!is.na(indexes$LASTTEST)),])
 
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))
-length(which(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    ")] == 100))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] == 100))
+length(which(indexes$BESTEVER[which(!is.na(indexes$LASTTEST))] == 100))/nrow(indexes[which(!is.na(indexes$LASTTEST)),])
 
-length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75)])
+length(indexes$BESTEVER[which(!is.na(indexes$LASTTEST) & indexes$BESTEVER < 75)])
 
-length(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER == 0 )])
-summary(indexes$BESTEVER[which(indexes$LASTTEST != "  /  /    " & indexes$BESTEVER < 75 )])
+length(indexes$BESTEVER[which(!is.na(indexes$LASTTEST) & indexes$BESTEVER == 0 )])
+summary(indexes$BESTEVER[which(!is.na(indexes$LASTTEST) & indexes$BESTEVER < 75 )])
 
 
 ## last test
-length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))
-length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))
-length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] >= 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
-length(which(indexes$BESTLAST[which(indexes$LASTTEST != "  /  /    ")] < 75))/nrow(indexes[which(indexes$LASTTEST != "  /  /    "),])
+length(which(indexes$BESTLAST[which(!is.na(indexes$LASTTEST))] >= 75))
+length(which(indexes$BESTLAST[which(!is.na(indexes$LASTTEST))] < 75))
+length(which(indexes$BESTLAST[which(!is.na(indexes$LASTTEST))] >= 75))/nrow(indexes[which(!is.na(indexes$LASTTEST)),])
+length(which(indexes$BESTLAST[which(!is.na(indexes$LASTTEST))] < 75))/nrow(indexes[which(!is.na(indexes$LASTTEST)),])
 
 
 ###############################################
@@ -701,13 +757,22 @@ length(unique(brahms_wcvp_matched$AccessionNumber[which(brahms_wcvp_matched$st.i
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# indexes$plants_sampled = as.numeric(indexes$PLANTSAMP)
+# indexes$plants_sampled[site_counts$PLANTSAMP == "11-100"] = 50
+# indexes$plants_sampled[site_counts$PLANTSAMP == "100-1000"] = 100
+# indexes$plants_sampled[site_counts$PLANTSAMP == "25-50"] = 50
+# indexes$plants_sampled[site_counts$PLANTSAMP == ">100"] = 100
+# indexes$plants_sampled[site_counts$PLANTSAMP == "200-500"] = 200
+# indexes$plants_sampled[is.na(indexes$plants_sampled)] = 0
+# indexes$ADJSTCOUNT[is.na(indexes$ADJSTCOUNT)] = 0
+
 # get the data
 indexes$plants_sampled = as.numeric(indexes$PLANTSAMP)
-indexes$plants_sampled[site_counts$PLANTSAMP == "11-100"] = 50
-indexes$plants_sampled[site_counts$PLANTSAMP == "100-1000"] = 100
-indexes$plants_sampled[site_counts$PLANTSAMP == "25-50"] = 50
-indexes$plants_sampled[site_counts$PLANTSAMP == ">100"] = 100
-indexes$plants_sampled[site_counts$PLANTSAMP == "200-500"] = 200
+indexes$plants_sampled[indexes$PLANTSAMP == "11-100"] = 50
+indexes$plants_sampled[indexes$PLANTSAMP == "100-1000"] = 100
+indexes$plants_sampled[indexes$PLANTSAMP == "25-50"] = 50
+indexes$plants_sampled[indexes$PLANTSAMP == ">100"] = 100
+indexes$plants_sampled[indexes$PLANTSAMP == "200-500"] = 200
 indexes$plants_sampled[is.na(indexes$plants_sampled)] = 0
 indexes$ADJSTCOUNT[is.na(indexes$ADJSTCOUNT)] = 0
 
@@ -898,8 +963,8 @@ length(which(spp_count$Target_2a))/ length(spp_count$Target_2)
 # average range of country banked.
 mean(as.numeric(spp_count$prop_range_banked))
 
-length(unique(iucn_banked_recalcitrance$taxon_name)) -
-  length(unique())
+# length(unique(iucn_banked_recalcitrance$taxon_name)) -
+#   length(unique())
 
 # number of species still needed to get target 2
 length(unique(iucn_banked_recalcitrance$taxon_name)) -
@@ -930,7 +995,7 @@ test2 = iucn_banked_recalcitrance %>% left_join(indexes[,c("taxon_name","Target_
 length(unique(test2$taxon_name)) # 5758
 
 # CR banked
-length(unique(test2$taxon_name[test2$category == "banked"])) # 373
+length(unique(test2$taxon_name[test2$banked])) # 372
 
 # CR meeting target
 length(unique(test2$taxon_name[which(test2$Target_1)])) # 30
@@ -940,51 +1005,100 @@ length(which(test2$Target_1)) # 39
 
 
 ###################################################################
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # storage behaviour
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# # summary of records
+# summary(as.factor(iucn_banked_recalcitrance$category))
+# # exceptional intermediate     orthodox   recalcitrant   NA's
+# # 99          714              3896       891            173
+# # exceptional intermediate     orthodox recalcitrant         NA's
+# #          83          714         3896          907          173
+#
+# summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))
+# # exceptional intermediate     orthodox recalcitrant         NA's
+# #           83          696         3556          902          163
+#
+# summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))/
+#   length(which(iucn_banked_recalcitrance$banked == FALSE))
+# # exceptional intermediate     orthodox recalcitrant         NA's
+# #   0.01537037   0.12888889   0.65851852   0.16703704   0.03018519
+#
+#
+# # species
+# #na
+# length(unique(iucn_banked_recalcitrance$taxon_name[
+#   which(is.na(iucn_banked_recalcitrance$category))]))
+# # 173
+#
+# length(unique(iucn_banked_recalcitrance$taxon_name[
+#   which(iucn_banked_recalcitrance$category == "orthodox")]))
+# # 3885
+#
+# length(unique(iucn_banked_recalcitrance$taxon_name[
+#   which(iucn_banked_recalcitrance$category == "recalcitrant")]))
+# # 905
+#
+# length(unique(iucn_banked_recalcitrance$taxon_name[
+#   which(iucn_banked_recalcitrance$category == "intermediate")]))
+# # 713
+#
+# length(unique(iucn_banked_recalcitrance$taxon_name[
+#   which(iucn_banked_recalcitrance$category == "exceptional")]))
+# # 82
 
-# summary of records
-summary(as.factor(iucn_banked_recalcitrance$category))
-# exceptional intermediate     orthodox   recalcitrant   NA's
-# 99          714              3896       891            173
-# exceptional intermediate     orthodox recalcitrant         NA's
-#          83          714         3896          907          173
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# storage behaviour CERTAIN
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))
-# exceptional intermediate     orthodox recalcitrant         NA's
-#           83          696         3556          902          163
-
-summary(as.factor(iucn_banked_recalcitrance$category[which(iucn_banked_recalcitrance$banked == FALSE)]))/
-  length(which(iucn_banked_recalcitrance$banked == FALSE))
-# exceptional intermediate     orthodox recalcitrant         NA's
-#   0.01537037   0.12888889   0.65851852   0.16703704   0.03018519
-
-
-# species
-#na
+# UNKNOWN prediction
 length(unique(iucn_banked_recalcitrance$taxon_name[
-  which(is.na(iucn_banked_recalcitrance$category))]))
-# 173
+  which(is.na(iucn_banked_recalcitrance$category_certain) | iucn_banked_recalcitrance$category_certain == "unknown")]))
+# 3546
+
+# ORTHODOX
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain == "orthodox")]))
+# 1513
+
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
-  which(iucn_banked_recalcitrance$category == "orthodox")]))
-# 3885
+  which(iucn_banked_recalcitrance$category_certain == "intermediate")]))
+# 93
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
-  which(iucn_banked_recalcitrance$category == "recalcitrant")]))
-# 905
+  which(iucn_banked_recalcitrance$category_certain == "exceptional" | iucn_banked_recalcitrance$category_certain == "recalcitrant")]))
+# 607
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# storage behaviour UNCERTAIN
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# UNKNOWN prediction
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category_uncertain) | iucn_banked_recalcitrance$category_uncertain == "unknown")]))
+# 683
+
+# ORTHODOX
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain == "orthodox")]))
+# 3994
+
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
-  which(iucn_banked_recalcitrance$category == "intermediate")]))
-# 713
+  which(iucn_banked_recalcitrance$category_uncertain == "intermediate")]))
+# 96
 
 length(unique(iucn_banked_recalcitrance$taxon_name[
-  which(iucn_banked_recalcitrance$category == "exceptional")]))
-# 82
-
+  which(iucn_banked_recalcitrance$category_uncertain == "exceptional" | iucn_banked_recalcitrance$category_uncertain == "recalcitrant")]))
+# 986
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # classification level

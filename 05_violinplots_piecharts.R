@@ -18,10 +18,17 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
-# indexes$total_index = ((indexes$information_index + indexes$viability_index +
+indexes$total_index = mean(c(indexes$information_index,indexes$viability_index, indexes$genetic_index), na.rm = T)
+
+test = indexes[,c("information_index", "viability_index", "genetic_index")] %>%
+  rowwise() %>%
+  mutate(total_index = mean(c(information_index,viability_index,genetic_index)))
+
+indexes$total_index = test$total_index
+   #((indexes$information_index + indexes$viability_index +
 #                           indexes$genetic_index)/3)
-indexes$cultivation_index = ifelse(indexes$CultivatedAll == FALSE, NA, indexes$cultivation_index)
-indexes$exsitu_index = ifelse(indexes$CultivatedAll == TRUE, NA, indexes$exsitu_index)
+# indexes$cultivation_index = ifelse(indexes$CultivatedAll == FALSE, NA, indexes$cultivation_index)
+# indexes$exsitu_index = ifelse(indexes$CultivatedAll == TRUE, NA, indexes$exsitu_index)
 
 
 #########################
@@ -109,6 +116,71 @@ ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/
 
 par(mar = c(5,5,3,3))
 png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index.png"),
+    width = 6, height = 3.5, units = "in", res = 300)
+vio
+dev.off()
+
+
+###### SUB-INDEX violin plot
+
+
+# stacked_MSBP <- stack(indexes[, c("total_index", "genetic_index", "viability_index","information_index")])
+stacked_MSBP <- stack(indexes[, c("total_index",
+                                  "genetic_index","exsitu_index","cultivation_index",
+                                  "viability_index","germination_index","adjcount_index","count_index",
+                                  "information_index","year_index","taxonomy_index","geographic_index")])
+
+
+hist(indexes$cultivation_index)
+summary(as.factor(indexes$cultivation_index))/ length(indexes$cultivation_index)
+# 0           0.5         1
+# 0.926320273 0.067717206 0.005962521
+
+mean(indexes$cultivation_index)
+# 0.03982112
+
+stacked_MSBP = stacked_MSBP[!is.na(stacked_MSBP$values),]
+stacked_MSBP$ind<- factor(stacked_MSBP$ind,
+                          levels= c("total_index",
+                                    "genetic_index","exsitu_index","cultivation_index",
+                                    "viability_index","germination_index","adjcount_index","count_index",
+                                    "information_index","year_index","taxonomy_index","geographic_index"),
+                          labels=c(c("Overall index",
+                                     "Genetic index","Wild origin sub-index","Cultivation sub-index",
+                                     "Viability index","Germination sub-index","Adjusted count sub-index","Count sub-index",
+                                     "Information index","Year sub-index","Taxonomic sub-index","Geographic sub-index")))
+
+
+# Basic horizontal violin plot
+vio <- ggplot(stacked_MSBP, aes(x = factor(ind), y = values,
+                                fill = factor(ind), color = factor(ind))) +
+  geom_violin(width = 1, scale = "width", #draw_quantiles = c(0.25, 0.5, 0.75),
+              alpha = 0.8) +
+  # scale_fill_viridis(discrete=TRUE) +
+  # scale_color_viridis(discrete=TRUE) +
+  scale_fill_manual(values= c("#000000",
+                               "#1A4558","#617880","#798C91",  #"#335663","#4A6570",
+                              "#FF9800","#FFBD02" ,"#FFD036","#FEE76B",    #"#EAA124","#F2B41E","#FAC417","#FFD701",
+                              "#521F3E","#83235A", "#86295F", "#8A3062"))+ #"#83235A""#762152","#642248", "#521F3E")) +
+  scale_colour_manual(values= c("#000000",
+                                "#1A4558","#617880","#798C91",  #"#335663","#4A6570",
+                                "#FF9800","#FFBD02" ,"#FFD036","#FEE76B",    #"#EAA124","#F2B41E","#FAC417","#FFD701",
+                                "#521F3E","#83235A", "#86295F", "#8A3062"))+
+  coord_flip() +
+  ylab("Index Value") +
+  theme_minimal() +
+  theme(
+    legend.position="none"
+  ) +
+  # coord_flip() +
+  xlab("")
+
+vio
+ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index_all.pdf"),
+       width = 20, height = 12, units = "cm")
+
+par(mar = c(5,5,3,3))
+png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index_all.png"),
     width = 6, height = 3.5, units = "in", res = 300)
 vio
 dev.off()

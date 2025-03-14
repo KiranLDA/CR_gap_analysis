@@ -351,7 +351,7 @@ site_counts$information_index = (site_counts$year_index +
 
 site_counts$information_index = site_counts$information_index/3
 
-mean(site_counts$information_index) #  0.9258117
+mean(site_counts$information_index) #  0.9261428
 
 
 #########################################################################################
@@ -433,7 +433,7 @@ site_counts$viability_index = (site_counts$count_index +
                                  site_counts$germination_index)
 site_counts$viability_index = site_counts$viability_index/3
 
-mean(site_counts$viability_index) #  0.2844925
+mean(site_counts$viability_index) #  0.2827229
 
 
 #########################################################################################
@@ -550,7 +550,7 @@ site_counts$genetic_index = ifelse(is.na(site_counts$genetic_index),
                                    site_counts$exsitu_index,
                                    site_counts$genetic_index)
 mean(site_counts$genetic_index) #  0.2755301
-# summary(site_counts$genetic_index) #  0.2755301
+# summary(site_counts$genetic_index) #  0.2743186
 
 
 
@@ -566,7 +566,7 @@ mean(site_counts$genetic_index)     #  0.2743186
 site_counts$total_index = ((site_counts$information_index + site_counts$viability_index +
                               site_counts$genetic_index)/3)
 
-mean(site_counts$total_index)       #  0.4953397
+mean(site_counts$total_index)       #  0.4943948
 
 ######################################
 ####   Get Targets       #############
