@@ -389,6 +389,84 @@ par(mar = c(5,5,3,3))
 
 
 
+#############################################################
+# plot both as part of the same panel
+#############################################################
+
+
+# Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category_certain[which(is.na(spp_banked_recalcitrant$category_certain))] = "unknown"
+spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
+spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_certain
+spp_banked_recalcitrant$category2[which(spp_banked_recalcitrant$category2 =="recalcitrant")] = "exceptional"
+spp_banked_recalcitrant$category2 = ifelse(spp_banked_recalcitrant$banked == T, "banked", spp_banked_recalcitrant$category2)
+spp_banked_recalcitrant$labels = paste0( spp_banked_recalcitrant$category2, " (", spp_banked_recalcitrant$predictions,")")
+
+single = spp_banked_recalcitrant[which(duplicated(spp_banked_recalcitrant$taxon_name) == F),]
+
+# Some are replicated but they are species that have bee split
+length(unique(spp_banked_recalcitrant$taxon_name)) # 5758
+length(spp_banked_recalcitrant$taxon_name) # 5780, was 5773
+
+length(unique(single$taxon_name)) # 5758
+length(single$taxon_name) # 5758
+
+pie_data = single %>% count(labels)
+pie_data = pie_data[c(1,2,7,8,5,6,3,4,9,10),] # c(5,6,7,8,3,4,1,2),]
+sum(pie_data$n)
+
+pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/",
+           "piechart_iucn_colourblind_both.pdf"),
+    width = 6, height = 8)
+par(mfrow = c(2,1), mar = c(1,5,1,6))
+pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
+          "#fe6100", "darkorange4",
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
+
+mtext("A", side=3, line=0, adj=-0.2, cex=1.2)
+
+
+# Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
+spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant$category_uncertain[which(is.na(spp_banked_recalcitrant$category_uncertain))] = "unknown"
+spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
+spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_uncertain
+spp_banked_recalcitrant$category2[which(spp_banked_recalcitrant$category2 =="recalcitrant")] = "exceptional"
+spp_banked_recalcitrant$category2 = ifelse(spp_banked_recalcitrant$banked == T, "banked", spp_banked_recalcitrant$category2)
+spp_banked_recalcitrant$labels = paste0( spp_banked_recalcitrant$category2, " (", spp_banked_recalcitrant$predictions,")")
+
+single = spp_banked_recalcitrant[which(duplicated(spp_banked_recalcitrant$taxon_name) == F),]
+# bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
+
+# Some are replicated but they are species that have bee split
+length(unique(spp_banked_recalcitrant$taxon_name)) # 5758
+length(spp_banked_recalcitrant$taxon_name) # 5780, was 5773
+
+length(unique(single$taxon_name)) # 5758
+length(single$taxon_name) # 5758
+
+pie_data = single %>% count(labels)
+pie_data = pie_data[c(1,2,7,8,5,6,3,4,9,10),] # c(5,6,7,8,3,4,1,2),]
+sum(pie_data$n)
+# par(mar = c(0,0,1,10))
+pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
+    col=c("grey40","grey20",
+          "#1E88E5","#0F4777",
+          "#fe6100", "darkorange4",
+          "#FFC107", "goldenrod3",
+          "#D81B60", "#610A1A"
+    ))
+
+mtext("B", side=3, line=0, adj=-0.2, cex=1.2)
+dev.off()
+
+
+
 
 
 # #################################################

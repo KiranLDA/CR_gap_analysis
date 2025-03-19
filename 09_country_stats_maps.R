@@ -1573,6 +1573,17 @@ colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
                        ifelse(df_with_max_col$Max_Column == "p_inter","darkorange2",
                               ifelse(df_with_max_col$Max_Column == "p_unknown","#DC267F","grey85"))))
 
+test$tr.tip.label[which(df_with_max_col$Max_Column == "p_inter")]
+# "Nartheciaceae"
+
+
+test$tr.tip.label[which(df_with_max_col$Max_Column == "p_exceptional")]
+# [1] "Dipterocarpaceae" "Thymelaeaceae"    "Meliaceae"        "Elaeocarpaceae"   "Fagaceae"
+# [6] "Myrtaceae"        "Myristicaceae"    "Araucariaceae"
+
+length(test$tr.tip.label[which(df_with_max_col$Max_Column == "p_orthodox")])/
+  length(which(df_with_max_col$p_orthodox > 0))
+# 0.5666667
 
 
 
@@ -1694,6 +1705,20 @@ colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
 # colorz[is.na(colorz)] = "grey85"
 
 test$no_CR = ifelse(colorz == "grey85",1,0)
+
+test$tr.tip.label[which(df_with_max_col$Max_Column == "p_inter")]
+# "Rutaceae"      "Nartheciaceae"
+
+
+test$tr.tip.label[which(df_with_max_col$Max_Column == "p_exceptional")]
+# [1] "Dipterocarpaceae" "Thymelaeaceae"    "Meliaceae"        "Elaeocarpaceae"   "Chrysobalanaceae"
+# [6] "Rhizophoraceae"   "Peraceae"         "Fagaceae"         "Myrtaceae"        "Sapotaceae"
+# [11] "Arecaceae"        "Lauraceae"        "Myristicaceae"    "Araucariaceae"
+
+length(test$tr.tip.label[which(df_with_max_col$Max_Column == "p_orthodox")])/
+  length(which(df_with_max_col$p_orthodox > 0))
+# 0.8930481
+
 
 dat = rbind(data.frame(id = test$tr.tip.label,
                        group = "Orthodox",

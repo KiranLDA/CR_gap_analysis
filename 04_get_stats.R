@@ -1252,7 +1252,7 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Add the targets to the IUCN data
-test2 = iucn_banked_recalcitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_2")],
+test2 = iucn_banked_recalcitrance %>% left_join(spp_count[,c("taxon_name","Target_1","Target_1a", "Target_1b","Target_2")],
                                                 by = c("taxon_name"="taxon_name"))
 
 #  CR spp number in iucn
@@ -1268,12 +1268,12 @@ length(unique(test2$taxon_name[which(test2$Target_1)])) # 43
 length(which(test2$Target_1)) # 43
 
 # CR meeting target 1a
-length(unique(test2$taxon_name[which(test2$Target_1a)])) # 124
+length(unique(test2$taxon_name[which(test2$Target_1a == T)])) # 133
 # without data
 length(which(spp_count$summed_count == 0)) #107
 
 # CR meeting target 1b
-length(unique(test2$taxon_name[which(test2$Target_1b)])) # 49
+length(unique(test2$taxon_name[which(test2$Target_1b)])) # 58
 # without data
 length(which(spp_count$summed_sampled == 0)) #188
 
@@ -1374,3 +1374,239 @@ length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_speci
 # what families have lots of bankable CR species and no collections
 fam_count$family[which(fam_count$banked_species == 0 &
                          fam_count$total_orthodox > 30)]
+
+
+#############################################################################
+#### NEW ORTHODOXY PREDICTIONS
+#############################################################################
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+#certain
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "SID")]))
+# 112
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "SID")]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.0194512
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "Pence et al. 2022")]))
+# 5
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "Pence et al. 2022")]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.0008683571
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "Wyse and Dickie (2017)")]))
+# 1790
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain_ref == "Wyse and Dickie (2017)")]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.3108718
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category_certain_ref))]))
+# 3438
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category_certain_ref))]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.5970823
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(!(iucn_banked_recalcitrance$category_certain_ref %in% c("Pence et al. 2022",
+                                                                "SID",
+                                                                "Wyse and Dickie (2017)")) &
+          !is.na(iucn_banked_recalcitrance$category_certain_ref))]))
+# 413
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(!(iucn_banked_recalcitrance$category_certain_ref %in% c("Pence et al. 2022",
+                                                                "SID",
+                                                                "Wyse and Dickie (2017)")) &
+          !is.na(iucn_banked_recalcitrance$category_certain_ref))]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.07172629
+
+summary(as.factor(iucn_banked_recalcitrance$category_certain))
+#  exceptional intermediate     orthodox recalcitrant      unknown         NA's
+#           38           96         1520          574          110         3442
+
+summary(as.factor(iucn_banked_recalcitrance$category_certain)) /nrow(iucn_banked_recalcitrance)
+#  exceptional intermediate     orthodox recalcitrant      unknown         NA's
+#  0.006574394  0.016608997  0.262975779  0.099307958  0.019031142  0.595501730
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# uncertain
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain_ref == "SID")]))
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain_ref == "Pence et al. 2022")]))
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain_ref == "Wyse and Dickie (2017)")]))
+# 4647
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain_ref == "Wyse and Dickie (2017)")]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name))
+# 0.8070511
+
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(is.na(iucn_banked_recalcitrance$category_uncertain_ref))]))
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(!(iucn_banked_recalcitrance$category_uncertain_ref %in% c("Pence et al. 2022",
+                                                                "SID",
+                                                                "Wyse and Dickie (2017)")) &
+          !is.na(iucn_banked_recalcitrance$category_uncertain_ref))]))
+
+
+summary(as.factor(iucn_banked_recalcitrance$category_uncertain))
+
+#  exceptional intermediate     orthodox recalcitrant      unknown         NA's
+#           38           99         4005          953          110          575
+
+summary(as.factor(iucn_banked_recalcitrance$category_uncertain))/nrow(iucn_banked_recalcitrance)
+#  exceptional intermediate     orthodox recalcitrant      unknown         NA's
+#  0.006574394  0.017128028  0.692906574  0.164878893  0.019031142  0.099480969
+
+
+
+
+#### Wyse and Dickie and the level of prediction
+summary(as.factor(iucn_banked_recalcitrance$tax.level[
+  which(iucn_banked_recalcitrance$category_uncertain_ref == "Wyse and Dickie (2017)")]))
+
+
+
+
+
+
+#############################################################################
+#### NEW ORTHODOXY PREDICTIONS for BANKED
+#############################################################################
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+#certain
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# orthodox
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain == "orthodox" &
+          iucn_banked_recalcitrance$banked == T)]))
+# 205
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain == "orthodox" &
+          iucn_banked_recalcitrance$banked == T)]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.5510753
+
+
+# intermediate
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain == "intermediate" &
+          iucn_banked_recalcitrance$banked == T)]))
+# 6
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_certain == "intermediate" &
+          iucn_banked_recalcitrance$banked == T)]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.01612903
+
+# exceptional
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_certain == "exceptional" &
+           iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_certain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))]))
+# 5
+
+unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_certain == "exceptional" &
+           iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_certain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))])
+
+# "Coffea decaryana"         "Grammitis ascensionensis" "Magnolia grandis"
+# [4] "Trichilia acuminata"      "Zanthoxylum mayu"
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_certain == "exceptional" &
+          iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_certain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.01344086
+
+summary(as.factor(iucn_banked_recalcitrance$category_certain[which(iucn_banked_recalcitrance$banked == T)]))
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+# uncertain
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# orthodox
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain == "orthodox" &
+          iucn_banked_recalcitrance$banked == T)]))
+# 339
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain == "orthodox" &
+          iucn_banked_recalcitrance$banked == T)]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.9112903
+
+
+# intermediate
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain == "intermediate" &
+          iucn_banked_recalcitrance$banked == T)]))
+# 6
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which(iucn_banked_recalcitrance$category_uncertain == "intermediate" &
+          iucn_banked_recalcitrance$banked == T)]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.001042028
+
+# exceptional
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_uncertain == "exceptional" &
+           iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_uncertain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))]))
+# 5
+
+unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_uncertain == "exceptional" &
+           iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_uncertain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))])
+
+# [1] "Chrysophyllum oliviforme subsp. oliviforme" "Coffea decaryana"
+# [3] "Dypsis robusta"                             "Grammitis ascensionensis"
+# [5] "Magnolia grandis"                           "Medusagyne oppositifolia"
+# [7] "Trichilia acuminata"                        "Zanthoxylum mayu"
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_uncertain == "exceptional" &
+           iucn_banked_recalcitrance$banked == T)
+        | (iucn_banked_recalcitrance$category_uncertain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == T))]))/
+  length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == T)]))
+# 0.02150538
+
+summary(as.factor(iucn_banked_recalcitrance$category_uncertain[which(iucn_banked_recalcitrance$banked == T)]))

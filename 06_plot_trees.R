@@ -108,6 +108,7 @@ proportions = dat$value[dat$group == "Banked CR species in family"]
 # % families with CR
 length(which(!is.na(proportions)))/length(proportions) *100
 # 47.24771
+length(which(!is.na(proportions)))
 
 # % families with banked CR
 length(which(proportions > 0))/length(proportions) *100
@@ -115,14 +116,18 @@ length(which(proportions > 0))/length(proportions) *100
 
 # % CR that have some banked
 length(which(proportions > 0))/length(which(!is.na(proportions))) *100
+# 40.7767
+length(which(proportions > 0))
 
 # % CR that have 50% banked
 length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
-# 40.7767
+# 5.825243
+length(which(proportions > 0.50))
 
 # % CR that have 99% banked
 length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
 # 4.854369
+length(which(proportions > 0.99))
 
 # Names of fanmilies with CR that are 99% banked
 dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
