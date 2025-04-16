@@ -27,7 +27,9 @@ iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 
 # make sure only consider predicted that aren't already CR
-brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+# brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name_infra.csv"))
+
 
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
@@ -140,9 +142,13 @@ summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
 
 # how many species are in the bank?
 length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
-length(unique(brahms_unique_wcvp_matched$full_name)) # 46787 had matches
-length(unique(brahms_wcvp_matched$taxon_name)) # 45780 matched
-length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45811 names in WCVP
+length(unique(brahms_unique_wcvp_matched$full_name)) # 46744 had matches
+length(unique(brahms_wcvp_matched$taxon_name)) # 45768 matched
+length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45808 names in WCVP
+
+
+#proportion matched
+length(unique(brahms_wcvp_matched$taxon_name))/length(unique(brahms_wcvp_matched$full_name))
 
 # how many CR collections are there?
 length(unique(indexes$ACCESSION)) #2348
@@ -1497,6 +1503,60 @@ summary(as.factor(iucn_banked_recalcitrance$tax.level[
 #### NEW ORTHODOXY PREDICTIONS for BANKED
 #############################################################################
 
+# number CR
+length(unique(iucn_banked_recalcitrance$taxon_name))
+# 5758
+
+# number CR need banking
+length(unique(iucn_banked_recalcitrance$taxon_name[which(iucn_banked_recalcitrance$banked == F)]))
+# 5386
+
+# certain category
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Unbankable
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# certain
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_certain == "exceptional" &
+           iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_certain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_certain == "intermediate" &
+             iucn_banked_recalcitrance$banked == F))]))
+# 689
+
+# uncertain
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_uncertain == "exceptional" &
+           iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_uncertain == "recalcitrant" &
+             iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_uncertain == "intermediate" &
+             iucn_banked_recalcitrance$banked == F))]))
+# 1068
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# bankable
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_certain == "orthodox" &
+           iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_certain == "intermediate" &
+             iucn_banked_recalcitrance$banked == F))]))
+# 1394
+
+
+length(unique(iucn_banked_recalcitrance$taxon_name[
+  which((iucn_banked_recalcitrance$category_uncertain == "orthodox" &
+           iucn_banked_recalcitrance$banked == F)
+        | (iucn_banked_recalcitrance$category_uncertain == "intermediate" &
+             iucn_banked_recalcitrance$banked == F))]))
+# 3744
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 #certain
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1610,3 +1670,7 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 # 0.02150538
 
 summary(as.factor(iucn_banked_recalcitrance$category_uncertain[which(iucn_banked_recalcitrance$banked == T)]))
+
+
+
+unique(iucn_banked_recalcitrance$category_uncertain_ref)
