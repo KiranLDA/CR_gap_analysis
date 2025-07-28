@@ -1016,8 +1016,8 @@ ggsave(paste0(plotpath, "CR_banked_prop.png"), width = 30, height = 12, units = 
 ############################
 # Tiled plots
 ############################
-ggarrange(finalPlotc,finalPlotb, finalPlota,
-          labels = c("a.", "b.", "c."),
+ggarrange(finalPlotb, finalPlota,finalPlotc,
+          labels = c("A", "B", "C"),
           font.label = list(size = 30),
           ncol = 1, nrow = 3)
 
@@ -1028,7 +1028,7 @@ ggsave(paste0(plotpath, "maps_abc.png"),  width = 30, height = 36, units = "cm",
 
 
 ggarrange(finalPlotd,finalPlota, finalPlotb,finalPlotc,
-          labels = c("a.", "b.", "c.", "d."),
+          labels = c("A", "B", "C", "D"),
           font.label = list(size = 30),
           ncol = 2, nrow = 2)
 
@@ -1144,7 +1144,7 @@ ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, u
 
 
 ggarrange(finalPlot1, finalPlot2,
-          labels = c("a.", "b."),
+          labels = c("A", "B"),
           font.label = list(size = 30),
           ncol = 1, nrow = 2)
 
@@ -1360,7 +1360,7 @@ ggsave(paste0(plotpath, "NR.png"), width = 30, height = 12, units = "cm", bg= "w
 
 
 ggarrange(finalPlot1, finalPlot2,finalPlot3,finalPlot4,
-          labels = c("a.", "b.", "c.","d."),
+          labels = c("A", "B", "C","D"),
           font.label = list(size = 30),
           ncol = 2, nrow = 2)
 
