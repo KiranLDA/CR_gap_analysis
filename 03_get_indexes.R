@@ -1,6 +1,7 @@
 
 library(shiny)
 library(dplyr)
+# library(rWCVP)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
@@ -633,7 +634,10 @@ length(which(site_counts$Target_1))
 # New target 2
 #############################################
 
+# read in the TDWG data
 
+TDWGS <- sf::st_read("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/level3/level3.shp")
+TDWGS <- sf::st_make_valid(TDWGS)
 
 # add a new column with the reformatted name
 site_counts$NewCountryName = site_counts$COUNTRY
@@ -651,14 +655,25 @@ site_counts$prop_range_banked = NA
 # for every species
 for (spp_i in unique(site_counts$taxon_name)){
 
+  #  spp_i=unique(site_counts$taxon_name)[1] # spp_i="Chassalia laikomensis"
+  # spp_i=site_counts$taxon_name[989]
+  # spp_i=site_counts$taxon_name[577] #accross canada and us,
+  # spp_i="Oxalis corniculata"
+
   # get tdwg that spp is founds in
   index = which(site_counts$taxon_name %in% spp_i)
-  country_data = site_counts[index,] %>% left_join(wcvp_countries[,c("plant_name_id", "area_code_l3","area")],
+  country_data = site_counts[index,] %>% left_join(wcvp_countries[which(wcvp_countries$introduced == 0),
+                                                                  c("plant_name_id", "area_code_l3","area")],
                                                    by = c("wcvp_accepted_id" = "plant_name_id"),
                                                    relationship = "many-to-many")
 
+  # how many collections were made?
+  collection_no <- length(index)
+
   # get code
   TDWG_codes = unique(country_data$area_code_l3)
+
+  ##### COUNTRY DATA  ############
 
   # get countries from tdwg
   country_list = unique(tdwg3_countries$COUNTRY[which(tdwg3_countries$LEVEL3_COD %in% TDWG_codes)])
@@ -667,9 +682,32 @@ for (spp_i in unique(site_counts$taxon_name)){
   banked_country_list =  unique(country_data$NewCountryName)
   banked_country_list = banked_country_list[!is.na(banked_country_list)]
 
-  # calculate proportion of range banked
-  prop_range_banked =  length(which(country_list %in% banked_country_list))/length(country_list)
-  site_counts$prop_range_banked[index] = prop_range_banked
+  # calculate proportion of range banked per country
+  prop_country_banked =  length(which(country_list %in% banked_country_list))/length(country_list)
+  site_counts$prop_country_banked[index] = prop_country_banked
+
+  ##### TDWG DATA  #############
+
+  # get banked tdwg
+  sub <- TDWGS[which(TDWGS$LEVEL3_COD %in% TDWG_codes),] #TDWGS %>% select(TDWGS$LEVEL3_CODLEVEL3_COD %in% TDWG_codes) #
+  occs <- sf::st_as_sf(country_data[,c("ID","SPECIES", "LATDEC", "LONGDEC")], coords = c("LONGDEC","LATDEC"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+  occs <- sf::st_transform(occs, crs = sf:: st_crs(sub))
+  occs <- cbind(occs, sf::st_coordinates(occs))
+  banked_tdwg_list <- sub$LEVEL3_COD[which(rowSums(sf::st_contains(sub, occs, sparse = FALSE)) > 0)]
+
+  # ggplot() +
+  #   geom_sf(data = sub, aes(fill = LEVEL3_COD)) +
+  #   geom_point(data = occs, aes(x = X, y = Y),
+  #              size = 3, shape = 23, fill = "black")
+
+  # banked_tdwg_list =  unique(country_data$area_code_l3[which(country_data$area %in% country_data$NewCountryName)])
+  banked_tdwg_list = banked_tdwg_list[!is.na(banked_tdwg_list)]
+
+  # calculate proportion of range banked per tdwg
+  prop_tdwg_banked =  length(which(TDWG_codes %in% banked_tdwg_list))/length(TDWG_codes)
+  site_counts$prop_range_banked[index] = prop_tdwg_banked
+
+  site_counts$collection_number[index] = collection_no
 
 }
 
@@ -677,7 +715,10 @@ site_counts$Target_2a = ifelse(site_counts$prop_range_banked == 1,
                                TRUE,FALSE)
 site_counts$Target_2a[is.na(site_counts$Target_2a)] = FALSE
 
-site_counts$Target_2 = ifelse((site_counts$Target_2a & site_counts$Target_1b),
+site_counts$Target_2b  = ifelse(site_counts$collection_number >= 5,
+                                TRUE,FALSE)
+
+site_counts$Target_2 = ifelse(((site_counts$Target_2a & site_counts$Target_2b) & site_counts$Target_1b),
                               TRUE,FALSE)
 
 # grepl("B1", iucn_wcvp_matched$redlistCriteria, ignore.case=FALSE)

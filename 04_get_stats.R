@@ -492,7 +492,7 @@ length(which(indexes$BESTLAST[which(!is.na(indexes$LASTTEST))] < 75))/nrow(index
 # How many countries have CR in MSBP
 ##########################################
 
-length(unique(indexes$COUNTRY))
+length(unique(indexes$COUNTRY)) # 71
 length(unique(brahms_wcvp_matched$CountryName))
 length(unique(indexes$COUNTRY))/length(unique(brahms_wcvp_matched$CountryName))
 
@@ -756,6 +756,11 @@ length(unique(brahms_wcvp_matched$AccessionNumber[which(brahms_wcvp_matched$st.n
 length(unique(brahms_wcvp_matched$AccessionNumber[which(brahms_wcvp_matched$st.cna == 1)]))/length(unique(brahms_wcvp_matched$AccessionNumber))     # 0.5183597
 length(unique(brahms_wcvp_matched$AccessionNumber[which(brahms_wcvp_matched$st.ircc == 1)]))/length(unique(brahms_wcvp_matched$AccessionNumber))    # 0.2894197
 
+#############################################
+## how many are cultivated with known lineage
+
+table(indexes$cultivation_index)
+round(table(indexes$cultivation_index)/nrow(indexes),3)*100
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
