@@ -2,6 +2,7 @@
 library(shiny)
 library(dplyr)
 # library(rWCVP)
+library(sf)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
@@ -650,9 +651,14 @@ site_counts$NewCountryName[site_counts$NewCountryName == "United States"] = "Uni
 site_counts$NewCountryName[site_counts$NewCountryName == "Unknown"] = NA
 
 # variable to fill in
-site_counts$prop_range_banked = NA
-site_counts$prop_country_banked = NA
-site_counts$collection_number = NA
+site_counts$proportion_range_banked = NA
+site_counts$proportion_country_range_banked = NA
+site_counts$proportion_native_countries_banked = NA
+site_counts$collections_native_tdwg = NA
+site_counts$collections_native_country = NA
+site_counts$collections_outside_range = NA
+
+
 
 # for every species
 for (spp_i in unique(site_counts$taxon_name)){
@@ -670,9 +676,9 @@ for (spp_i in unique(site_counts$taxon_name)){
                                                    relationship = "many-to-many")
 
   # how many collections were made?
-  collection_no <- length(index)
+  # collection_no <- length(index)
 
-  # # get code
+  # get code
   # TDWG_codes = unique(country_data$area_code_l3)
   #
   # ##### COUNTRY DATA  ############
@@ -691,7 +697,7 @@ for (spp_i in unique(site_counts$taxon_name)){
   ##### TDWG DATA  #############
 
   # get banked tdwg
-  sub <- TDWGS[which(TDWGS$LEVEL3_COD %in% TDWG_codes),] #TDWGS %>% select(TDWGS$LEVEL3_CODLEVEL3_COD %in% TDWG_codes) #
+  sub <- TDWGS[which(TDWGS$LEVEL3_COD %in% unique(country_data$area_code_l3)),] #TDWGS %>% select(TDWGS$LEVEL3_CODLEVEL3_COD %in% TDWG_codes) #
   occs <- sf::st_as_sf(site_counts[index,c("ID","SPECIES", "LATDEC", "LONGDEC")], coords = c("LONGDEC","LATDEC"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
   occs <- sf::st_transform(occs, crs = sf:: st_crs(sub))
   occs <- cbind(occs, sf::st_coordinates(occs))
@@ -724,32 +730,73 @@ for (spp_i in unique(site_counts$taxon_name)){
 
   # add collections per tdwg
   country_dta <- country_dta %>% left_join( bind_cols(LEVEL3_COD = sub$LEVEL3_COD,
-                                                      collections_tdwg = rowSums(sf::st_contains(sub, occs, sparse = FALSE))),
+                                                      collections_native_tdwg = rowSums(sf::st_contains(sub, occs, sparse = FALSE))),
                                            by = c("tdwg_code" = "LEVEL3_COD"))
 
   # add proportion of tdwgs banked
-  country_dta$proportion_range_banked <- length(which(country_dta$collections_tdwg >0))/nrow(country_dta)
+  country_dta$proportion_range_banked <- length(which(country_dta$collections_native_tdwg >0))/nrow(country_dta)
 
   # add proportion of tdwgs per country banked
   country_dta <- country_dta  %>% group_by(COUNTRY) %>%
-    mutate(proportion_country_range_banked = length(which(collections_tdwg >0))/length(collections_tdwg)) %>% ungroup()
+    mutate(proportion_country_range_banked = length(which(collections_native_tdwg >0))/length(collections_native_tdwg)) %>% ungroup()
 
   # add proportion of countries banked
   country_dta <- country_dta  %>% group_by(COUNTRY) %>%
-    mutate(proportion_countries_banked = length(any(collections_tdwg > 0))/length(unique(country_dta$COUNTRY))) %>% ungroup()
+    mutate(proportion_native_countries_banked = length(any(collections_native_tdwg > 0))/length(unique(country_dta$COUNTRY))) %>% ungroup()
 
 
   # add the collections outside range
-  country_dta$collections_outside_range <- length(index) -  sum(country_dta$collections_tdwg)
+  country_dta$collections_outside_range <- length(index) -  sum(country_dta$collections_native_tdwg)
   # country_dta <- bind_rows(country_dta, data.frame(tdwg_code = "ZZZ",
   #                                                  tdwg_name = "Outside Native Range",
   #                                                  COUNTRY = "Outside Native Range",
   #                                                  collections_tdwg = as.numeric(collection_no) - sum(country_dta$collections_tdwg)))
   # # add collections per country
   country_dta <- country_dta  %>% group_by(COUNTRY) %>%
-    mutate(collections_country = sum(collections_tdwg)) %>% ungroup()
+    mutate(collections_native_country = sum(collections_native_tdwg)) %>% ungroup()
+
+  ### add back into the main dataset
+  merge_data = site_counts[index,c("ID","ACCESSION","taxon_name", "NewCountryName")] %>% left_join(country_dta,
+                                          by= c("NewCountryName" = "COUNTRY"))
+
+  occs_2_tdwg <- data.frame(sf::st_join(occs, TDWGS, join = st_within))[,c("ID","SPECIES","X","Y","LEVEL3_NAM","LEVEL3_COD")]
+
+  merge_data <- merge_data %>% left_join(occs_2_tdwg,by= "ID")
+
+  # collections per tdgw
+  merge_data <- merge_data %>% group_by(LEVEL3_COD) %>%
+    mutate(collections_tdwg = n()) %>% ungroup()
+
+  # collections per country
+  merge_data <- merge_data %>% group_by(NewCountryName) %>%
+    mutate(collections_country = n()) %>% ungroup()
+
+  # remove the extra columns
+  merge_data <- merge_data[,c("ID","ACCESSION","taxon_name","NewCountryName","LEVEL3_NAM","LEVEL3_COD",
+                              "collections_tdwg", "collections_native_tdwg","proportion_range_banked","proportion_country_range_banked",
+                              "proportion_native_countries_banked","collections_outside_range","collections_country","collections_native_country") ]
+
+  #rename
+  colnames(merge_data) <- c("ID","ACCESSION","taxon_name","NewCountryName","tdwg_name","tdwg_code",
+                            "collections_tdwg", "collections_native_tdwg","proportion_range_banked","proportion_country_range_banked",
+                            "proportion_native_countries_banked","collections_outside_range","collections_country","collections_native_country")
 
 
+
+  merge_data$collections_native_country[which(is.na(merge_data$collections_native_country))] <- 0
+  merge_data$collections_native_tdwg[which(is.na(merge_data$collections_native_tdwg))] <- 0
+  merge_data$collections_country[which(is.na(merge_data$collections_country))] <- 0
+  merge_data$proportion_range_banked[which(is.na(merge_data$proportion_range_banked))] <- 0
+  merge_data$proportion_country_range_banked[which(is.na(merge_data$proportion_country_range_banked))] <- 0
+  merge_data$proportion_native_countries_banked[which(is.na(merge_data$proportion_native_countries_banked))] <- 0
+  merge_data$collections_outside_range <- max(merge_data$collections_outside_range, na.rm=T)
+
+  site_counts$proportion_range_banked = NA
+  site_counts$proportion_country_range_banked = NA
+  site_counts$proportion_native_countries_banked = NA
+  site_counts$collections_native_tdwg = NA
+  site_counts$collections_native_country = NA
+  site_counts$collections_outside_range = NA
 
   site_counts$collection_tdwg[index] = collection_no
 
