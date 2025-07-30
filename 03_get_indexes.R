@@ -651,6 +651,8 @@ site_counts$NewCountryName[site_counts$NewCountryName == "Unknown"] = NA
 
 # variable to fill in
 site_counts$prop_range_banked = NA
+site_counts$prop_country_banked = NA
+site_counts$collection_number = NA
 
 # for every species
 for (spp_i in unique(site_counts$taxon_name)){
@@ -708,6 +710,47 @@ for (spp_i in unique(site_counts$taxon_name)){
   site_counts$prop_range_banked[index] = prop_tdwg_banked
 
   site_counts$collection_number[index] = collection_no
+
+  ############ TDWG per Country ####################
+
+  # get tdwg distribution for species
+  country_dta <- bind_cols(tdwg_code = country_data$area_code_l3,
+                           tdwg_name = country_data$area)
+  country_dta <- country_dta[which(!duplicated (country_dta)),]
+
+  #match tdwg to country
+  country_dta <- country_dta %>% left_join(tdwg3_countries[,c("LEVEL3_COD", "COUNTRY")],
+                                           by = c("tdwg_code" = "LEVEL3_COD"))
+
+  # add collections per tdwg
+  country_dta <- country_dta %>% left_join( bind_cols(LEVEL3_COD = sub$LEVEL3_COD,
+                                                      collections_tdwg = rowSums(sf::st_contains(sub, occs, sparse = FALSE))),
+                                           by = c("tdwg_code" = "LEVEL3_COD"))
+
+  # add proportion of tdwgs banked
+  country_dta$proportion_range_banked <- length(which(country_dta$collections_tdwg >0))/nrow(country_dta)
+
+  # add proportion of tdwgs per country banked
+  country_dta <- country_dta  %>% group_by(COUNTRY) %>%
+    mutate(proportion_country_range_banked = length(which(collections_tdwg >0))/length(collections_tdwg)) %>% ungroup()
+
+  # add proportion of countries banked
+  country_dta <- country_dta  %>% group_by(COUNTRY) %>%
+    mutate(proportion_countries_banked = length(any(collections_tdwg > 0))/length(unique(country_dta$COUNTRY))) %>% ungroup()
+
+
+  # add the collections outside range
+  country_dta <- bind_rows(country_dta, data.frame(tdwg_code = "ZZZ",
+                                                   tdwg_name = "Outside Native Range",
+                                                   COUNTRY = "Outside Native Range",
+                                                   collections_tdwg = as.numeric(collection_no) - sum(country_dta$collections_tdwg)))
+  # add collections per country
+  country_dta <- country_dta  %>% group_by(COUNTRY) %>%
+    mutate(collections_country = sum(collections_tdwg)) %>% ungroup()
+
+
+
+  site_counts$collection_tdwg[index] = collection_no
 
 }
 
