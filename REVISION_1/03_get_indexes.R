@@ -15,7 +15,11 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 # #iucn redlist data
 # iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 # iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-# View(iucn_wcvp_matched[which(iucn_wcvp_matched$match_type == "Fuzzy (edit distance)"),c("scientificName","taxon_name","match_similarity")])
+#
+View(iucn_wcvp_matched[which(iucn_wcvp_matched$match_type == "Fuzzy (edit distance)"),
+                       c("scientificName","taxon_name","match_similarity", "match_edit_distance","keep",
+                         "match_logic", "taxonomic_backbone", "wcvp_rank","wcvp_status",
+                         "wcvp_homotypic")])
 
 
 # get rid of subspecies and varieties that could not be matched except at species level
