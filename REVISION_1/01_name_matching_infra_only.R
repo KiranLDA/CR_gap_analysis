@@ -124,7 +124,7 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
 # write.csv(MSB_wcvp, paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"))
-MSB_wcvp = read.csv(paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"))
+MSB_wcvp = read.csv(paste0(basepath,"MSB_unique_wcvp_full_name.csv"))
 
 # Put the data in test to avoid overwriting for time being...
 test = MSB_wcvp
@@ -147,7 +147,10 @@ split= c()
 synonym = c()
 homotypic = c()
 diff_author = c()
+
 for (du in dupl_nam){
+  # du = "Abutilon pritzelianum"#"Acacia acnidermis"
+  # du = "Lepidium sativum"
   temp = data.frame(test[test$full_name == du,])
   #if the names don't match
   if (!(any(temp$keep == 1))) {
@@ -174,20 +177,32 @@ for (du in dupl_nam){
 
     # if not accepted, keep the synonym
     else if (length(which(temp$wcvp_status == "Synonym"))==1){
-      test$keep[which(test$full_name == du)[which(temp$wcvp_status == "Synonym")]] = 1
-      synonym = c(synonym, du)
+      if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
+        test$keep[which(test$full_name == du)[which(temp$wcvp_status == "Synonym")]] = 1
+        synonym = c(synonym, du)
+      } else {
+        problematic = c(problematic, du)
+      }
     }
 
     # if not a synonym, keep the homotypic synonym
     else if (length(which(temp$wcvp_homotypic == "TRUE"))==1){
-      test$keep[which(test$full_name == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
-      homotypic = c(homotypic, du)
+      if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
+        test$keep[which(test$full_name == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
+        homotypic = c(homotypic, du)
+      } else {
+        problematic = c(problematic, du)
+      }
     }
 
     # if the names are the same, keep the one with the smallest author distance
     else if (length(unique(temp$taxon_name)) == 1){
+      if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
       test$keep[which(test$full_name == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
       diff_author = c(diff_author, du)
+      } else {
+        problematic = c(problematic, du)
+      }
     }
 
     # class everything else as problematic
@@ -199,81 +214,87 @@ for (du in dupl_nam){
 
 
 
+#################################################################
 # some subspecies and variety names are not recognised - use the species name instead and rerun rWCVP
-
-# # find names that didn't match and associate them with the author
-subset = data.frame(test[test$full_name %in% problematic,])
-subset$diff_name = ifelse(subset$full_name != subset$species, T, F)
-subset = subset[which(subset$diff_name == T),]
-species_match = unique(subset$full_name)
+###################################################################
+# # # find names that didn't match and associate them with the author
+# subset = data.frame(test[test$full_name %in% problematic,])
+# subset$diff_name = ifelse(subset$full_name != subset$species, T, F)
+# subset = subset[which(subset$diff_name == T),]
+# species_match = unique(subset$full_name)
 #
-# # Find them on wcvp
-# for (nami in species_match){
+# # # Find them on wcvp
+# # for (nami in species_match){
+# #   print(nami)
+# #   temp = test[test$full_name == nami,]
+# #   temp2 = wcvp_match_names(temp[1,1:5], wcvp,
+# #                            name_col = "species")
+# #   temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+# #                               by=c("wcvp_accepted_id" = "plant_name_id"))
+# #   i=1
+# #   if (nrow(temp2)>1){
+# #     i= which(temp2$wcvp_status == "Accepted")
+# #   }
+# #   test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
+# #   test$keep[which(test$full_name == nami)[1]] = 1
+# #   # KD
+# #   test$wcvp_status[which(test$full_name == nami)[1]] = "Accepted Species Level"
+# # }
+# # test$species[which(test$wcvp_status == "Accepted Species Level")]
+# # test$full_name[which(test$wcvp_status == "Accepted Species Level")]
+#
+#
+# # the remaining species are species that have been split,
+# # use the country they were collected  to assign the sub species
+# # problematic = problematic[!(problematic %in% unique(subset$full_name))]
+# # problematic
+#
+# # there are some species that were not duplicated, but that didn't find a match
+# species_match = c(species_match, test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name])
+
+# # go through the process again of selecting the accepted name and synonym
+# for (nami in test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name]){
 #   print(nami)
-#   temp = test[test$full_name == nami,]
-#   temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-#                            name_col = "species")
-#   temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                               by=c("wcvp_accepted_id" = "plant_name_id"))
-#   i=1
-#   if (nrow(temp2)>1){
-#     i= which(temp2$wcvp_status == "Accepted")
-#   }
-#   test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-#   test$keep[which(test$full_name == nami)[1]] = 1
-#   # KD
-#   test$wcvp_status[which(test$full_name == nami)[1]] = "Accepted Species Level"
+#   tryCatch({
+#     temp = test[which(test$full_name == nami),]
+#     temp2 = wcvp_match_names(temp[1,1:5], wcvp,
+#                              name_col = "full_name")
+#     temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+#                                 by=c("wcvp_accepted_id" = "plant_name_id"))
+#     i=1
+#     if (nrow(temp2)>1){
+#       i = which(temp2$wcvp_status == "Accepted")
+#       if (length(i) == 0) i = which(temp2$wcvp_status == "Synonym")
+#     }
+#     test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
+#     test$keep[which(test$full_name == nami)[1]] = 1
+#   }, error = function(e) {
+#     cat("Error occurred for", nami, ":", conditionMessage(e), "\n")
+#   })
 # }
-# test$species[which(test$wcvp_status == "Accepted Species Level")]
-# test$full_name[which(test$wcvp_status == "Accepted Species Level")]
-
-
-# the remaining species are species that have been split,
-# use the country they were collected  to assign the sub species
-# problematic = problematic[!(problematic %in% unique(subset$full_name))]
-# problematic
-
-# there are some species that were not duplicated, but that didn't find a match
-species_match = c(species_match, test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name])
-
-# go through the process again pf selecting the accepted name and synonym
-for (nami in test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name]){
-  print(nami)
-  tryCatch({
-    temp = test[test$full_name == nami,]
-    temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-                             name_col = "species")
-    temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-                                by=c("wcvp_accepted_id" = "plant_name_id"))
-    i=1
-    if (nrow(temp2)>1){
-      i = which(temp2$wcvp_status == "Accepted")
-      if (length(i) == 0) i = which(temp2$wcvp_status == "Synonym")
-    }
-    test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-    test$keep[which(test$full_name == nami)[1]] = 1
-  }, error = function(e) {
-    cat("Error occurred for", nami, ":", conditionMessage(e), "\n")
-  })
-}
-
+#
 
 
 problematic = c(problematic, test$full_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+
+# add species that were to fuzzily matched (less than 0.9) as problematic and check WFO
+problematic = c(problematic, unique(test$full_name[test$match_similarity < 0.9]))
+problematic <- unique(problematic)
+problematic <- problematic[which(!is.na(problematic))]
 
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 
 # now keep track how the matching was done and why
 test$match_logic = ifelse(test$duplicated,"unmatched","unique")
 test$match_logic = ifelse(test$accepted_name & test$names_match & test$duplicated, "unique", test$match_logic)
-test$match_logic[test$scientificName %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
-test$match_logic[test$scientificName %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
-test$match_logic[test$scientificName %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
-test$match_logic[test$scientificName %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
-test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
+test$match_logic[test$full_name %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
+test$match_logic[test$full_name %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
+test$match_logic[test$full_name %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
+test$match_logic[test$full_name %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
+test$match_logic[test$full_name %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
 
 test$taxonomic_backbone = "WCVP"
-# test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
+test$taxonomic_backbone[test$full_name %in% problematic] = NA
 
 #add family
 test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
@@ -286,23 +307,37 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 # now check them out on WFO
 match = test[test$full_name %in% problematic,]
 
-pb_sp = WorldFlora::WFO.match(spec.data = match$full_name, WFO.data=WFO.data,
+pb_sp = WorldFlora::WFO.match(spec.data = match,
+                              WFO.data=WFO.data,
+                              spec.name = "full_name",
+                              Authorship = "author",
                               counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
-# pb_sp = read.csv(paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
+write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"), row.names = F)
+pb_sp = read.csv(paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
 
 
 wfo_match = c()
 
+
+
 for(problem in problematic){
   print(problem)
+  # problem = "Aconitum nasutum"
+  # problem = "Acacia elongata var. elongata"
+  # problem = "Xanthoselinum alsaticum subsp. alsaticum"
   # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
+  sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
-  if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
+  #--------------------
+  # # if it's a species
+  # if (sapply(gregexpr("[[:alpha:]]+", problem), function(x) sum(x > 0)) == 2){
+  #
+  #   #if the matched name is that of a species
+  if(any(sp$taxonRank %in% c("species", "subspecies", "variety") & !is.na(sp$taxonRank))){
 
-    to_add = test[test$scientificName %in% problem,][1,]
+    # to_add = test[test$scientificName %in% problem,][1,]
+    to_add = test[test$full_name %in% problem,][1,]
 
     if(any(sp$taxonomicStatus == "Accepted" & !is.na(sp$taxonomicStatus))){
       if (length(which(sp$taxonomicStatus == "Accepted")) == 1){
@@ -314,7 +349,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance
+        to_add$match_edit_distance = sp$match_edit_distance[i]
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -377,11 +412,13 @@ for(problem in problematic){
       }
 
     }
-  }
+  } # if it was not matched
+
 }
 
+
 problematic = problematic[!(problematic %in% wfo_match)]
-test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
+test$match_logic[test$full_name %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
 length(obvious) # 1567
@@ -390,10 +427,8 @@ length(split) # 0
 length(synonym) # 54
 length(homotypic) # 8
 length(diff_author) # 9
-length(wfo_match) # 62
-length(problematic) # 115
-
-
+length(wfo_match) # 539
+length(problematic) # 219
 
 # subset = data.frame(test[test$subspecies_name %in% problematic,])
 # for (nami in unique(subset$subspecies_name)){
@@ -409,10 +444,13 @@ length(problematic) # 115
 ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
 
 MSB_wcvp_matched = test[test$keep == 1,]
-write.csv(MSB_wcvp_matched, paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"))
+write.csv(MSB_wcvp_matched, paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"), row.names = F)
 
 brahms_wcvp_matched = brahms %>% left_join(MSB_wcvp_matched, by = "full_name")
-write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"))
+write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), row.names = F)
+
+###################################################################################################################
+###################################################################################################################
 
 ###################################################################################
 #         IUCN
@@ -423,20 +461,25 @@ write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_
 # load IUCN
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
 length(iucn$scientificName) # 5702
+iucn_taxonomy <- read.csv(paste0(basepath, "redlist/taxonomy_fixed.csv" ))
+
+iucn <- iucn %>% left_join(iucn_taxonomy[,c("internalTaxonId","authority")],
+                           by = "internalTaxonId")
+
 
 # slow to run 10 mins therefore saved and can be loaded
-# iucn_wcvp = wcvp_match_names(iucn, wcvp_names,
+# iucn_wcvp = wcvp_match_names(iucn, wcvp,
 #                  name_col = "scientificName",
 #                  id_col = "assessmentId",
 #                  author_col = "authority")
 # iucn_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(iucn_wcvp, paste0(basepath,"revision_1/iucn_wcvp.csv"))
+# write.csv(iucn_wcvp, paste0(basepath,"revision_1/iucn_wcvp.csv"), row.names = F)
 iucn_wcvp = read.csv(paste0(basepath,"revision_1/iucn_wcvp.csv"))
 
 
 # Put the data in test to avoid overwriting for time being...
-test = iucn_wcvp
+test <- iucn_wcvp
 test$duplicated = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
 test$accepted_name = test$wcvp_status == "Accepted"
 test$names_match = apply(test, 1, function(row) fuzzy_match(row["scientificName"], row["taxon_name"]))#test$species == test$taxon_name
@@ -505,6 +548,11 @@ for (du in dupl_nam){
 }
 
 problematic = c(problematic,test$scientificName[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+
+problematic = c(problematic, unique(test$scientificName[test$match_similarity < 0.9]))
+problematic <- unique(problematic)
+problematic <- problematic[which(!is.na(problematic))]
+
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 
 
@@ -520,8 +568,7 @@ test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find clo
 
 test$taxonomic_backbone = "WCVP"
 # test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
-
-
+test$taxonomic_backbone[test$scientificName %in% problematic] = NA
 
 #add family
 test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
@@ -534,17 +581,26 @@ rWCVP::taxonomic_mapping[which(rWCVP::taxonomic_mapping$order == "Cycadales"),]
 rWCVP::taxonomic_mapping[which(rWCVP::taxonomic_mapping$family == "Cycadaceae"),]
 
 # now check them out on WFO
-match = test[test$scientificName %in% problematic,]
+match = test[which(test$scientificName %in% problematic),]
+# match$family = NA
+# match$genus = NA
 
-pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_wfo_matched.csv"))
+match$full_name = match$scientificName
+
+# pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
+pb_sp <- WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","authority")]),
+                              WFO.data = WFO.data,
+                              spec.name = "full_name",
+                              Authorship = "authority",
+                              counter=1, verbose=TRUE)
+write.csv(pb_sp, paste0(basepath, "revision_1/iucn_wfo_matched.csv"), row_names=F)
 
 wfo_match = c()
 
 for(problem in problematic){
   print(problem)
   # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
+  sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
   if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
@@ -561,7 +617,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance
+        # to_add$match_edit_distance = sp$match_edit_distance[i]
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18] sp$New.accepted
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -596,7 +652,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance = NA
+        # to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -632,14 +688,14 @@ test$match_logic[test$scientificName %in% problematic] = "unmatched" #find close
 
 
 # see how many species were matched to different categories
-length(obvious) # 51
-length(accepted) # 0
+length(obvious) # 8
+length(accepted) # 8
 length(split) # 0
-length(synonym) # 5
+length(synonym) # 0
 length(homotypic) # 0
 length(diff_author) # 0
-length(wfo_match) # 51
-length(problematic) # 35
+length(wfo_match) # 0
+length(problematic) # 42
 
 
 
@@ -662,8 +718,8 @@ length(exceptional)
 #                                     name_col = "Species_name")
 # exceptional_wcvp = exceptional_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(exceptional_wcvp, paste0(basepath,"revision_1/exceptional_wcvp.csv"))
-exceptional_wcvp = read.csv(paste0(basepath,"revision_1/exceptional_wcvp.csv"))
+# write.csv(exceptional_wcvp, paste0(basepath,"exceptional_wcvp.csv"))
+exceptional_wcvp = read.csv(paste0(basepath,"exceptional_wcvp.csv"))
 
 
 # Put the data in test to avoid overwriting for time being...
@@ -739,6 +795,10 @@ for (du in dupl_nam){
 }
 
 problematic = c(problematic, test$Species_name[test$duplicated==F & is.na(test$taxon_name)])
+problematic = c(problematic, unique(test$full_name[test$match_similarity < 0.9]))
+problematic <- unique(problematic)
+problematic <- problematic[which(!is.na(problematic))]
+
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 
 # now keep track how the matching was done and why
@@ -751,6 +811,8 @@ test$match_logic[test$Species_name %in% homotypic] = "homotypic"  #had duplicate
 test$match_logic[test$Species_name %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
 
 test$taxonomic_backbone = "WCVP"
+test$taxonomic_backbone[test$Species_name %in% problematic] = NA
+
 # test$taxonomic_backbone[test$Species_name %in% problematic] = "WFO"
 
 
@@ -764,9 +826,16 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 
 
 # now check them out on WFO
-match = test[test$Species_name %in% problematic,]
+match = test[which(test$Species_name %in% problematic),]
 
-pb_sp = WorldFlora::WFO.match(spec.data = match$Species_name, WFO.data=WFO.data, counter=1, verbose=TRUE)
+# pb_sp = WorldFlora::WFO.match(spec.data = match$Species_name,
+#                               WFO.data=WFO.data,
+#                               counter=1, verbose=TRUE)
+pb_sp = WorldFlora::WFO.match(spec.data = match,
+                              WFO.data=WFO.data,
+                              spec.name = "Species_name",
+                              Authorship = "author",
+                              counter=1, verbose=TRUE)
 write.csv(pb_sp, paste0(basepath, "revision_1/exceptional_wfo_matched.csv"))
 
 
@@ -775,7 +844,7 @@ wfo_match = c()
 for(problem in problematic){
   print(problem)
   # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
+  sp = pb_sp[pb_sp$Species_name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
   if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
@@ -792,7 +861,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance
+        # to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -827,7 +896,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance = NA
+        # to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -950,223 +1019,241 @@ length(iucn_predictions$scientificName) # 328565
 # )
 # iucn_predictions_wcvp = iucn_predictions_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
 #                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(iucn_predictions_wcvp, paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
+
+iucn_predictions_wcvp = iucn_predictions %>% left_join(wcvp[,c("ipni_id","taxon_name", "taxon_authors",
+                                                               "family", "genus")],
+                                                       by="ipni_id")
+                                                            #                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
+write.csv(iucn_predictions_wcvp, paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
 iucn_predictions_wcvp = read.csv(paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
 
 
 
-
-# Put the data in test to avoid overwriting for time being...
-test = iucn_predictions_wcvp
-test$duplicated = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
-test$accepted_name = test$wcvp_status == "Accepted"
-test$names_match = apply(test, 1, function(row) fuzzy_match(row["scientificName"], row["taxon_name"]))#test$species == test$taxon_name
-test$keep = ifelse(test$duplicated,0,1)
-test$keep = ifelse(test$accepted_name & test$names_match & test$duplicated, 1, test$keep)
-
-
-obvious = test$scientificName[test$accepted_name & test$names_match & test$duplicated]
-
-# find duplicated names that don't have any accepted name
-dupl = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
-dupl_nam = unique(test$scientificName[dupl])
-#create some empty variables to fill during analysis
-problematic = c()
-accepted = c()
-split= c()
-synonym = c()
-homotypic = c()
-diff_author = c()
-for (du in dupl_nam){
-  temp = data.frame(test[test$scientificName == du,])
-  #if the names don't match
-  if (!(any(temp$keep == 1))) {
-
-    # keep the accepted name
-    if (length(which(temp$accepted_name == T))==1){
-      if (temp$match_similarity[which(temp$accepted_name == T)] >= 0.9){
-        test$keep[which(test$scientificName == du)[which(temp$accepted_name == T)]] = 1
-        accepted = c(accepted, du)
-      } else {
-        problematic = c(problematic, du)
-      }
-    }
-
-    # if there are multiple accepted names the species has been split
-    else if (length(which(temp$accepted_name == T))>1){
-      if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
-        test$keep[which(test$scientificName == du)[which(temp$accepted_name == T & temp$match_similarity >= 0.9)]] = 1
-        split = c(split, du)
-      } else {
-        problematic = c(problematic, du)
-      }
-    }
-
-    # if not accepted, keep the synonym
-    else if (length(which(temp$wcvp_status == "Synonym"))==1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_status == "Synonym")]] = 1
-      synonym = c(synonym, du)
-    }
-
-    # if not a synonym, keep the homotypic synonym
-    else if (length(which(temp$wcvp_homotypic == "TRUE"))==1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
-      homotypic = c(homotypic, du)
-    }
-
-    # if the names are the same, keep the one with the smallest author distance
-    else if (length(unique(temp$taxon_name)) == 1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
-      diff_author = c(diff_author, du)
-    }
-
-    # class everything else as problematic
-    else {
-      problematic = c(problematic, du)
-    }
-  }
-}
-
-problematic = c(problematic,test$scientificName[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
-test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
-
-
-
-# now keep track how the matching was done and why
-test$match_logic = ifelse(test$duplicated,"unmatched","unique")
-test$match_logic = ifelse(test$accepted_name & test$names_match & test$duplicated, "unique", test$match_logic)
-test$match_logic[test$scientificName %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
-test$match_logic[test$scientificName %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
-test$match_logic[test$scientificName %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
-test$match_logic[test$scientificName %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
-test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
-
-test$taxonomic_backbone = "WCVP"
-# test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
-
-#add family
-# test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
-#                           by=c("wcvp_accepted_id" = "plant_name_id"))
-
-test = test %>% left_join(rWCVP::taxonomic_mapping,
-                          by=c("family" = "family"))
-
-
-# now check them out on WFO
-match = test[test$scientificName %in% problematic,]
-
-pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
-write.csv(pb_sp, paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
-# pb_sp =read.csv(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
-
-wfo_match = c()
-
-for(problem in problematic){
-  print(problem)
-  # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
-  sp = sp[which(!duplicated(sp$scientificNameID)),]
-
-  if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
-
-    to_add = test[test$scientificName %in% problem,][1,]
-
-    if(any(sp$taxonomicStatus == "Accepted" & !is.na(sp$taxonomicStatus))){
-      if (length(which(sp$taxonomicStatus == "Accepted")) == 1){
-
-
-        wfo_match = c(wfo_match, problem)
-
-        i = which(sp$taxonomicStatus== "Accepted")
-        to_add$keep = 1
-        to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-        to_add$match_similarity = NA
-        to_add$match_edit_distance
-        to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
-        to_add$wcvp_authors = sp$scientificNameAuthorship[i]
-        to_add$wcvp_rank = sp$taxonRank[i]
-        to_add$wcvp_status = sp$taxonomicStatus[i]
-        to_add$wcvp_homotypic = NA
-        to_add$wcvp_ipni_id = sp$scientificNameID[i]
-        to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
-        to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-        to_add$accepted_name = TRUE
-        to_add$match_logic = "accepted"
-        to_add$family = sp$family[i]
-        to_add$genus = sp$genus[i]
-        to_add$taxonomic_backbone = "WFO"
-        to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
-        if (is.na( to_add$higher)) {
-          to_add$higher = sp$majorGroup[i]
-          to_add$order = sp$majorGroup[i]
-        }
-
-        # accepted = c(accepted, problematic)
-
-        test = rbind(test, to_add)
-      } else { # if there is more than 1
-
-        to_add = to_add[rep(seq_len(nrow(to_add)), each = length(which(sp$taxonomicStatus == "Accepted"))), ]
-
-        wfo_match = c(wfo_match, problem)
-
-        i = which(sp$taxonomicStatus== "Accepted")
-        to_add$keep = 1
-        to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-        to_add$match_similarity = NA
-        to_add$match_edit_distance = NA
-        to_add$wcvp_id = sp$taxonID[i]
-        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
-        to_add$wcvp_authors = sp$scientificNameAuthorship[i]
-        to_add$wcvp_rank = sp$taxonRank[i]
-        to_add$wcvp_status = sp$taxonomicStatus[i]
-        to_add$wcvp_homotypic = NA
-        to_add$wcvp_ipni_id = sp$scientificNameID[i]
-        to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
-        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
-        to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
-        to_add$accepted_name = TRUE
-        to_add$match_logic = "name_split"
-        to_add$taxonomic_backbone = "WFO"
-        to_add$family = sp$family[i]
-        to_add$genus = sp$genus[i]
-        to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
-        if (any(is.na(to_add$higher))) {
-          to_add$higher = sp$majorGroup[i]
-          to_add$order = sp$majorGroup[i]
-        }
-
-        # accepted = c(accepted, problematic)
-
-        test = rbind(test, to_add)
-      }
-
-    }
-  }
-}
-
-problematic = problematic[!(problematic %in% wfo_match)]
-test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
-
-# see how many species were matched to different categories
-length(obvious) # 10238
-length(accepted) # 0
-length(split) # 0
-length(synonym) # 136
-length(homotypic) # 16
-length(diff_author) # 4
-length(wfo_match) # 0
-length(problematic) # 573
-
-
-
-##### NOW GET RID OF DUPLICATED NAMES #################################################
-
-iucn_predictions_wcvp_matched = test[test$keep == 1,]
-length(unique(iucn_predictions_wcvp_matched$scientificName))-length(unique(iucn_predictions_wcvp$scientificName))
-write.csv(iucn_predictions_wcvp_matched, paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"))
+#
+# # Put the data in test to avoid overwriting for time being...
+# test = iucn_predictions_wcvp
+# test$duplicated = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
+# test$accepted_name = test$wcvp_status == "Accepted"
+# test$names_match = apply(test, 1, function(row) fuzzy_match(row["scientificName"], row["taxon_name"]))#test$species == test$taxon_name
+# test$keep = ifelse(test$duplicated,0,1)
+# test$keep = ifelse(test$accepted_name & test$names_match & test$duplicated, 1, test$keep)
+#
+#
+# obvious = test$scientificName[test$accepted_name & test$names_match & test$duplicated]
+#
+# # find duplicated names that don't have any accepted name
+# dupl = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
+# dupl_nam = unique(test$scientificName[dupl])
+# #create some empty variables to fill during analysis
+# problematic = c()
+# accepted = c()
+# split= c()
+# synonym = c()
+# homotypic = c()
+# diff_author = c()
+# for (du in dupl_nam){
+#   temp = data.frame(test[test$scientificName == du,])
+#   #if the names don't match
+#   if (!(any(temp$keep == 1))) {
+#
+#     # keep the accepted name
+#     if (length(which(temp$accepted_name == T))==1){
+#       if (temp$match_similarity[which(temp$accepted_name == T)] >= 0.9){
+#         test$keep[which(test$scientificName == du)[which(temp$accepted_name == T)]] = 1
+#         accepted = c(accepted, du)
+#       } else {
+#         problematic = c(problematic, du)
+#       }
+#     }
+#
+#     # if there are multiple accepted names the species has been split
+#     else if (length(which(temp$accepted_name == T))>1){
+#       if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
+#         test$keep[which(test$scientificName == du)[which(temp$accepted_name == T & temp$match_similarity >= 0.9)]] = 1
+#         split = c(split, du)
+#       } else {
+#         problematic = c(problematic, du)
+#       }
+#     }
+#
+#     # if not accepted, keep the synonym
+#     else if (length(which(temp$wcvp_status == "Synonym"))==1){
+#       test$keep[which(test$scientificName == du)[which(temp$wcvp_status == "Synonym")]] = 1
+#       synonym = c(synonym, du)
+#     }
+#
+#     # if not a synonym, keep the homotypic synonym
+#     else if (length(which(temp$wcvp_homotypic == "TRUE"))==1){
+#       test$keep[which(test$scientificName == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
+#       homotypic = c(homotypic, du)
+#     }
+#
+#     # if the names are the same, keep the one with the smallest author distance
+#     else if (length(unique(temp$taxon_name)) == 1){
+#       test$keep[which(test$scientificName == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
+#       diff_author = c(diff_author, du)
+#     }
+#
+#     # class everything else as problematic
+#     else {
+#       problematic = c(problematic, du)
+#     }
+#   }
+# }
+#
+# problematic = c(problematic,test$scientificName[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+# problematic = c(problematic, unique(test$scientificName[test$match_similarity < 0.9]))
+# problematic <- unique(problematic)
+# problematic <- problematic[which(!is.na(problematic))]
+#
+# test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
+#
+#
+#
+# # now keep track how the matching was done and why
+# test$match_logic = ifelse(test$duplicated,"unmatched","unique")
+# test$match_logic = ifelse(test$accepted_name & test$names_match & test$duplicated, "unique", test$match_logic)
+# test$match_logic[test$scientificName %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
+# test$match_logic[test$scientificName %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
+# test$match_logic[test$scientificName %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
+# test$match_logic[test$scientificName %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
+# test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
+#
+# test$taxonomic_backbone = "WCVP"
+# # test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
+# test$taxonomic_backbone[test$scientificName %in% problematic] = NA
+#
+# #add family
+# # test = test %>% left_join(wcvp[, c("plant_name_id", "family", "genus")],
+# #                           by=c("wcvp_accepted_id" = "plant_name_id"))
+#
+# test = test %>% left_join(rWCVP::taxonomic_mapping,
+#                           by=c("family" = "family"))
+#
+#
+# # now check them out on WFO
+# match = test[test$scientificName %in% problematic,]
+#
+# match$full_name <- match$scientificName
+#
+# # pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
+# pb_sp = WorldFlora::WFO.match(spec.data = data.frame(match[, c("full_name")]),
+#                               WFO.data=WFO.data,
+#                               spec.name = "full_name",
+#                               Authorship = "author",
+#                               counter=1, verbose=TRUE)
+#
+# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
+# # pb_sp =read.csv(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
+#
+# wfo_match = c()
+#
+# for(problem in problematic){
+#   print(problem)
+#   # test[test$scientificName %in% problem,]
+#   sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
+#   sp = sp[which(!duplicated(sp$scientificNameID)),]
+#
+#   if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
+#
+#     to_add = test[test$scientificName %in% problem,][1,]
+#
+#     if(any(sp$taxonomicStatus == "Accepted" & !is.na(sp$taxonomicStatus))){
+#       if (length(which(sp$taxonomicStatus == "Accepted")) == 1){
+#
+#
+#         wfo_match = c(wfo_match, problem)
+#
+#         i = which(sp$taxonomicStatus== "Accepted")
+#         to_add$keep = 1
+#         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+#         to_add$match_similarity = NA
+#         to_add$match_edit_distance
+#         to_add$wcvp_id = sp$taxonID[i]
+#         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
+#         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
+#         to_add$wcvp_rank = sp$taxonRank[i]
+#         to_add$wcvp_status = sp$taxonomicStatus[i]
+#         to_add$wcvp_homotypic = NA
+#         to_add$wcvp_ipni_id = sp$scientificNameID[i]
+#         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
+#         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+#         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+#         to_add$accepted_name = TRUE
+#         to_add$match_logic = "accepted"
+#         to_add$family = sp$family[i]
+#         to_add$genus = sp$genus[i]
+#         to_add$taxonomic_backbone = "WFO"
+#         to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
+#         if (is.na( to_add$higher)) {
+#           to_add$higher = sp$majorGroup[i]
+#           to_add$order = sp$majorGroup[i]
+#         }
+#
+#         # accepted = c(accepted, problematic)
+#
+#         test = rbind(test, to_add)
+#       } else { # if there is more than 1
+#
+#         to_add = to_add[rep(seq_len(nrow(to_add)), each = length(which(sp$taxonomicStatus == "Accepted"))), ]
+#
+#         wfo_match = c(wfo_match, problem)
+#
+#         i = which(sp$taxonomicStatus== "Accepted")
+#         to_add$keep = 1
+#         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+#         to_add$match_similarity = NA
+#         to_add$match_edit_distance = NA
+#         to_add$wcvp_id = sp$taxonID[i]
+#         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
+#         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
+#         to_add$wcvp_rank = sp$taxonRank[i]
+#         to_add$wcvp_status = sp$taxonomicStatus[i]
+#         to_add$wcvp_homotypic = NA
+#         to_add$wcvp_ipni_id = sp$scientificNameID[i]
+#         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
+#         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+#         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+#         to_add$accepted_name = TRUE
+#         to_add$match_logic = "name_split"
+#         to_add$taxonomic_backbone = "WFO"
+#         to_add$family = sp$family[i]
+#         to_add$genus = sp$genus[i]
+#         to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
+#         if (any(is.na(to_add$higher))) {
+#           to_add$higher = sp$majorGroup[i]
+#           to_add$order = sp$majorGroup[i]
+#         }
+#
+#         # accepted = c(accepted, problematic)
+#
+#         test = rbind(test, to_add)
+#       }
+#
+#     }
+#   }
+# }
+#
+# problematic = problematic[!(problematic %in% wfo_match)]
+# test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
+#
+# # see how many species were matched to different categories
+# length(obvious) # 10238
+# length(accepted) # 0
+# length(split) # 0
+# length(synonym) # 136
+# length(homotypic) # 16
+# length(diff_author) # 4
+# length(wfo_match) # 0
+# length(problematic) # 573
+#
+#
+#
+# ##### NOW GET RID OF DUPLICATED NAMES #################################################
+#
+# iucn_predictions_wcvp_matched = test[test$keep == 1,]
+# length(unique(iucn_predictions_wcvp_matched$scientificName))-length(unique(iucn_predictions_wcvp$scientificName))
+write.csv(iucn_predictions_wcvp, paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"))
 
 ##########################################################################################
 ##############           IUCN BRAHMS                        ##############################
@@ -1250,7 +1337,7 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
 # write.csv(iucn_MSB_wcvp, paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"))
-iucn_MSB_wcvp = read.csv(paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"))
+iucn_MSB_wcvp = read.csv(paste0(basepath,"iucn_MSB_unique_wcvp_full_name.csv"))
 
 # Put the data in test to avoid overwriting for time being...
 test = iucn_MSB_wcvp
@@ -1323,19 +1410,26 @@ for (du in dupl_nam){
   }
 }
 
+problematic = c(problematic, test$full_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+
+problematic = c(problematic, unique(test$full_name[test$match_similarity < 0.9]))
+problematic <- unique(problematic)
+problematic <- problematic[which(!is.na(problematic))]
 
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
+
 
 # now keep track how the matching was done and why
 test$match_logic = ifelse(test$duplicated,"unmatched","unique")
 test$match_logic = ifelse(test$accepted_name & test$names_match & test$duplicated, "unique", test$match_logic)
-test$match_logic[test$scientificName %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
-test$match_logic[test$scientificName %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
-test$match_logic[test$scientificName %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
-test$match_logic[test$scientificName %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
-test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
+test$match_logic[test$full_name %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
+test$match_logic[test$full_name %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
+test$match_logic[test$full_name %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
+test$match_logic[test$full_name %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
+test$match_logic[test$full_name %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
 
 test$taxonomic_backbone = "WCVP"
+test$taxonomic_backbone[test$full_name %in% problematic] = NA
 # test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
 
 #add family
@@ -1346,15 +1440,132 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
                           by=c("family" = "family"))
 
 
+# now check them out on WFO
+match = test[test$full_name %in% problematic,]
+
+pb_sp = WorldFlora::WFO.match(spec.data = match,
+                              WFO.data=WFO.data,
+                              spec.name = "full_name",
+                              Authorship = "author",
+                              counter=1, verbose=TRUE)
+write.csv(pb_sp, paste0(basepath, "revision_1/iucn_MSB__wfo_matched.csv"), row.names = F)
+pb_sp = read.csv(paste0(basepath, "revision_1/iucn_MSB__wfo_matched.csv"))
+
+
+wfo_match = c()
+
+
+
+for(problem in problematic){
+  print(problem)
+  # problem = "Aconitum nasutum"
+  # problem = "Acacia elongata var. elongata"
+  # problem = "Xanthoselinum alsaticum subsp. alsaticum"
+  # test[test$scientificName %in% problem,]
+  sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
+  sp = sp[which(!duplicated(sp$scientificNameID)),]
+
+  #--------------------
+  # # if it's a species
+  # if (sapply(gregexpr("[[:alpha:]]+", problem), function(x) sum(x > 0)) == 2){
+  #
+  #   #if the matched name is that of a species
+  if(any(sp$taxonRank %in% c("species", "subspecies", "variety") & !is.na(sp$taxonRank))){
+
+    # to_add = test[test$scientificName %in% problem,][1,]
+    to_add = test[test$full_name %in% problem,][1,]
+
+    if(any(sp$taxonomicStatus == "Accepted" & !is.na(sp$taxonomicStatus))){
+      if (length(which(sp$taxonomicStatus == "Accepted")) == 1){
+
+
+        wfo_match = c(wfo_match, problem)
+
+        i = which(sp$taxonomicStatus== "Accepted")
+        to_add$keep = 1
+        to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+        to_add$match_similarity = NA
+        to_add$match_edit_distance = sp$match_edit_distance[i]
+        to_add$wcvp_id = sp$taxonID[i]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
+        to_add$wcvp_authors = sp$scientificNameAuthorship[i]
+        to_add$wcvp_rank = sp$taxonRank[i]
+        to_add$wcvp_status = sp$taxonomicStatus[i]
+        to_add$wcvp_homotypic = NA
+        to_add$wcvp_ipni_id = sp$scientificNameID[i]
+        to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+        to_add$accepted_name = TRUE
+        to_add$match_logic = "accepted"
+        to_add$family = sp$family[i]
+        to_add$genus = sp$genus[i]
+        to_add$taxonomic_backbone = "WFO"
+        to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
+        if (is.na( to_add$higher)) {
+          to_add$higher = sp$majorGroup[i]
+          to_add$order = sp$majorGroup[i]
+        }
+
+        # accepted = c(accepted, problematic)
+
+        test = rbind(test, to_add)
+      } else { # if there is more than 1
+
+        to_add = to_add[rep(seq_len(nrow(to_add)), each = length(which(sp$taxonomicStatus == "Accepted"))), ]
+
+        wfo_match = c(wfo_match, problem)
+
+        i = which(sp$taxonomicStatus== "Accepted")
+        to_add$keep = 1
+        to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+        to_add$match_similarity = NA
+        to_add$match_edit_distance = NA
+        to_add$wcvp_id = sp$taxonID[i]
+        to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
+        to_add$wcvp_authors = sp$scientificNameAuthorship[i]
+        to_add$wcvp_rank = sp$taxonRank[i]
+        to_add$wcvp_status = sp$taxonomicStatus[i]
+        to_add$wcvp_homotypic = NA
+        to_add$wcvp_ipni_id = sp$scientificNameID[i]
+        to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
+        to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
+        to_add$accepted_name = TRUE
+        to_add$match_logic = "name_split"
+        to_add$taxonomic_backbone = "WFO"
+        to_add$family = sp$family[i]
+        to_add$genus = sp$genus[i]
+        to_add %>% left_join(rWCVP::taxonomic_mapping, by=c("family" = "family"))
+        if (any(is.na(to_add$higher))) {
+          to_add$higher = sp$majorGroup[i]
+          to_add$order = sp$majorGroup[i]
+        }
+
+        # accepted = c(accepted, problematic)
+
+        test = rbind(test, to_add)
+      }
+
+    }
+  } # if it was not matched
+
+}
+
+
+problematic = problematic[!(problematic %in% wfo_match)]
+test$match_logic[test$full_name %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
+
 # see how many species were matched to different categories
 length(obvious) # 1
-length(accepted) # 0
+length(accepted) # 1
 length(split) # 0
 length(synonym) # 0
 length(homotypic) # 0
 length(diff_author) # 0
-length(wfo_match) # 0
+length(wfo_match) # 3
 length(problematic) # 0
+
 
 
 
@@ -1424,8 +1635,8 @@ extras$full_name = gsub("\\s+"," ",extras$full_name)
 # extras_wcvp = extras_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
-# write.csv(extras_wcvp, paste0(basepath,"revision_1/extras_wcvp_full_name.csv"))
-extras_wcvp = read.csv(paste0(basepath,"revision_1/extras_wcvp_full_name.csv"))
+# write.csv(extras_wcvp, paste0(basepath,"extras_wcvp_full_name.csv"))
+extras_wcvp = read.csv(paste0(basepath,"extras_wcvp_full_name.csv"))
 
 # Put the data in test to avoid overwriting for time being...
 test = extras_wcvp
@@ -1436,11 +1647,11 @@ test$keep = ifelse(test$duplicated,0,1)
 test$keep = ifelse(test$accepted_name & test$names_match & test$duplicated, 1, test$keep)
 
 
-obvious = test$scientificName[test$accepted_name & test$names_match & test$duplicated]
+obvious = test$full_name[test$accepted_name & test$names_match & test$duplicated]
 
 # find duplicated names that don't have any accepted name
-dupl = test$scientificName %in% unique(test$scientificName[ duplicated(test$scientificName)])
-dupl_nam = unique(test$scientificName[dupl])
+dupl = test$full_name %in% unique(test$full_name[ duplicated(test$full_name)])
+dupl_nam = unique(test$full_name[dupl])
 #create some empty variables to fill during analysis
 problematic = c()
 accepted = c()
@@ -1449,14 +1660,14 @@ synonym = c()
 homotypic = c()
 diff_author = c()
 for (du in dupl_nam){
-  temp = data.frame(test[test$scientificName == du,])
+  temp = data.frame(test[test$full_name == du,])
   #if the names don't match
   if (!(any(temp$keep == 1))) {
 
     # keep the accepted name
     if (length(which(temp$accepted_name == T))==1){
       if (temp$match_similarity[which(temp$accepted_name == T)] >= 0.9){
-        test$keep[which(test$scientificName == du)[which(temp$accepted_name == T)]] = 1
+        test$keep[which(test$full_name == du)[which(temp$accepted_name == T)]] = 1
         accepted = c(accepted, du)
       } else {
         problematic = c(problematic, du)
@@ -1466,7 +1677,7 @@ for (du in dupl_nam){
     # if there are multiple accepted names the species has been split
     else if (length(which(temp$accepted_name == T))>1){
       if (any(temp$match_similarity[ which(temp$accepted_name == T)] >= 0.9)){
-        test$keep[which(test$scientificName == du)[which(temp$accepted_name == T & temp$match_similarity >= 0.9)]] = 1
+        test$keep[which(test$full_name == du)[which(temp$accepted_name == T & temp$match_similarity >= 0.9)]] = 1
         split = c(split, du)
       } else {
         problematic = c(problematic, du)
@@ -1475,19 +1686,19 @@ for (du in dupl_nam){
 
     # if not accepted, keep the synonym
     else if (length(which(temp$wcvp_status == "Synonym"))==1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_status == "Synonym")]] = 1
+      test$keep[which(test$full_name == du)[which(temp$wcvp_status == "Synonym")]] = 1
       synonym = c(synonym, du)
     }
 
     # if not a synonym, keep the homotypic synonym
     else if (length(which(temp$wcvp_homotypic == "TRUE"))==1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
+      test$keep[which(test$full_name == du)[which(temp$wcvp_homotypic == "TRUE")]] = 1
       homotypic = c(homotypic, du)
     }
 
     # if the names are the same, keep the one with the smallest author distance
     else if (length(unique(temp$taxon_name)) == 1){
-      test$keep[which(test$scientificName == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
+      test$keep[which(test$full_name == du)[which(temp$wcvp_author_edit_distance == min(temp$wcvp_author_edit_distance))]] = 1
       diff_author = c(diff_author, du)
     }
 
@@ -1498,7 +1709,10 @@ for (du in dupl_nam){
   }
 }
 
-problematic = c(problematic,test$scientificName[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+problematic = c(problematic,test$full_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
+problematic = c(problematic, unique(test$full_name[test$match_similarity < 0.9]))
+problematic <- unique(problematic)
+problematic <- problematic[which(!is.na(problematic))]
 test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name), 0, test$keep)
 
 
@@ -1506,13 +1720,14 @@ test$keep = ifelse(test$duplicated==F & test$keep == 1 & is.na(test$taxon_name),
 # now keep track how the matching was done and why
 test$match_logic = ifelse(test$duplicated,"unmatched","unique")
 test$match_logic = ifelse(test$accepted_name & test$names_match & test$duplicated, "unique", test$match_logic)
-test$match_logic[test$scientificName %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
-test$match_logic[test$scientificName %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
-test$match_logic[test$scientificName %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
-test$match_logic[test$scientificName %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
-test$match_logic[test$scientificName %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
+test$match_logic[test$full_name %in% obvious] = "matched"# had duplicates, but one name reads the same and and is accepted
+test$match_logic[test$full_name %in% accepted] = "accepted" # had duplicates, but the name isn't the same but is accepted
+test$match_logic[test$full_name %in% synonym] = "synonym" # had duplicates, but the name isn't the same but is a synonym
+test$match_logic[test$full_name %in% homotypic] = "homotypic"  #had duplicates, but the name isn't the same but is a homotypic synonym
+test$match_logic[test$full_name %in% diff_author] = "diff_author" #find closest author name (sometimes there are additional parentheses and dots)
 
 test$taxonomic_backbone = "WCVP"
+test$taxonomic_backbone[test$full_name %in% problematic] = NA
 # test$taxonomic_backbone[test$scientificName %in% problematic] = "WFO"
 
 #add family
@@ -1524,9 +1739,16 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 
 
 # now check them out on WFO
-match = test[test$full_name %in% problematic,]
+match = test[which(test$full_name %in% problematic),]
 
-pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
+# pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
+
+pb_sp = WorldFlora::WFO.match(spec.data = match$full_name,
+                              WFO.data=WFO.data,
+                              # spec.name = "full_name",
+                              # Authorship = "author",
+                              counter=1, verbose=TRUE)
+
 write.csv(pb_sp, paste0(basepath, "revision_1/extras_wfo_matched.csv"))
 # pb_sp =read.csv(paste0(basepath, "iucn_predictions_wfo_matched.csv"))
 
@@ -1535,7 +1757,7 @@ wfo_match = c()
 for(problem in problematic){
   print(problem)
   # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
+  sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
   if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
@@ -1552,7 +1774,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance
+        # to_add$match_edit_distance
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -1587,7 +1809,7 @@ for(problem in problematic){
         to_add$keep = 1
         to_add$multiple_matches = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$match_similarity = NA
-        to_add$match_edit_distance = NA
+        # to_add$match_edit_distance = NA
         to_add$wcvp_id = sp$taxonID[i]
         to_add$wcvp_name = sp$scientificName[i] # sp[i,18]
         to_add$wcvp_authors = sp$scientificNameAuthorship[i]
@@ -1625,12 +1847,11 @@ test$match_logic[test$scientificName %in% problematic] = "unmatched" #find close
 length(obvious) # 35
 length(accepted) # 0
 length(split) # 0
-length(synonym) # 1
+length(synonym) # 5
 length(homotypic) # 0
-length(diff_author) # 4
-length(wfo_match) # 38
-length(problematic) # 2
-
+length(diff_author) # 0
+length(wfo_match) # 0
+length(problematic) # 57
 
 
 
