@@ -10,22 +10,22 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 
 #load data from previous session
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
-iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"))
 
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"))
 
 # make sure only consider predicted that aren't already CR
-brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
+brahms_unique_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"))
 brahms_unique_wcvp_matched = brahms_unique_wcvp_matched[which(!is.na(brahms_unique_wcvp_matched$species)),]
 
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
 exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
-exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
+exceptional_wcvp_matched = read.csv(paste0(basepath,"revision_1/exceptional_unique_wcvp_matched.csv"))
 
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
+iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"))
 
 iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
 # keep only the CR ones
@@ -35,6 +35,10 @@ iucn_CR_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_pred
 iucn_CR_predictions_wcvp_matched = iucn_CR_predictions_wcvp_matched[which(ifelse(iucn_CR_predictions_wcvp_matched$taxon_name %in%
                                                                                    iucn_wcvp_matched$taxon_name, FALSE,TRUE)),]
 length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
+
+
+# iucn_wcvp_matched$banked = ifelse(iucn_wcvp_matched$taxon_name %in% brahms_unique_wcvp_matched$taxon_name,TRUE,FALSE)
+# length(which(iucn_wcvp_matched$banked == T))
 
 
 
@@ -74,11 +78,11 @@ length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
 #### GET ORTHODOXY ########################################################################################
 
 # prepare the IUCN species and get their orthodoxy
-# orthodox_matches = data.frame(unique(iucn_wcvp_matched$taxon_name[iucn_wcvp_matched$banked == F]))
+# orthodox_matches = data.frame(unique(iucn_wcvp_matched$taxon_name))
 # dim(orthodox_matches)
 # j=1
-# for(i in seq(1,nrow(orthodox_matches),873)){
-#   write.csv(orthodox_matches[i:(i+872),],paste0(basepath, "orthodox_to_match_",j,".csv"), row.names=FALSE )
+# for(i in seq(1,nrow(orthodox_matches),810)){
+#   write.csv(orthodox_matches[i:(i+872),],paste0(basepath, "revision_1/orthodox_to_match_",j,".csv"), row.names=FALSE )
 #   j=j+1
 # }
 
@@ -86,10 +90,10 @@ length(unique(iucn_CR_predictions_wcvp_matched$taxon_name))
 # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 # Compile orthodoxy predictions
-iucn_orthodox = read.csv(paste0(basepath,"Model-results-2024-08-08_1.csv"))
-for (i in 2:6){
+iucn_orthodox = read.csv(paste0(basepath,"revision_1/Model-results-2025-09-05_1.csv"))
+for (i in 2:7){
   iucn_orthodox = rbind(iucn_orthodox,
-                        read.csv(paste0(basepath,"Model-results-2024-08-08_",i,".csv")))
+                        read.csv(paste0(basepath,"revision_1/Model-results-2025-09-05_",i,".csv")))
 }
 
 #get rid of duplicates
@@ -207,8 +211,8 @@ iucn_storage_behaviour$category[which((iucn_storage_behaviour$SID_Seed_Storage_B
 # iucn_storage_behaviour[which(is.na(iucn_storage_behaviour$category)),] = NA_storage
 
 # save the output
-write.csv(iucn_storage_behaviour, paste0(basepath, "iucn_orthodocy_recalcitrance.csv"))
-iucn_storage_behaviour = read.csv(paste0(basepath, "iucn_orthodocy_recalcitrance.csv"))
+# write.csv(iucn_storage_behaviour, paste0(basepath, "revision_1/iucn_orthodocy_recalcitrance.csv"))
+iucn_storage_behaviour = read.csv(paste0(basepath, "revision_1/iucn_orthodocy_recalcitrance.csv"))
 # length(iucn_storage_behaviour$taxon_name)
 length(unique(iucn_storage_behaviour$taxon_name))
 # iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% iucn_CR_predictions_wcvp_matched$taxon_name]
@@ -285,98 +289,98 @@ iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred
 # iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred_to_add$taxon_name]
 
 ########### See if the CR are in the bank already ######################################################################
-
-# CR_pred_in_bank = CR_pred$taxon_name[unique(CR_pred$taxon_name) %in% unique(brahms_wcvp_matched$taxon_name)]
-# Subset the msbp data
-
-spp_count = brahms_wcvp_matched %>%
-  group_by(taxon_name,wcvp_accepted_id,AdjustedSeedQuantity) %>%
-  tally() %>%
-  mutate(summed_count = sum(AdjustedSeedQuantity),
-         accessions = n()) %>%
-  ungroup()
-spp_count = spp_count[, c("taxon_name","wcvp_accepted_id", "accessions", "summed_count")]
-spp_count = spp_count[duplicated(spp_count$wcvp_accepted_id)==FALSE,]
-
-brahms_to_add = spp_count[spp_count$taxon_name %in% unique(CR_pred$taxon_name),]
-
-# banked_CRpred_orthodocy_recalcitrance.csv
-# #run the shiny seed predictor app
-# runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
-
-recalc <- read.csv(paste0(basepath, "Model-results-2024-08-06_1_banked_crpred.csv"))
-
-# brahms_to_add = seed_count[seed_count$taxon_name %in% unique(CR_pred$taxon_name),]
-#brahms_wcvp_matched[brahms_wcvp_matched$taxon_name %in% unique(CR_pred$taxon_name),]
-
-# # create summary table where adjusted seed counts per species are added together
-# brahms_to_add = brahms_to_add %>%
-#   group_by(taxon_name,wcvp_authors,wcvp_accepted_id,AdjustedSeedQuantity) %>%
+#
+# # CR_pred_in_bank = CR_pred$taxon_name[unique(CR_pred$taxon_name) %in% unique(brahms_wcvp_matched$taxon_name)]
+# # Subset the msbp data
+#
+# spp_count = brahms_wcvp_matched %>%
+#   group_by(taxon_name,wcvp_accepted_id,AdjustedSeedQuantity) %>%
 #   tally() %>%
 #   mutate(summed_count = sum(AdjustedSeedQuantity),
 #          accessions = n()) %>%
 #   ungroup()
-# brahms_to_add = brahms_to_add[, c("taxon_name","wcvp_authors", "wcvp_accepted_id","accessions", "summed_count")]
-# brahms_to_add = brahms_to_add[duplicated(brahms_to_add$taxon_name)==FALSE,]
-
-
-# create an empty dataset that follows iucn_storage_behaviour and fill with NAs
-brahms_to_add = data.frame(brahms_to_add)
-brahms_to_add = brahms_to_add %>% left_join(recalc[,c("Accepted_name",
-                                                      "tax.level",
-                                                      "probability.of.recalcitrance",
-                                                      "storBehav")],
-                                            by = c("taxon_name" = "Accepted_name") )
-# brahms_to_add$wcvp_accepted_id = as.integer(brahms_to_add$wcvp_accepted_id)
-brahms_to_add = brahms_to_add %>% left_join(wcvp[,c("plant_name_id","family","genus",
-                                                    "climate_description", "geographic_area")],
-                                            by=c("wcvp_accepted_id"="plant_name_id"))
-
-# Fill in the CR_pred data
-brahms_to_add["scientificName"] = NA
-brahms_to_add["redlistCategory"] = "Critically Endangered"
-brahms_to_add["redlistCriteria"] = "prediction"
-brahms_to_add["yearPublished"] = 2024
-brahms_to_add["assessmentDate"] = NA
-brahms_to_add["criteriaVersion"] = NA
-brahms_to_add["populationTrend"] = NA
-brahms_to_add["systems"] = NA
-brahms_to_add["realm"] = brahms_to_add["climate_description"]
-brahms_to_add["yearLastSeen"] = ""
-brahms_to_add["possiblyExtinct"] = NA
-brahms_to_add["possiblyExtinctInTheWild"] = NA
-brahms_to_add["scopes"] = brahms_to_add["geographic_area"]
-brahms_to_add["banked"] = TRUE
-# brahms_to_add["order"] = NA
-# brahms_to_add["higher"] = NA
-brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
-                                            by=c("family" = "family"))
-# brahms_to_add["tax.level"] = NA
-# brahms_to_add["probability.of.recalcitrance"] = NA
-# brahms_to_add["storBehav"] = NA
-# brahms_to_add["category"] = "banked"
-brahms_to_add$category = NA
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.3)] = "orthodox"
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
-brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.7 & brahms_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
-brahms_to_add["Exceptional_status"] = NA
-brahms_to_add["EF1_seed_unavailable"] = NA
-brahms_to_add["EF2_desiccation_sensitive"] = NA
-brahms_to_add["EF3_short.lived"] = NA
-brahms_to_add["EF4_deep_dormancy"] = NA
-brahms_to_add["SID_Seed_Storage_Behaviour"] = NA
-brahms_to_add["Woody_or_non.woody"] = NA
-brahms_to_add["PlantSearch_plant_collections"] = NA
-brahms_to_add["PlantSearch_seed_collections"] = NA
-brahms_to_add["PlantSearch_tissue_culture_collections"] = NA
-brahms_to_add["PlantSearch_cryopreservation_collections"] = NA
-brahms_to_add["PlantSearch_uncategorized_germplasm_collections"] = NA
-
-#only keep the columns that match IUCN dataframe
-brahms_to_add = brahms_to_add[,colkeep]
-
-# basically only one species in the bank
-length(unique(brahms_to_add$taxon_name))
+# spp_count = spp_count[, c("taxon_name","wcvp_accepted_id", "accessions", "summed_count")]
+# spp_count = spp_count[duplicated(spp_count$wcvp_accepted_id)==FALSE,]
+#
+# brahms_to_add = spp_count[spp_count$taxon_name %in% unique(CR_pred$taxon_name),]
+#
+# # banked_CRpred_orthodocy_recalcitrance.csv
+# # #run the shiny seed predictor app
+# # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+#
+# # recalc <- read.csv(paste0(basepath, "Model-results-2024-08-06_1_banked_crpred.csv"))
+#
+# # brahms_to_add = seed_count[seed_count$taxon_name %in% unique(CR_pred$taxon_name),]
+# #brahms_wcvp_matched[brahms_wcvp_matched$taxon_name %in% unique(CR_pred$taxon_name),]
+#
+# # # create summary table where adjusted seed counts per species are added together
+# # brahms_to_add = brahms_to_add %>%
+# #   group_by(taxon_name,wcvp_authors,wcvp_accepted_id,AdjustedSeedQuantity) %>%
+# #   tally() %>%
+# #   mutate(summed_count = sum(AdjustedSeedQuantity),
+# #          accessions = n()) %>%
+# #   ungroup()
+# # brahms_to_add = brahms_to_add[, c("taxon_name","wcvp_authors", "wcvp_accepted_id","accessions", "summed_count")]
+# # brahms_to_add = brahms_to_add[duplicated(brahms_to_add$taxon_name)==FALSE,]
+#
+#
+# # create an empty dataset that follows iucn_storage_behaviour and fill with NAs
+# brahms_to_add = data.frame(brahms_to_add)
+# # brahms_to_add = brahms_to_add %>% left_join(recalc[,c("Accepted_name",
+# #                                                       "tax.level",
+# #                                                       "probability.of.recalcitrance",
+# #                                                       "storBehav")],
+# #                                             by = c("taxon_name" = "Accepted_name") )
+# # brahms_to_add$wcvp_accepted_id = as.integer(brahms_to_add$wcvp_accepted_id)
+# brahms_to_add = brahms_to_add %>% left_join(wcvp[,c("plant_name_id","family","genus",
+#                                                     "climate_description", "geographic_area")],
+#                                             by=c("wcvp_accepted_id"="plant_name_id"))
+#
+# # Fill in the CR_pred data
+# brahms_to_add["scientificName"] = NA
+# brahms_to_add["redlistCategory"] = "Critically Endangered"
+# brahms_to_add["redlistCriteria"] = "prediction"
+# brahms_to_add["yearPublished"] = 2024
+# brahms_to_add["assessmentDate"] = NA
+# brahms_to_add["criteriaVersion"] = NA
+# brahms_to_add["populationTrend"] = NA
+# brahms_to_add["systems"] = NA
+# brahms_to_add["realm"] = brahms_to_add["climate_description"]
+# brahms_to_add["yearLastSeen"] = ""
+# brahms_to_add["possiblyExtinct"] = NA
+# brahms_to_add["possiblyExtinctInTheWild"] = NA
+# brahms_to_add["scopes"] = brahms_to_add["geographic_area"]
+# brahms_to_add["banked"] = TRUE
+# # brahms_to_add["order"] = NA
+# # brahms_to_add["higher"] = NA
+# brahms_to_add = brahms_to_add %>% left_join(rWCVP::taxonomic_mapping,
+#                                             by=c("family" = "family"))
+# # brahms_to_add["tax.level"] = NA
+# # brahms_to_add["probability.of.recalcitrance"] = NA
+# # brahms_to_add["storBehav"] = NA
+# # brahms_to_add["category"] = "banked"
+# brahms_to_add$category = NA
+# brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance <= 0.3)] = "orthodox"
+# brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance >= 0.7)] = "recalcitrant"
+# brahms_to_add$category[which(brahms_to_add$probability.of.recalcitrance < 0.7 & brahms_to_add$probability.of.recalcitrance > 0.3)] = "unknown"
+# brahms_to_add["Exceptional_status"] = NA
+# brahms_to_add["EF1_seed_unavailable"] = NA
+# brahms_to_add["EF2_desiccation_sensitive"] = NA
+# brahms_to_add["EF3_short.lived"] = NA
+# brahms_to_add["EF4_deep_dormancy"] = NA
+# brahms_to_add["SID_Seed_Storage_Behaviour"] = NA
+# brahms_to_add["Woody_or_non.woody"] = NA
+# brahms_to_add["PlantSearch_plant_collections"] = NA
+# brahms_to_add["PlantSearch_seed_collections"] = NA
+# brahms_to_add["PlantSearch_tissue_culture_collections"] = NA
+# brahms_to_add["PlantSearch_cryopreservation_collections"] = NA
+# brahms_to_add["PlantSearch_uncategorized_germplasm_collections"] = NA
+#
+# #only keep the columns that match IUCN dataframe
+# brahms_to_add = brahms_to_add[,colkeep]
+#
+# # basically only one species in the bank
+# length(unique(brahms_to_add$taxon_name))
 
 ###################################################################################################
 ####  GET CR SPECIES THAT AREN'T BANKED AND ADD ORTHODOXY #########################################
@@ -453,7 +457,7 @@ iucn_storage_behaviour$taxon_name[iucn_storage_behaviour$taxon_name %in% CR_pred
 ###### COMBINE DATA    #############################################################################################
 #combine the datasets
 spp_banked_recalcitrant = rbind(iucn_storage_behaviour, # banked and unbaked IUCN
-                                brahms_to_add, # banked IUCN prediction
+                                # brahms_to_add, # banked IUCN prediction
                                 CR_pred_to_add) # unbanked IUCN prediction
 
 CR_pred_to_add$taxon_name[CR_pred_to_add$taxon_name %in% iucn_storage_behaviour$taxon_name]
@@ -622,7 +626,7 @@ spp_banked_recalcitrant = test
 
 ##### SAVE ################################################
 
-write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
+write.csv(spp_banked_recalcitrant, paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), row.names=FALSE )
 
 ###################################################################################################
 ####                                                         ######################################
@@ -689,7 +693,12 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "spp_banked_recalcitrant.csv
 # write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 #
 
+test_again = spp_banked_recalcitrant[which(is.na(spp_banked_recalcitrant$probability.of.recalcitrance)),"taxon_name"]
+write.csv(test_again, paste0(basepath, "revision_1/test_again.csv"), row.names=FALSE )
 
+
+# run the shiny seed predictor app
+runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 
 ####################################################

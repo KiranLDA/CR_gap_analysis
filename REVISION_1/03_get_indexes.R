@@ -13,8 +13,8 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 # #load data from previous session
 #
 # #iucn redlist data
-# iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
-# iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
+iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"))
 #
 View(iucn_wcvp_matched[which(iucn_wcvp_matched$match_type == "Fuzzy (edit distance)"),
                        c("scientificName","taxon_name","match_similarity", "match_edit_distance","keep",
@@ -63,6 +63,8 @@ View(iucn_wcvp_matched[which(iucn_wcvp_matched$match_type == "Fuzzy (edit distan
 # # combined IUCN data with banked and unbanked and CR categories
 # iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 
+
+
 seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
 seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
 
@@ -92,7 +94,7 @@ tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 # ####################################################################
 
 # get the brahms data
-site_counts = read.csv(paste0(basepath,"iucn_brahms_wcvp_orthodoxy.csv"))#"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+site_counts = read.csv(paste0(basepath,"revision_1/iucn_brahms_wcvp_orthodoxy.csv"))#"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
 site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
 
 # remove thos that aren't in activate use
