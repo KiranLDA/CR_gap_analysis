@@ -693,12 +693,17 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "revision_1/spp_banked_recal
 # write.csv(new, paste0(basepath, "spp_banked_recalcitrant.csv"), row.names=FALSE )
 #
 
-test_again = spp_banked_recalcitrant[which(is.na(spp_banked_recalcitrant$probability.of.recalcitrance)),"taxon_name"]
-write.csv(test_again, paste0(basepath, "revision_1/test_again.csv"), row.names=FALSE )
 
-
-# run the shiny seed predictor app
-runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
+##### Rev 1 - tested the ones wiht no results and ran again
+# spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv") )
+#
+# test_again = spp_banked_recalcitrant[which(is.na(spp_banked_recalcitrant$probability.of.recalcitrance)),"taxon_name"]
+# test_again = test_again[!duplicated(test_again) ]
+# write.csv(test_again, paste0(basepath, "revision_1/test_again.csv"), row.names=FALSE )
+#
+#
+# # run the shiny seed predictor app
+# runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
 
 
 ####################################################
