@@ -548,7 +548,11 @@ test$category_uncertain_ref[id] = "SID"
 
 id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Intermediate"))
 test$category_certain[id] = "intermediate"
-test$category_certain_ref[id] = "SID"
+test$category_certain_ref[id] = "Pence et al. 2022"#"SID"
+
+id = which(is.na(test$category_uncertain) & test$Exceptional_status %in% c("Intermediate"))
+test$category_uncertain[id] = "intermediate"
+test$category_uncertain_ref[id] = "Pence et al. 2022"#"SID"
 
 
 #Step 2: add the litterature review
@@ -568,6 +572,13 @@ test$category_certain[id] = "exceptional"
 test$category_uncertain_ref[id] = "Pence et al. 2022"
 test$category_certain_ref[id] = "Pence et al. 2022"
 
+id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Non-exceptional" ))
+test$category_certain[id] = "orthodox"
+test$category_certain_ref[id] = "Pence et al. 2022"#"SID"
+test$category_uncertain[id] = "orthodox"
+test$category_uncertain_ref[id] = "Pence et al. 2022"#"SID"
+
+
 
 # step 4: add in seed storage predictor
 
@@ -581,7 +592,6 @@ id = which(is.na(test$category_uncertain) & test$probability.of.recalcitrance >=
 test$category_uncertain[id] = "recalcitrant"
 test$category_uncertain_ref[id] = "Wyse and Dickie (2017)"
 
-
 # orthodox certain
 id = which(is.na(test$category_certain) & test$probability.of.recalcitrance <= 0.3 & test$tax.level %in% c("Species", "Genus"))
 test$category_certain[id] = "orthodox"
@@ -594,6 +604,7 @@ test$category_certain_ref[id] = "Wyse and Dickie (2017)"
 
 
 # Step 5: add in the uncertain SID
+
 # c("Orthodox","Recalcitrant?","Orthodox p","Recalcitrant","Uncertain","Intermediate","Orthodox?","Intermediate?")
 
 id = which(is.na(test$category_uncertain) & test$SID_Seed_Storage_Behaviour %in% c("Orthodox?","Orthodox p"))
@@ -609,13 +620,11 @@ test$category_uncertain[id] = "intermediate"
 test$category_uncertain_ref[id] = "SID"
 
 # Step 6: add in orthodox from Pence
-id = which(is.na(test$category_uncertain) & test$Exceptional_status %in% c("Probably non-exceptional","Non-exceptional" ))
+id = which(is.na(test$category_uncertain) & test$Exceptional_status %in% c("Probably non-exceptional" ))
 test$category_uncertain[id] = "orthodox"
-test$category_uncertain_ref[id] = "SID"
+test$category_uncertain_ref[id] = "Pence et al. 2022"#"SID"
 
-id = which(is.na(test$category_certain) & test$Exceptional_status %in% c("Non-exceptional" ))
-test$category_certain[id] = "orthodox"
-test$category_certain_ref[id] = "SID"
+
 
 
 # have a look

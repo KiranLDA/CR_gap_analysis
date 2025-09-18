@@ -9,14 +9,14 @@ wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" )
 ###### Find the CR species in the dataset ##################################################################
 
 # iucn data in the bank with calculated targets
-indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+indexes = read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"))
 
 # seedbank data
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"))
 
 # iucn species and their categories
-iucn_banked_recalcitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+iucn_banked_recalcitrance <- read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"))
 
 
 # Access and benefits sharing data
@@ -24,21 +24,21 @@ abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
 
 #load data from previous session
 iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
-iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
+iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"))
 
 # make sure only consider predicted that aren't already CR
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
-brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name_infra.csv"))
+brahms_unique_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"))
 
 
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
 exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
-exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
+exceptional_wcvp_matched = read.csv(paste0(basepath,"revision_1/exceptional_unique_wcvp_matched.csv"))
 
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
+iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"))
 
 iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
 # keep only the CR ones
@@ -93,38 +93,38 @@ CR_msbp
 
 # how many names have been matched from IUCN
 length(unique(iucn$scientificName)) # 5702 before matching
-length(unique(iucn_wcvp_matched$scientificName)) # 5667 were matched
+length(unique(iucn_wcvp_matched$scientificName)) # 5666 # 5667 were matched
 length(unique(iucn$scientificName)) - length(unique(iucn_wcvp_matched$scientificName))
 test = iucn[which(!(iucn$scientificName %in% iucn_wcvp_matched$scientificName)),]
-length(unique(iucn_wcvp_matched$taxon_name)) # 5654 to this many new names
-length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5618 this many from WCVP
-length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")))/ length(unique(iucn$scientificName)) # 0.9852683
-length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 49 from WFO
+length(unique(iucn_wcvp_matched$taxon_name)) # 5667 #5654 to this many new names
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP"))) # 5595 #5618 this many from WCVP
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")))/ length(unique(iucn$scientificName)) # 0.9812347
+length(unique(which(iucn_wcvp_matched$taxonomic_backbone == "WFO"))) # 64 # 49 from WFO
 
 # what proportion accepted, synonym, homotypic
 summary(as.factor(iucn_wcvp_matched$wcvp_status))/nrow(iucn_wcvp_matched)
-#     Accepted   Artificial Hybrid      Illegitimate           Invalid           Synonym
-# 0.9163578613        0.0001764602      0.0008823010      0.0001764602      0.0824069172
+#     Accepted Artificial Hybrid      Illegitimate           Invalid           Synonym
+# 0.9163879599      0.0001760253      0.0014082028      0.0003520507      0.0816757613
 
 # separate out the synonyms
 length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
                iucn_wcvp_matched$wcvp_homotypic))/nrow(iucn_wcvp_matched)
-# 0.0518793
+# 0.05157543
 
 length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
                is.na(iucn_wcvp_matched$wcvp_homotypic)))/nrow(iucn_wcvp_matched)
-# 0.03052762
+# 0.03010033
 
 #### Synonyms for wcvp
 length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
                iucn_wcvp_matched$wcvp_homotypic &
                iucn_wcvp_matched$taxonomic_backbone == "WCVP"))/nrow(iucn_wcvp_matched)
-# 0.0518793
+# 0.05087133
 
 length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
                is.na(iucn_wcvp_matched$wcvp_homotypic) &
                        iucn_wcvp_matched$taxonomic_backbone == "WCVP"))/nrow(iucn_wcvp_matched)
-# 0.03052762
+# 0.02869213
 
 
 
@@ -138,42 +138,43 @@ cbind(iucn_wcvp_matched$taxon_name[which(iucn_wcvp_matched$taxon_name %in% doubl
 iucn_wcvp_matched$higher[which(iucn_wcvp_matched$higher == "A")] = "Angiosperms"
 summary(as.factor(iucn_wcvp_matched$higher)) # 49 from WFO
 # Angiosperms       Bryophyta           Ferns     Gymnosperms      Lycophytes Marchantiophyta
-#        5452              27              92              72              14              10
+#        5463              27              95              72              14              10
 
 # how many species are in the bank?
 length(unique(brahms_wcvp_matched$full_name)) # 46920 to start with
-length(unique(brahms_unique_wcvp_matched$full_name)) # 46744 had matches
-length(unique(brahms_wcvp_matched$taxon_name)) # 45768 matched
-length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45808 names in WCVP
+length(unique(brahms_unique_wcvp_matched$full_name)) # 46685 # 46744 had matches
+length(unique(brahms_wcvp_matched$taxon_name)) # 45912 # 45768 matched
+length(unique(brahms_unique_wcvp_matched$taxon_name)) # 45911 # 45808 names in WCVP
 
 
 #proportion matched
 length(unique(brahms_wcvp_matched$taxon_name))/length(unique(brahms_wcvp_matched$full_name))
+# 0.9785166
 
 # how many CR collections are there?
-length(unique(indexes$ACCESSION)) #2348
+length(unique(indexes$ACCESSION)) # 2351 #2348
 
 # how many have been germination tested
 indexes$LASTTEST = as.Date(indexes$LASTTEST, format =  "%d/%m/%Y")
-length(which(!is.na(indexes$LASTTEST))) #321
-length(which(!is.na(indexes$LASTTEST)))/length(unique(indexes$ACCESSION)) # 0.1367121
+length(which(!is.na(indexes$LASTTEST))) # 323 #321
+length(which(!is.na(indexes$LASTTEST)))/length(unique(indexes$ACCESSION)) # 0.1373883 #0.1367121
 
 # how many have >75% germination
 length(which(indexes$BESTEVER >= 75)) # 212
 # % total >75%
-length(which(indexes$BESTEVER >= 75))/length(unique(indexes$ACCESSION)) # 0.09028961
+length(which(indexes$BESTEVER >= 75))/length(unique(indexes$ACCESSION)) # 0.09017439 #0.09028961
 # % tested >75%
-length(which(indexes$BESTEVER >= 75))/length(which(!is.na(indexes$LASTTEST))) # 0.6604361
+length(which(indexes$BESTEVER >= 75))/length(which(!is.na(indexes$LASTTEST))) # 0.6563467 # 0.6604361
 
 #how many have 100% germination
 length(which(indexes$BESTEVER == 100)) # 116
 
 #remaining that have not yet been tested
-length(unique(indexes$ACCESSION)) - length(which(indexes$BESTEVER < 75)) # 212
+length(unique(indexes$ACCESSION)) - length(which(indexes$BESTEVER < 75)) # 211 # 212
 
 summary(indexes$BESTEVER[which(indexes$BESTEVER < 75 & !is.na(indexes$LASTTEST))])
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-# 0.00    0.00   25.00   27.51   50.00   72.00
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+#  0.00    0.00   26.00   27.92   50.00   72.00
 
 # how many were tested but didn't germinate?
 length(which(indexes$BESTEVER == 0 & !is.na(indexes$LASTTEST))) # 34
@@ -187,12 +188,14 @@ length(unique(iucn_predictions$taxon_name[which(iucn_predictions$category == "CR
 # iucn_CR_predictions = iucn_$taxon_name[which(iucn_predictions$category == "CR")]
 length(unique(iucn_predictions$taxon_name)) # 328553 before matching
 length(unique(iucn_predictions_wcvp_matched$scientificName[which(iucn_predictions$category == "CR")])) # 4812 were matched
-length(unique(iucn_predictions_wcvp_matched$taxon_name[which(iucn_predictions$category == "CR")])) # 4810 to this many new names
-length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WCVP"))) # 4807 this many from WCVP
-length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WFO"))) # 5 from WFO
+length(unique(iucn_predictions_wcvp_matched$taxon_name[which(iucn_predictions$category == "CR")])) # 4812 # 4810 to this many new names
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WCVP"))) # 0 # 4807 this many from WCVP
+length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone[which(iucn_predictions$category == "CR")] == "WFO"))) # 0 # 5 from WFO
+
+#~~~~~~~~~~~~~~~~
 
 length(unique(iucn_predictions_wcvp_matched$scientificName)) # 328498 were matched
-length(unique(iucn_predictions_wcvp_matched$taxon_name)) # 326877 to this many new names
+length(unique(iucn_predictions_wcvp_matched$taxon_name)) # 328484  # 326877 to this many new names
 length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WCVP"))) # 327989 this many from WCVP
 length(unique(which(iucn_predictions_wcvp_matched$taxonomic_backbone == "WFO"))) # 537 from WFO
 
