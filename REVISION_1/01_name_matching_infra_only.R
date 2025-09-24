@@ -5,7 +5,7 @@ library(stringdist)
 library(rWCVP)
 library(WorldFlora)
 # install.packages("rWCVPdata", repos=c("https://matildabrown.github.io/drat", "https://cloud.r-project.org"))
-# wcvp_names <- rWCVPdata::wcvp_names
+
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
 
@@ -24,13 +24,10 @@ fuzzy_match <- function(str1, str2) {
 # wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
 #                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-
 wcvp <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_names.csv" ),
                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-
-# wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ),
-#                              sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+wcvp_names <- rWCVPdata::wcvp_names
 
 # WFO.download(WFO.url =
 #                paste0("https://files.worldfloraonline.org/files/WFO_Backbone/",
@@ -38,7 +35,6 @@ wcvp <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_
 #              save.dir = getwd(), WFO.remember = TRUE,
 #              timeout = 500)
 
-# WFO.remember(WFO.file = NULL, WFO.data = "WFO.data", WFO.pos = 1)
 WFO.remember(WFO.file = paste0(basepath,"WFO_Backbone/classification_v_2023_12.csv"),
              WFO.data = "WFO.data", WFO.pos = 1)
 
@@ -54,14 +50,23 @@ WFO.remember(WFO.file = paste0(basepath,"WFO_Backbone/classification_v_2023_12.c
 
 
 # load brahms data
-brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
+# brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
+# brahms <- read.csv(paste0(basepath,"revision_1/2025-09-23_105316747-BRAHMSOnlineData.csv"))
+brahms <- read.table(paste0(basepath, "revision_1/2025-09-23_105316747-BRAHMSOnlineData.csv" ),
+                     sep = ",", quote = "\"",
+                     dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
+
+# keep only the ones in active use
+brahms <- brahms[which(brahms$TransferToHistory == "False"),]
 
 # remove duplicates
-brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 441 duplicates
+brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 614 duplicates
 
 # extract species
-brahms$species <- gsub("^(\\S+ \\S+).*", "\\1", brahms$Taxon) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
+brahms$species <- gsub("^([A-Z][a-z]+(?:\\s+×)?\\s+\\w+).*", "\\1", brahms$Taxon) #gsub("^(\\S+ \\S+).*", "\\1", brahms$Taxon) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
 brahms$species <- trimws(brahms$species)
+
 
 # extract subspecies
 subspecies_match <- regexpr("subsp\\. \\w+", brahms$Taxon)
@@ -85,21 +90,6 @@ brahms$author <- trimws(brahms$author)
 brahms$full_name = trimws(paste(brahms$species,brahms$subspecies,brahms$var))
 brahms$full_name = gsub("\\s+"," ",brahms$full_name)
 
-
-# now count adjusted seeds per species
-# spp_count = brahms %>%
-#   group_by(subspecies_name,author,CountryName,AdjustedSeedQuantity) %>%
-#   tally() %>%
-#   mutate(summed_count = sum(AdjustedSeedQuantity),
-#          count = n()) %>%
-#   ungroup()
-# spp_count = spp_count[, c("subspecies_name","author", "CountryName","count", "summed_count")]
-# spp_count =spp_count %>% distinct()
-# # spp_count = spp_count[duplicated(spp_count$subspecies_name)==FALSE,]
-# spp_count$CR = ifelse(spp_count$subspecies_name %in% iucn$scientificName,1,0)
-# spp_country_count = spp_count
-
-
 # create summary table where adjusted seed counts per species are added together
 spp_count = brahms %>%
   group_by(full_name,species,author,AdjustedSeedQuantity) %>%
@@ -109,7 +99,6 @@ spp_count = brahms %>%
   ungroup()
 spp_count = spp_count[, c("full_name","species","author", "accessions", "summed_count")]
 spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
-# spp_count$CR = ifelse(spp_count$full_name %in% iucn$scientificName,1,0)
 
 
 ###### NAME MATCHING ###########################################################
@@ -121,23 +110,26 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 ###       homotypic synonym.
 
 
-
-# This bit of code dates 30 minutes to run, and is therefore saved to avoid rerun
-# MSB species
+# # This bit of code dates 30 minutes to run, and is therefore saved to avoid rerun
+# # MSB species
 # MSB_wcvp = wcvp_match_names(spp_count, wcvp,
 #                  name_col = "full_name",
 #                  author_col = "author")
-# MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+# MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
 # write.csv(MSB_wcvp, paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"), row.names = F)
-MSB_wcvp = read.csv(paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"))
+# MSB_wcvp = read.csv(paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"))
+MSB_wcvp = read.table(paste0(basepath, "revision_1/MSB_unique_wcvp_full_name.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 
 # Put the data in test to avoid overwriting for time being...
 test = MSB_wcvp
 test$duplicated = test$full_name %in% unique(test$full_name[ duplicated(test$full_name)])
 test$accepted_name = test$wcvp_status == "Accepted"
-test$names_match = apply(test, 1, function(row) fuzzy_match(row["full_name"], row["taxon_name"]))#test$species == test$taxon_name
+test$names_match = apply(test, 1, function(row) fuzzy_match(row["full_name"], row["taxon_name"])) # test$species == test$taxon_name
 test$keep = ifelse(test$duplicated,0,1)
 test$keep = ifelse(test$accepted_name & test$names_match & test$duplicated, 1, test$keep)
 
@@ -219,69 +211,7 @@ for (du in dupl_nam){
   }
 }
 
-
-
-#################################################################
-# some subspecies and variety names are not recognised - use the species name instead and rerun rWCVP
-###################################################################
-# # # find names that didn't match and associate them with the author
-# subset = data.frame(test[test$full_name %in% problematic,])
-# subset$diff_name = ifelse(subset$full_name != subset$species, T, F)
-# subset = subset[which(subset$diff_name == T),]
-# species_match = unique(subset$full_name)
-#
-# # # Find them on wcvp
-# # for (nami in species_match){
-# #   print(nami)
-# #   temp = test[test$full_name == nami,]
-# #   temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-# #                            name_col = "species")
-# #   temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-# #                               by=c("wcvp_accepted_id" = "plant_name_id"))
-# #   i=1
-# #   if (nrow(temp2)>1){
-# #     i= which(temp2$wcvp_status == "Accepted")
-# #   }
-# #   test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-# #   test$keep[which(test$full_name == nami)[1]] = 1
-# #   # KD
-# #   test$wcvp_status[which(test$full_name == nami)[1]] = "Accepted Species Level"
-# # }
-# # test$species[which(test$wcvp_status == "Accepted Species Level")]
-# # test$full_name[which(test$wcvp_status == "Accepted Species Level")]
-#
-#
-# # the remaining species are species that have been split,
-# # use the country they were collected  to assign the sub species
-# # problematic = problematic[!(problematic %in% unique(subset$full_name))]
-# # problematic
-#
-# # there are some species that were not duplicated, but that didn't find a match
-# species_match = c(species_match, test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name])
-
-# # go through the process again of selecting the accepted name and synonym
-# for (nami in test$full_name[is.na(test$taxon_name) & test$duplicated==F & test$species != test$full_name]){
-#   print(nami)
-#   tryCatch({
-#     temp = test[which(test$full_name == nami),]
-#     temp2 = wcvp_match_names(temp[1,1:5], wcvp,
-#                              name_col = "full_name")
-#     temp2 = temp2 %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-#     i=1
-#     if (nrow(temp2)>1){
-#       i = which(temp2$wcvp_status == "Accepted")
-#       if (length(i) == 0) i = which(temp2$wcvp_status == "Synonym")
-#     }
-#     test[which(test$full_name == nami)[1],colnames(temp2)] = temp2[i, ]
-#     test$keep[which(test$full_name == nami)[1]] = 1
-#   }, error = function(e) {
-#     cat("Error occurred for", nami, ":", conditionMessage(e), "\n")
-#   })
-# }
-#
-
-
+# upddate the problematic speciees
 problematic = c(problematic, test$full_name[test$duplicated==F & test$keep == 1 & is.na(test$taxon_name)])
 
 # add species that were to fuzzily matched (less than 0.9) as problematic and check WFO
@@ -311,44 +241,38 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
                           by=c("family" = "family"))
 
 
-# now check them out on WFO
+#### now check them out on WFO #####################
 match = test[test$full_name %in% problematic,]
 
 data.frame(match[,c("full_name","author")])
 
-pb_sp = WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","author")]),#match,
-                              WFO.data=WFO.data,
-                              spec.name = "full_name",
-                              Authorship = "author",
-                              counter=1, verbose=TRUE)
-write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"), row.names = F)
-pb_sp = read.csv(paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
+# pb_sp = WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","author")]),#match,
+#                               WFO.data = WFO.data,
+#                               spec.name = "full_name",
+#                               Authorship = "author",
+#                               counter=1, verbose=TRUE)
+# write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"), row.names = F)
+# # pb_sp = read.csv(paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
+pb_sp = read.table(paste0(basepath, "revision_1/brahms_wfo_matched.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 
 wfo_match = c()
 
-
-# View(pb_sp[,c("full_name", "scientificName", "author", "scientificNameAuthorship",
-#               "taxonomicStatus","Matched", "Fuzzy", "Fuzzy.toomany",
-#               "Fuzzy.two", "Fuzzy.one", "Fuzzy.dist", "Auth.dist")])
-# pb_sp[which(pb_sp$Fuzzy.dist <3),]
-
+# add in the ones with no distance
 pb_sp$Fuzzy.dist[is.na(pb_sp$Fuzzy.dist)] <- 0
+
+
+### Loop over the species the WCVP didn't name match and see if WFO did
 
 for(problem in problematic){
   print(problem)
   # problem = "Abies nordmanniana subsp. equi"
-  # problem = "Aconitum nasutum"
-  # problem = "Acacia elongata var. elongata"
-  # problem = "Xanthoselinum alsaticum subsp. alsaticum"
-  # test[test$scientificName %in% problem,]
   sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
-  #--------------------
-  # # if it's a species
-  # if (sapply(gregexpr("[[:alpha:]]+", problem), function(x) sum(x > 0)) == 2){
-  #
-  #   #if the matched name is that of a species
+  #if the matched name is that of a species
   if(any(sp$taxonRank %in% c("species", "subspecies", "variety") & !is.na(sp$taxonRank))){
 
     # to_add = test[test$scientificName %in% problem,][1,]
@@ -374,6 +298,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -410,6 +335,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -431,10 +357,7 @@ for(problem in problematic){
 
     }
     print("no match")
-
   } # if it was not matched
-
-
 }
 
 
@@ -442,25 +365,14 @@ problematic = problematic[!(problematic %in% wfo_match)]
 test$match_logic[test$full_name %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
-length(obvious) # 1551
+length(obvious) # 1486
 length(accepted) # 1
 length(split) # 0
 length(synonym) # 0
 length(homotypic) # 0
 length(diff_author) # 0
-length(wfo_match) # 322 #539
-length(problematic) # 462 #219
-
-# subset = data.frame(test[test$subspecies_name %in% problematic,])
-# for (nami in unique(subset$subspecies_name)){
-#   temp = data.frame(test[test$subspecies_name == nami,])
-#   if (any(temp$accepted_name == "Accepted")){
-#   # find the countries the species is collected from in Brahms
-#   countries = brahms[brahms$subspecies_name == nami, "CountryName"]
-#   spp_codes = subset$wcvp_accepted_id[subset$subspecies_name ==  nami]
-#   wcvp_geo = wcvp_countries[wcvp_countries$plant_name_id %in% spp_codes,]
-#   }
-# }
+length(wfo_match) # 352
+length(problematic) # 591
 
 ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
 
@@ -472,17 +384,23 @@ write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_
 
 ###################################################################################################################
 ###################################################################################################################
-
-###################################################################################
+###################################################################################################################
 #         IUCN
-###################################################################################
+###################################################################################################################
 
 ### Now do the same for the IUCN data. Note that
 
 # load IUCN
-iucn <- read.csv(paste0(basepath, "revision_1/redlist_2025-1_downloaded_17_09_2025/assessments.csv" ))
+# iucn <- read.csv(paste0(basepath, "revision_1/redlist_2025-1_downloaded_17_09_2025/assessments.csv" ))
+iucn <-read.table(paste0(basepath, "revision_1/redlist_2025-1_downloaded_17_09_2025/assessments.csv" ),
+                  sep = ",", quote = "\"",
+                  dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 length(iucn$scientificName) #6520 #5702
 iucn_taxonomy <- read.csv(paste0(basepath, "redlist/taxonomy_fixed.csv" ))
+# iucn_taxonomy <- read.table(paste0(basepath, "revision_1/redlist_2025-1_downloaded_17_09_2025/taxonomy.csv" ),
+#                             sep = ",", quote = "\"",
+#                             dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 iucn <- iucn %>% left_join(iucn_taxonomy[,c("internalTaxonId","authority")],
                            by = "internalTaxonId")
@@ -493,11 +411,13 @@ iucn <- iucn %>% left_join(iucn_taxonomy[,c("internalTaxonId","authority")],
 #                  name_col = "scientificName",
 #                  id_col = "assessmentId",
 #                  author_col = "authority")
-# iucn_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+# iucn_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 # write.csv(iucn_wcvp, paste0(basepath,"revision_1/iucn_wcvp.csv"), row.names = F)
-iucn_wcvp = read.csv(paste0(basepath,"revision_1/iucn_wcvp.csv"))
-
+#iucn_wcvp = read.csv(paste0(basepath,"revision_1/iucn_wcvp.csv"))
+iucn_wcvp <- read.table(paste0(basepath, "revision_1/iucn_wcvp.csv" ),
+                        sep = ",", quote = "\"",
+                        dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 # Put the data in test to avoid overwriting for time being...
 test <- iucn_wcvp
@@ -608,14 +528,18 @@ match = test[which(test$scientificName %in% problematic),]
 
 match$full_name = match$scientificName
 
-# pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
-pb_sp <- WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","authority")]),
-                               WFO.data = WFO.data,
-                               spec.name = "full_name",
-                               Authorship = "authority",
-                               counter=1, verbose=TRUE)
+# pb_sp <- WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","authority")]),
+#                                WFO.data = WFO.data,
+#                                spec.name = "full_name",
+#                                Authorship = "authority",
+#                                counter=1, verbose=TRUE)
 # write.csv(pb_sp, paste0(basepath, "revision_1/iucn_wfo_matched.csv"))#, row_names=F)
-pb_sp = read.csv(paste0(basepath, "revision_1/iucn_wfo_matched.csv"))
+
+# #pb_sp = read.csv(paste0(basepath, "revision_1/iucn_wfo_matched.csv"))
+pb_sp = read.table(paste0(basepath, "revision_1/iucn_wfo_matched.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 
 wfo_match = c()
 
@@ -654,6 +578,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -691,6 +616,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -736,21 +662,32 @@ length(unique(iucn_wcvp_matched$scientificName))-length(unique(iucn_wcvp$scienti
 write.csv(iucn_wcvp_matched, paste0(basepath, "revision_1/iucn_wcvp_matched.csv"), row.names = F)
 
 
-
-
-###################################################################################
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
 #         EXCEPTIONAL  SPECIES
-###################################################################################
-exceptional <- read.csv(paste0(basepath, "revision_1/list_exceptional_status_18_09_2025.csv"))#pence_appendix1.csv"))
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
+
+
+# exceptional <- read.csv(paste0(basepath, "revision_1/list_exceptional_status_18_09_2025.csv"))#pence_appendix1.csv"))
+exceptional <- read.table(paste0(basepath, "revision_1/list_exceptional_status_18_09_2025.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 length(exceptional)
 
+# 20 minutes
 # exceptional_wcvp = wcvp_match_names(exceptional, wcvp,
 #                                     name_col = "Species.name")
-# exceptional_wcvp = exceptional_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+# exceptional_wcvp = exceptional_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 # write.csv(exceptional_wcvp, paste0(basepath,"revision_1/exceptional_wcvp.csv"), row.names = F)
-exceptional_wcvp = read.csv(paste0(basepath,"revision_1/exceptional_wcvp.csv"))
-#~~~~~~~~~**************~~~~~~~~~~~~************~~~~~~~~~~~~~~~~~****************
+#exceptional_wcvp = read.csv(paste0(basepath,"revision_1/exceptional_wcvp.csv"))
+exceptional_wcvp <- read.table(paste0(basepath, "revision_1/exceptional_wcvp.csv" ),
+                               sep = ",", quote = "\"",
+                               dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 
 # Put the data in test to avoid overwriting for time being...
 test = exceptional_wcvp
@@ -861,16 +798,16 @@ match$full_name <- match$Species.name
 
 
 pb_sp <- WorldFlora::WFO.match(spec.data = match[,c("full_name")],
-                              WFO.data=WFO.data,
+                              WFO.data = WFO.data,
                               spec.name = "full_name",
                               counter=1, verbose=TRUE)
-# pb_sp = WorldFlora::WFO.match(spec.data = match[,c("Species.name","author")],
-#                               WFO.data=WFO.data,
-#                               spec.name = "Species.name",
-#                               Authorship = "author",
-#                               counter=1, verbose=TRUE)
 write.csv(pb_sp, paste0(basepath, "revision_1/exceptional_wfo_matched.csv"), row.names = F)
-pb_sp = read.csv(paste0(basepath, "revision_1/exceptional_wfo_matched.csv"))
+# #pb_sp = read.csv(paste0(basepath, "revision_1/exceptional_wfo_matched.csv"))
+pb_sp <- read.table(paste0(basepath, "revision_1/exceptional_wfo_matched.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
+
 
 wfo_match = c()
 
@@ -908,6 +845,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -945,6 +883,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -990,8 +929,10 @@ exceptional_wcvp_matched = test[test$keep == 1,]
 # length differs from problematic because the author difference cannot be used
 length(unique(exceptional_wcvp_matched$Species.name))-length(unique(exceptional_wcvp$Species.name))
 write.csv(exceptional_wcvp_matched, paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"), row.names = F)
-exceptional_wcvp_matched = read.csv(paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"))
-
+# #exceptional_wcvp_matched = read.csv(paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"))
+exceptional_wcvp_matched = read.table(paste0(basepath, "revision_1/exceptional_wcvp_matched.csv" ),
+                                      sep = ",", quote = "\"",
+                                      dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 ########
 # find the duplicated
@@ -1044,11 +985,21 @@ write.csv(exceptional_wcvp_matched, paste0(basepath,"revision_1/exceptional_uniq
 
 
 
-#############################################################################
-### IUCN PREDICTIONS
-##############################################################################
 
-iucn_predictions <- read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
+### IUCN PREDICTIONS
+###################################################################################################################
+###################################################################################################################
+
+
+
+# iucn_predictions <- read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
+iucn_predictions <- read.table(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 colnames(iucn_predictions)[which(colnames(iucn_predictions) == "taxon_name")] <- "OldScientificName"
 length(iucn_predictions$OldScientificName) # 328565
 # add the name and author based on WCVP
@@ -1075,26 +1026,20 @@ match_data <- match_data[which(!duplicated(match_data$full_name)),]
 #                                           id_col = "X",
 #                                           author_col = "author_name")
 #
-# iucn_predictions_wcvp = iucn_predictions_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
+# iucn_predictions_wcvp = iucn_predictions_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
 #
 # # add in the old data that was lost
-# # str(iucn_predictions$plant_name_id)
-# # str(iucn_predictions_wcvp$plant_name_id)
 # iucn_predictions_wcvp <- iucn_predictions_wcvp %>% left_join(iucn_predictions[,c("X","OldScientificName",
 #                                          #"full_name","author_name",
 #                                          "old_plant_name_id")], by = "X")
 #
 #
-# # # iucn_predictions_wcvp = iucn_predictions %>% left_join(wcvp[,c("ipni_id","taxon_name", "taxon_authors",
-# # #                                                                "family", "genus")],
-# # #                                                        by="ipni_id")
-# #                                                             #                                                 by=c("wcvp_accepted_id" = "plant_name_id"))
-# #
 # write.csv(iucn_predictions_wcvp, paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"), row.names = F)
-
-iucn_predictions_wcvp <- read.csv(paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
-
+# #iucn_predictions_wcvp <- read.csv(paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
+iucn_predictions_wcvp <- read.table(paste0(basepath, "revision_1/iucn_predictions_wcvp.csv" ),
+                                    sep = ",", quote = "\"",
+                                    dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 
 
@@ -1202,9 +1147,8 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 # now check them out on WFO
 match = test[test$full_name %in% problematic,]
 colnames(match)
-# match$full_name <- match$full_name
 
-# pb_sp = WorldFlora::WFO.match(spec.data = match$full_name, WFO.data=WFO.data, counter=1, verbose=TRUE)
+
 # pb_sp = WorldFlora::WFO.match(spec.data = data.frame(match[, c("full_name","author_name")]),
 #                               WFO.data = WFO.data,
 #                               spec.name = "full_name",
@@ -1212,8 +1156,10 @@ colnames(match)
 #                               counter=1, verbose=TRUE)
 #
 # write.csv(pb_sp, paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"), row.names = F)
-pb_sp =read.csv(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
-
+# #pb_sp =read.csv(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
+pb_sp <- read.table(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv" ),
+                                    sep = ",", quote = "\"",
+                                    dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 wfo_match = c()
 
 pb_sp$Fuzzy.dist[is.na(pb_sp$Fuzzy.dist)] <- 0
@@ -1250,6 +1196,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -1287,6 +1234,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -1331,18 +1279,30 @@ iucn_predictions_wcvp_matched = test[test$keep == 1,]
 length(unique(iucn_predictions_wcvp_matched$full_name))-length(unique(iucn_predictions_wcvp$full_name))
 write.csv(iucn_predictions_wcvp, paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"), row.names = F)
 
-##########################################################################################
-##############           IUCN BRAHMS                        ##############################
-##########################################################################################
+
+
+
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
+##############           IUCN BRAHMS
+###################################################################################################################
+###################################################################################################################
+
+
+
 
 # NAME MATCH THE DATA NAOMI SENT
-iucn_brahms = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+# iucn_brahms = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+iucn_brahms <- read.table(paste0(basepath, "IUCN_seedsampling_info.csv" ),
+                          sep = ",", quote = "\"",
+                          dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 # remove duplicates
 iucn_brahms <- iucn_brahms[duplicated(iucn_brahms$ACCESSION)==FALSE,] # removes 441 duplicates
 
 # extract species
-iucn_brahms$species <- gsub("^(\\S+ \\S+).*", "\\1", iucn_brahms$SPECIES) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
+iucn_brahms$species <- gsub("^([A-Z][a-z]+(?:\\s+×)?\\s+\\w+).*", "\\1", iucn_brahms$SPECIES) #gsub("^(\\S+ \\S+).*", "\\1", iucn_brahms$SPECIES) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
 iucn_brahms$species <- trimws(iucn_brahms$species)
 
 # extract subspecies
@@ -1366,20 +1326,6 @@ iucn_brahms$author <- trimws(iucn_brahms$author)
 # edit code to include var and other if needed
 iucn_brahms$full_name = trimws(paste(iucn_brahms$species,iucn_brahms$subspecies,iucn_brahms$var))
 iucn_brahms$full_name = gsub("\\s+"," ",iucn_brahms$full_name)
-
-
-# now count adjusted seeds per species
-# spp_count = brahms %>%
-#   group_by(subspecies_name,author,CountryName,AdjustedSeedQuantity) %>%
-#   tally() %>%
-#   mutate(summed_count = sum(AdjustedSeedQuantity),
-#          count = n()) %>%
-#   ungroup()
-# spp_count = spp_count[, c("subspecies_name","author", "CountryName","count", "summed_count")]
-# spp_count =spp_count %>% distinct()
-# # spp_count = spp_count[duplicated(spp_count$subspecies_name)==FALSE,]
-# spp_count$CR = ifelse(spp_count$subspecies_name %in% iucn$scientificName,1,0)
-# spp_country_count = spp_count
 
 
 # create summary table where adjusted seed counts per species are added together
@@ -1406,14 +1352,18 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 
 # This bit of code dates 30 minutes to run, and is therefore saved to avoid rerun
 # MSB species
-# iucn_MSB_wcvp = wcvp_match_names(spp_count, wcvp,
-#                  name_col = "full_name",
-#                  author_col = "author")
-# iucn_MSB_wcvp = iucn_MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                            by=c("wcvp_accepted_id" = "plant_name_id"))
-#
-# write.csv(iucn_MSB_wcvp, paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"), row.names = F)
-iucn_MSB_wcvp = read.csv(paste0(basepath,"iucn_MSB_unique_wcvp_full_name.csv"))
+iucn_MSB_wcvp = wcvp_match_names(spp_count, wcvp,
+                 name_col = "full_name",
+                 author_col = "author")
+iucn_MSB_wcvp = iucn_MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
+                           by=c("wcvp_accepted_id" = "plant_name_id"))
+
+write.csv(iucn_MSB_wcvp, paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"), row.names = F)
+# #iucn_MSB_wcvp <- read.csv(paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"))
+iucn_MSB_wcvp <- read.table(paste0(basepath, "revision_1/iucn_MSB_unique_wcvp_full_name.csv" ),
+                            sep = ",", quote = "\"",
+                            dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 
 # Put the data in test to avoid overwriting for time being...
 test = iucn_MSB_wcvp
@@ -1520,13 +1470,15 @@ test = test %>% left_join(rWCVP::taxonomic_mapping,
 match = test[test$full_name %in% problematic,]
 
 pb_sp = WorldFlora::WFO.match(spec.data = data.frame(match[,c("full_name","author")]), #match,
-                              WFO.data=WFO.data,
+                              WFO.data = WFO.data,
                               spec.name = "full_name",
                               Authorship = "author",
                               counter=1, verbose=TRUE)
 write.csv(pb_sp, paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"), row.names = F)
-pb_sp = read.csv(paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"))
-
+# #pb_sp <- read.csv(paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"))
+pb_sp <- read.table(paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv" ),
+          sep = ",", quote = "\"",
+          dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 wfo_match = c()
 
@@ -1572,6 +1524,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -1609,6 +1562,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -1642,8 +1596,8 @@ length(split) # 0
 length(synonym) # 0
 length(homotypic) # 0
 length(diff_author) # 0
-length(wfo_match) # 2
-length(problematic) # 1
+length(wfo_match) # 3
+length(problematic) # 3
 
 
 
@@ -1658,19 +1612,28 @@ write.csv(iucn_brahms_wcvp_matched, paste0(basepath, "revision_1/iucn_brahms_wcv
 
 
 
-##########################################################################################
-##############          HAWAII/BRYO/LYCO/FERN               ##############################
-##########################################################################################
+
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
+##############          HAWAII/BRYO/LYCO/FERN
+###################################################################################################################
+###################################################################################################################
+###################################################################################################################
+
 
 
 # NAME MATCH THE DATA NAOMI SENT
-extras = read.csv(paste0(basepath,"CR_hawaii_bryo_lyco_fern.csv"))
+# extras = extras = read.csv(paste0(basepath,"CR_hawaii_bryo_lyco_fern.csv"))
+extras = read.table(paste0(basepath, "CR_hawaii_bryo_lyco_fern.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 # remove duplicates
 extras <- extras[duplicated(extras$species_name_IUCN)==FALSE,] # removes 7 duplicates
 
 # extract species
-extras$species <- gsub("^(\\S+ \\S+).*", "\\1", extras$species_name_IUCN) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
+extras$species <- gsub("^([A-Z][a-z]+(?:\\s+×)?\\s+\\w+).*", "\\1", extras$species_name_IUCN) # gsub("^(\\S+ \\S+).*", "\\1", extras$species_name_IUCN) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
 extras$species <- trimws(extras$species)
 
 # extract subspecies
@@ -1683,6 +1646,7 @@ variety_match <- regexpr("var\\. \\w+", extras$species_name_IUCN)
 extras$var <- substring(extras$species_name_IUCN, variety_match,
                         variety_match + attr(variety_match, "match.length") - 1)
 
+
 # now save the rest of the string as the author name
 # Remove species and subspecies information to get author
 # extras$author <- gsub("^(\\S+ \\S+)", "", extras$species_name_IUCN) # gsub("^(\\w+ \\w+)", "", brahms$Taxon)  # Remove species
@@ -1691,10 +1655,10 @@ extras$var <- substring(extras$species_name_IUCN, variety_match,
 # extras$author <- trimws(extras$author)
 # # brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
 
+
 # edit code to include var and other if needed
 extras$full_name = trimws(paste(extras$species,extras$subspecies,extras$var))
 extras$full_name = gsub("\\s+"," ",extras$full_name)
-
 
 
 ###### NAME MATCHING ###########################################################
@@ -1709,13 +1673,16 @@ extras$full_name = gsub("\\s+"," ",extras$full_name)
 
 # This bit of code dates 5 minutes to run, and is therefore saved to avoid rerun
 # MSB species
-# extras_wcvp = wcvp_match_names(extras, wcvp,
-#                  name_col = "full_name")
-# extras_wcvp = extras_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name")],
-#                            by=c("wcvp_accepted_id" = "plant_name_id"))
-#
-# write.csv(extras_wcvp, paste0(basepath,"extras_wcvp_full_name.csv"), row.names = F)
-extras_wcvp = read.csv(paste0(basepath,"extras_wcvp_full_name.csv"))
+extras_wcvp = wcvp_match_names(extras, wcvp,
+                 name_col = "full_name")
+extras_wcvp = extras_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
+                           by=c("wcvp_accepted_id" = "plant_name_id"))
+
+write.csv(extras_wcvp, paste0(basepath,"revision_1/extras_wcvp_full_name.csv"), row.names = F)
+# #extras_wcvp = read.csv(paste0(basepath,"extras_wcvp_full_name.csv"))
+extras_wcvp = read.table(paste0(basepath, "revision_1/extras_wcvp_full_name.csv" ),
+           sep = ",", quote = "\"",
+           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 # Put the data in test to avoid overwriting for time being...
 test = extras_wcvp
@@ -1823,13 +1790,16 @@ match = test[which(test$full_name %in% problematic),]
 # pb_sp = WorldFlora::WFO.match(spec.data = match$scientificName, WFO.data=WFO.data, counter=1, verbose=TRUE)
 
 pb_sp = WorldFlora::WFO.match(spec.data = match$full_name,
-                              WFO.data=WFO.data,
+                              WFO.data = WFO.data,
                               # spec.name = "full_name",
                               # Authorship = "author",
                               counter=1, verbose=TRUE)
 
 write.csv(pb_sp, paste0(basepath, "revision_1/extras_wfo_matched.csv"), row.names = F)
-pb_sp =read.csv(paste0(basepath, "revision_1/extras_wfo_matched.csv"))
+# #pb_sp =read.csv(paste0(basepath, "revision_1/extras_wfo_matched.csv"))
+pb_sp <- read.table(paste0(basepath, "revision_1/extras_wfo_matched.csv" ),
+                         sep = ",", quote = "\"",
+                         dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 wfo_match = c()
 pb_sp$Fuzzy.dist[is.na(pb_sp$Fuzzy.dist)] <- 0
@@ -1837,7 +1807,7 @@ pb_sp$Fuzzy.dist[is.na(pb_sp$Fuzzy.dist)] <- 0
 for(problem in problematic){
   print(problem)
   # test[test$scientificName %in% problem,]
-  sp = pb_sp[pb_sp$full_name.ORIG %in% problem,]
+  sp = pb_sp[pb_sp$spec.name.ORIG %in% problem,]
   sp = sp[which(!duplicated(sp$scientificNameID)),]
 
   # if(any(sp$taxonRank == "species" & !is.na(sp$taxonRank))){
@@ -1866,6 +1836,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "accepted"
@@ -1903,6 +1874,7 @@ for(problem in problematic){
         to_add$wcvp_ipni_id = sp$scientificNameID[i]
         to_add$wcvp_accepted_id = sp$parentNameUsageID[i]
         to_add$taxon_name  = sp$scientificName[i] # sp[i,18]
+        to_add$taxon_authors  = sp$scientificNameAuthorship[i]
         to_add$duplicated = ifelse(length(sp$taxonomicStatus== "Accepted"),TRUE,FALSE)
         to_add$accepted_name = TRUE
         to_add$match_logic = "name_split"
@@ -1930,15 +1902,14 @@ problematic = problematic[!(problematic %in% wfo_match)]
 test$match_logic[test$scientificName %in% problematic] = "unmatched" #find closest author name (sometimes there are additional parentheses and dots)
 
 # see how many species were matched to different categories
-length(obvious) # 35
+length(obvious) # 37
 length(accepted) # 0
 length(split) # 0
-length(synonym) # 5
+length(synonym) # 6
 length(homotypic) # 0
 length(diff_author) # 0
-length(wfo_match) # 0
-length(problematic) # 57
-
+length(wfo_match) # 54
+length(problematic) # 13
 
 
 ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
