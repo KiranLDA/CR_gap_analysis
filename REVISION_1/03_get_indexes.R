@@ -8,100 +8,48 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 ###### Find the CR species in the dataset ##################################################################
-wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
+
+wcvp <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_names.csv" ),
                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-wcvp$plant_name_id <- as.character(wcvp$plant_name_id)
+# wcvp$plant_name_id <- as.character(wcvp$plant_name_id)
 
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
+wcvp_countries <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
-# #load data from previous session
-#
-# #iucn redlist data
-iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
+# load data from previous session ##########################################
+
+# iucn redlist data
 iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"))
-#
-# View(iucn_wcvp_matched[which(iucn_wcvp_matched$match_type == "Fuzzy (edit distance)"),
-#                        c("scientificName","taxon_name","match_similarity", "match_edit_distance","keep",
-#                          "match_logic", "taxonomic_backbone", "wcvp_rank","wcvp_status",
-#                          "wcvp_homotypic")])
-
-
-# get rid of subspecies and varieties that could not be matched except at species level
-# cbind(iucn_wcvp_matched$scientificName[which(stringr::str_count(iucn_wcvp_matched$scientificName, "\\w+") >2)],
-#       iucn_wcvp_matched$taxon_name[which(stringr::str_count(iucn_wcvp_matched$scientificName, "\\w+") >2)])
-# cbind(iucn_wcvp_matched$scientificName[which(stringr::str_count(iucn_wcvp_matched$taxon_name, "\\w+") >3)],
-#       iucn_wcvp_matched$taxon_name[which(stringr::str_count(iucn_wcvp_matched$taxon_name, "\\w+") >3)])
-
-
-# # the MSB data
-# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
-
-# # get rid of subspecies and varieties that could not be matched except at species level
-# cbind(brahms_wcvp_matched$full_name[which((stringr::str_count(brahms_wcvp_matched$full_name, "\\w+") > 2) &
-#                                             (stringr::str_count(brahms_wcvp_matched$taxon_name, "\\w+") == 2))],
-#       brahms_wcvp_matched$taxon_name[which((stringr::str_count(brahms_wcvp_matched$full_name, "\\w+") > 2) &
-#                                              (stringr::str_count(brahms_wcvp_matched$taxon_name, "\\w+") == 2))])
-
-# brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
-#
-# # the exceptional species )recalcitrant
-# exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
-# exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_unique_wcvp_matched.csv"))
-#
-# # species with their IUCN predictions
-# iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
-# iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
-# iucn_CR_predictions = iucn_predictions[which(iucn_predictions$category == "CR"),]
-# iucn_CR_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]# keep only the CR ones
-# iucn_CR_predictions_wcvp_matched = iucn_CR_predictions_wcvp_matched[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in% iucn_wcvp_matched$taxon_name)),]# keep only the ones that aren't already in IUCN
-# iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$wcvp_ipni_id %in%
-#                                                       iucn_wcvp_matched$wcvp_ipni_id))]
-# iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_matched$taxon_name %in%
-#                                                       iucn_wcvp_matched$taxon_name))]
-#
-# # wcvp data
-# wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-# wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-#
-# # combined IUCN data with banked and unbanked and CR categories
-# iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-
-
 
 seed_data_to_add_1 <- read.csv(paste0(basepath, "seedcounts_2024-05-28.csv"))
 seed_data_to_add_1 = seed_data_to_add_1[!(duplicated(seed_data_to_add_1$AccessionNumber)),]
 
-# seed_data_to_add_2 <- read.csv(paste0(basepath, "seedcounts2_2024-05-28.csv"))
-# seed_data_to_add_2 = seed_data_to_add_2[!(duplicated(seed_data_to_add_2$AccessionNumber)),]
-#
-#
-#
-# # germination test data
-# germination <- read.csv(paste0(basepath, "germination_test_2024-05-28.csv"))
-#
-# # Banked IUCN
-# iucn_banked <- iucn_banked_recalitrance[which(iucn_banked_recalitrance$category == "banked"),]
-# iucn_banked$taxon_name
 
 # get the tdwg to country mapping
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping_multicountry.csv"))
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 
-# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Turks\xa0and\xa0Caicos\xa0Islands"] = "Turks and Caicos Islands"
-# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Northern\xa0Mariana\xa0Islands"] = "Northern Mariana Islands"
-# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Falkland\xa0Islands"] = "Falkland Islands"
-# tdwg3_countries$COUNTRY[tdwg3_countries$COUNTRY ==  "Cayman\xa0Islands"] ="Cayman Islands"
-#
-# write.csv(tdwg3_countries, paste0(basepath, "country_tdwg3_mapping.csv"), row.names = FALSE)
-
 # ####################################################################
 
 # get the brahms data
-site_counts = read.csv(paste0(basepath,"revision_1/iucn_brahms_wcvp_matched_full_name.csv"))#iucn_brahms_wcvp_orthodoxy.csv"))#"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
+# !!!!!
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"))
+CR_CRpred_names = read.csv(paste0(basepath,"revision_1/spp_banked_recalcitrant.csv"))
+CR_CRpred_brahms = brahms_wcvp_matched[which(brahms_wcvp_matched$wcvp_accepted_id  %in% CR_CRpred_names$wcvp_accepted_id ),]
+
+
+# offline_CR = read.csv(paste0(basepath,"revision_1/iucn_brahms_wcvp_matched_full_name.csv"))
+offline_CR = read.csv(paste0(basepath,"revision_1/Offline_list_25-09-2025_at_12-20-58_reformatted.csv"))
+CR_CRpred_brahms_w_offline = CR_CRpred_brahms %>% left_join(offline_CR,
+                                                  by=c("AccessionNumber" = "ACCESSION_"))
+
+
+
+site_counts =
+
+site_counts = read.csv(paste0(basepath,"revision_1/spp_banked_recalcitrant.csv")) # "revision_1/iucn_brahms_wcvp_matched_full_name.csv"))#iucn_brahms_wcvp_orthodoxy.csv"))#"iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
 site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
 
-# remove thos that aren't in activate use
+# remove those that aren't in activate use
 site_counts = site_counts[site_counts$TTH != "*",]
 
 # Combine the earthcape and brahms online (data warehouse) data
@@ -129,10 +77,10 @@ site_counts = site_counts %>% left_join(cultivated[,c("AccessionNumber","Cultiva
 
 site_counts = site_counts[which(!is.na(site_counts$taxon_name)),]
 
-# "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
 
 
 # "ACCESSION", "PLANTTOTAL", "PLANTSAMP", "PCSEED", "PCSAMPLED", "WILDCULT"
+
 
 ################# GET the latest germination test ###################
 

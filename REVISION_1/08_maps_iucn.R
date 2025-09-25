@@ -73,7 +73,7 @@ world <- sf::st_as_sf(world(path="."))
 iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
 brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
 
-wcvp_countries <- read.table(paste0(basepath, "wcvp__2_/wcvp_distribution.csv" ), sep="|",
+wcvp_countries <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_distribution.csv" ), sep="|",
                              header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"

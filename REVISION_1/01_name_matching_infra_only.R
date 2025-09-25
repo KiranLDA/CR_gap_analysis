@@ -17,12 +17,9 @@ fuzzy_match <- function(str1, str2) {
   return(distance < 0.1)  # Adjust threshold as needed
 }
 
-
 ###### LOAD DATA ###############################################################
 
 # Load POWO/wcvp dowloaded from POWO directly
-# wcvp <- read.table(paste0(basepath, "wcvp__2_/wcvp_names.csv" ),
-#                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
 
 wcvp <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_names.csv" ),
                    sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
@@ -50,8 +47,6 @@ WFO.remember(WFO.file = paste0(basepath,"WFO_Backbone/classification_v_2023_12.c
 
 
 # load brahms data
-# brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
-# brahms <- read.csv(paste0(basepath,"revision_1/2025-09-23_105316747-BRAHMSOnlineData.csv"))
 brahms <- read.table(paste0(basepath, "revision_1/2025-09-23_105316747-BRAHMSOnlineData.csv" ),
                      sep = ",", quote = "\"",
                      dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
@@ -1290,16 +1285,18 @@ write.csv(iucn_predictions_wcvp, paste0(basepath, "revision_1/iucn_predictions_w
 ###################################################################################################################
 
 
-
-
 # NAME MATCH THE DATA NAOMI SENT
 # iucn_brahms = read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
-iucn_brahms <- read.table(paste0(basepath, "IUCN_seedsampling_info.csv" ),
+iucn_brahms <- read.table(paste0(basepath, "revision_1/Offline_list_25-09-2025_at_12-20-58_lite.csv" ),
                           sep = ",", quote = "\"",
                           dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
 
 # remove duplicates
-iucn_brahms <- iucn_brahms[duplicated(iucn_brahms$ACCESSION)==FALSE,] # removes 441 duplicates
+iucn_brahms <- iucn_brahms[duplicated(iucn_brahms$ACCESSION)==FALSE,] # removes 2 duplicates
+
+iucn_brahms
+
+# Add species name
 
 # extract species
 iucn_brahms$species <- gsub("^([A-Z][a-z]+(?:\\s+×)?\\s+\\w+).*", "\\1", iucn_brahms$SPECIES) #gsub("^(\\S+ \\S+).*", "\\1", iucn_brahms$SPECIES) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
