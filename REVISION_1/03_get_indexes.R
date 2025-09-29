@@ -37,14 +37,14 @@ world <- sf::st_transform(world, crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 
 
 
 # get the tdwg to country mapping
-tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping_multicountry.csv"))
+tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping_multicountry.csv"), encoding = "UTF-8")
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 
 # ####################################################################
 
 # get the brahms data and see which IUCN ones are in the bank
-brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"))
-iucn_orthodoxy = read.csv(paste0(basepath,"revision_1/spp_banked_recalcitrant.csv"))
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), encoding = "UTF-8")
+iucn_orthodoxy = read.csv(paste0(basepath,"revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
 
 brahms_iucn = brahms_wcvp_matched[which(brahms_wcvp_matched$taxon_name  %in% iucn_orthodoxy$taxon_name ),]
 nrow(brahms_iucn)
@@ -58,10 +58,10 @@ site_counts$LONG[which(site_counts$LONG == 0)] <- NA
 
 
 # Combine the earthcape and brahms online (data warehouse) data
-cultivated <- read.csv(paste0(basepath, "cultivated_2024-05-28.csv"))
+cultivated <- read.csv(paste0(basepath, "cultivated_2024-05-28.csv"), encoding = "UTF-8")
 cultivated = cultivated[!(duplicated(cultivated$AccessionNumber)),]
 
-cultivated2 = read.csv(paste0(basepath, "ICMS_cultivated_26_06_24.csv"))
+cultivated2 = read.csv(paste0(basepath, "ICMS_cultivated_26_06_24.csv"), encoding = "UTF-8")
 cultivated2$AccessionNumber = sapply(1:nrow(cultivated2),
                                      function(x){as.character(as.numeric(strsplit(cultivated2$Catalogue.Number[x],
                                                                                   "K:MSB-")[[1]][2]))})
@@ -763,19 +763,19 @@ site_counts$Target_2a = ifelse(site_counts$proportion_native_country == 1, # but
                                TRUE,FALSE)
 site_counts$Target_2a[is.na(site_counts$Target_2a)] = FALSE
 
-site_counts$Target_2b  = ifelse(site_counts$collections_all_native_country>=5, #collections >= 5,
+site_counts$Target_2b  = ifelse(site_counts$collections_all_native_country >= 5, #collections >= 5,
                                 TRUE,FALSE)
 
 site_counts$Target_2 = ifelse(((site_counts$Target_2a & site_counts$Target_2b) & site_counts$Target_1b),
                               TRUE,FALSE)
 
-length(which(site_counts$Target_2)) #33
+length(which(site_counts$Target_2)) #35
 
 
 
 ######################################################################################################################
 # Save
-write.csv(site_counts, paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), row.names = F)
+write.csv(site_counts, paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), row.names = F, fileEncoding = "UTF-8")
 ######################################################################################################################
 
 

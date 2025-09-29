@@ -114,7 +114,7 @@ brahms <- brahms[which(brahms$full_name != ""),]
 # remove rows with only genus or family and no species name
 brahms <- brahms[grepl("\\s", brahms$full_name), ] # keep those with a space (i.e. 2 words)
 
-write.csv(brahms, paste0(basepath,"revision_1/brahms_cleaned.csv"), row.names = F)
+write.csv(brahms, paste0(basepath,"revision_1/brahms_cleaned.csv"), row.names = F, fileEncoding  = "UTF-8")
 
 
 # create summary table where adjusted seed counts per species are added together
@@ -145,7 +145,7 @@ spp_count = spp_count[duplicated(spp_count$full_name)==FALSE,]
 # MSB_wcvp = MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
-# write.csv(MSB_wcvp, paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"), row.names = F)
+# write.csv(MSB_wcvp, paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 
 # MSB_wcvp = read.csv(paste0(basepath,"revision_1/MSB_unique_wcvp_full_name.csv"))
 MSB_wcvp = read.table(paste0(basepath, "revision_1/MSB_unique_wcvp_full_name.csv" ),
@@ -285,7 +285,7 @@ match = test[test$full_name %in% problematic,]
 #                               spec.name = "full_name",
 #                               Authorship = "author",
 #                               counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"), row.names = F)#, encoding = "UTF-8")
+# write.csv(pb_sp, paste0(basepath, "revision_1/brahms_wfo_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # # pb_sp = read.csv(paste0(basepath, "revision_1/brahms_wfo_matched.csv"))
 pb_sp = read.table(paste0(basepath, "revision_1/brahms_wfo_matched.csv" ),
                    sep = ",", quote = "\"",
@@ -422,10 +422,10 @@ length(problematic) # 2350
 ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
 
 MSB_wcvp_matched = test[test$keep == 1,]
-write.csv(MSB_wcvp_matched, paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"), row.names = F)
+write.csv(MSB_wcvp_matched, paste0(basepath, "revision_1/brahms_unique_wcvp_matched_full_name_infra.csv"), row.names = F, fileEncoding = "UTF-8")
 
 brahms_wcvp_matched = brahms %>% left_join(MSB_wcvp_matched, by = "full_name")
-write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), row.names = F)
+write.csv(brahms_wcvp_matched, paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), row.names = F, fileEncoding = "UTF-8")
 
 ###################################################################################################################
 ###################################################################################################################
@@ -458,7 +458,7 @@ iucn <- iucn %>% left_join(iucn_taxonomy[,c("internalTaxonId","authority")],
 #                  author_col = "authority")
 # iucn_wcvp = iucn_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(iucn_wcvp, paste0(basepath,"revision_1/iucn_wcvp.csv"), row.names = F)
+# write.csv(iucn_wcvp, paste0(basepath,"revision_1/iucn_wcvp.csv"), row.names = F, fileEncoding = "UTF-8")
 #iucn_wcvp = read.csv(paste0(basepath,"revision_1/iucn_wcvp.csv"))
 iucn_wcvp <- read.table(paste0(basepath, "revision_1/iucn_wcvp.csv" ),
                         sep = ",", quote = "\"",
@@ -578,7 +578,7 @@ match$full_name = match$scientificName
 #                                spec.name = "full_name",
 #                                Authorship = "authority",
 #                                counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_wfo_matched.csv"))#, row_names=F)
+# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_wfo_matched.csv"))#, row_names=F, fileEncoding = "UTF-8")
 
 # #pb_sp = read.csv(paste0(basepath, "revision_1/iucn_wfo_matched.csv"))
 pb_sp = read.table(paste0(basepath, "revision_1/iucn_wfo_matched.csv" ),
@@ -709,7 +709,7 @@ length(problematic) # 55
 
 iucn_wcvp_matched = test[test$keep == 1,]
 length(unique(iucn_wcvp_matched$scientificName))-length(unique(iucn_wcvp$scientificName))
-write.csv(iucn_wcvp_matched, paste0(basepath, "revision_1/iucn_wcvp_matched.csv"), row.names = F)
+write.csv(iucn_wcvp_matched, paste0(basepath, "revision_1/iucn_wcvp_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 
 
 ###################################################################################################################
@@ -732,7 +732,7 @@ length(exceptional)
 #                                     name_col = "Species.name")
 # exceptional_wcvp = exceptional_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
-# write.csv(exceptional_wcvp, paste0(basepath,"revision_1/exceptional_wcvp.csv"), row.names = F)
+# write.csv(exceptional_wcvp, paste0(basepath,"revision_1/exceptional_wcvp.csv"), row.names = F, fileEncoding = "UTF-8")
 #exceptional_wcvp = read.csv(paste0(basepath,"revision_1/exceptional_wcvp.csv"))
 exceptional_wcvp <- read.table(paste0(basepath, "revision_1/exceptional_wcvp.csv" ),
                                sep = ",", quote = "\"",
@@ -851,7 +851,7 @@ match$full_name <- match$Species.name
 #                               WFO.data = WFO.data,
 #                               spec.name = "full_name",
 #                               counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/exceptional_wfo_matched.csv"), row.names = F)
+# write.csv(pb_sp, paste0(basepath, "revision_1/exceptional_wfo_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # #pb_sp = read.csv(paste0(basepath, "revision_1/exceptional_wfo_matched.csv"))
 pb_sp <- read.table(paste0(basepath, "revision_1/exceptional_wfo_matched.csv" ),
            sep = ",", quote = "\"",
@@ -983,7 +983,7 @@ exceptional_wcvp_matched = test[test$keep == 1,]
 # test[test$Species.name == not_matched[2],]
 # length differs from problematic because the author difference cannot be used
 length(unique(exceptional_wcvp_matched$Species.name))-length(unique(exceptional_wcvp$Species.name))
-write.csv(exceptional_wcvp_matched, paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"), row.names = F)
+write.csv(exceptional_wcvp_matched, paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # #exceptional_wcvp_matched = read.csv(paste0(basepath, "revision_1/exceptional_wcvp_matched.csv"))
 exceptional_wcvp_matched = read.table(paste0(basepath, "revision_1/exceptional_wcvp_matched.csv" ),
                                       sep = ",", quote = "\"",
@@ -1036,7 +1036,7 @@ for (du in dupl_nam){
 }
 
 exceptional_wcvp_matched = exceptional_wcvp_matched[exceptional_wcvp_matched$keep2 ==1,]
-write.csv(exceptional_wcvp_matched, paste0(basepath,"revision_1/exceptional_unique_wcvp_matched.csv"), row.names = F)
+write.csv(exceptional_wcvp_matched, paste0(basepath,"revision_1/exceptional_unique_wcvp_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 
 
 
@@ -1090,7 +1090,7 @@ match_data <- match_data[which(!duplicated(match_data$full_name)),]
 #                                          "old_plant_name_id")], by = "X")
 #
 #
-# write.csv(iucn_predictions_wcvp, paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"), row.names = F)
+# write.csv(iucn_predictions_wcvp, paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"), row.names = F, fileEncoding = "UTF-8")
 # #iucn_predictions_wcvp <- read.csv(paste0(basepath,"revision_1/iucn_predictions_wcvp.csv"))
 iucn_predictions_wcvp <- read.table(paste0(basepath, "revision_1/iucn_predictions_wcvp.csv" ),
                                     sep = ",", quote = "\"",
@@ -1210,7 +1210,7 @@ colnames(match)
 #                               Authorship = "author_name",
 #                               counter=1, verbose=TRUE)
 #
-# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"), row.names = F)
+# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # #pb_sp =read.csv(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv"))
 pb_sp <- read.table(paste0(basepath, "revision_1/iucn_predictions_wfo_matched.csv" ),
                                     sep = ",", quote = "\"",
@@ -1337,7 +1337,7 @@ length(problematic) # 38
 
 iucn_predictions_wcvp_matched = test[test$keep == 1,]
 length(unique(iucn_predictions_wcvp_matched$full_name))-length(unique(iucn_predictions_wcvp$full_name))
-write.csv(iucn_predictions_wcvp_matched, paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"), row.names = F)
+write.csv(iucn_predictions_wcvp_matched, paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 
 
 
@@ -1405,7 +1405,7 @@ extras$full_name = gsub("\\s+"," ",extras$full_name)
 # extras_wcvp = extras_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
-# write.csv(extras_wcvp, paste0(basepath,"revision_1/extras_wcvp_full_name.csv"), row.names = F)
+# write.csv(extras_wcvp, paste0(basepath,"revision_1/extras_wcvp_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 # #extras_wcvp = read.csv(paste0(basepath,"extras_wcvp_full_name.csv"))
 extras_wcvp = read.table(paste0(basepath, "revision_1/extras_wcvp_full_name.csv" ),
            sep = ",", quote = "\"",
@@ -1522,7 +1522,7 @@ match = test[which(test$full_name %in% problematic),]
 #                               # Authorship = "author",
 #                               counter=1, verbose=TRUE)
 #
-# write.csv(pb_sp, paste0(basepath, "revision_1/extras_wfo_matched.csv"), row.names = F)
+# write.csv(pb_sp, paste0(basepath, "revision_1/extras_wfo_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # #pb_sp =read.csv(paste0(basepath, "revision_1/extras_wfo_matched.csv"))
 pb_sp <- read.table(paste0(basepath, "revision_1/extras_wfo_matched.csv" ),
                          sep = ",", quote = "\"",
@@ -1648,7 +1648,7 @@ length(problematic) # 13
 
 extras_wcvp_matched = test[test$keep == 1,]
 # extras_wcvp_matched = extras %>% left_join(extras_wcvp_matched, by = "full_name")
-write.csv(extras_wcvp_matched, paste0(basepath, "revision_1/extras_wcvp_matched_full_name.csv"), row.names = F)
+write.csv(extras_wcvp_matched, paste0(basepath, "revision_1/extras_wcvp_matched_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 
 
 
@@ -1730,7 +1730,7 @@ write.csv(extras_wcvp_matched, paste0(basepath, "revision_1/extras_wcvp_matched_
 # iucn_MSB_wcvp = iucn_MSB_wcvp %>% left_join(wcvp[,c("plant_name_id","taxon_name", "taxon_authors")],
 #                            by=c("wcvp_accepted_id" = "plant_name_id"))
 #
-# write.csv(iucn_MSB_wcvp, paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"), row.names = F)
+# write.csv(iucn_MSB_wcvp, paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 # # #iucn_MSB_wcvp <- read.csv(paste0(basepath,"revision_1/iucn_MSB_unique_wcvp_full_name.csv"))
 # iucn_MSB_wcvp <- read.table(paste0(basepath, "revision_1/iucn_MSB_unique_wcvp_full_name.csv" ),
 #                             sep = ",", quote = "\"",
@@ -1846,7 +1846,7 @@ write.csv(extras_wcvp_matched, paste0(basepath, "revision_1/extras_wcvp_matched_
 #                               spec.name = "full_name",
 #                               Authorship = "author",
 #                               counter=1, verbose=TRUE)
-# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"), row.names = F)
+# write.csv(pb_sp, paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"), row.names = F, fileEncoding = "UTF-8")
 # # #pb_sp <- read.csv(paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv"))
 # pb_sp <- read.table(paste0(basepath, "revision_1/iucn_MSB_wfo_matched.csv" ),
 #           sep = ",", quote = "\"",
@@ -1978,9 +1978,9 @@ write.csv(extras_wcvp_matched, paste0(basepath, "revision_1/extras_wcvp_matched_
 # ##### NOW JOIN THE NAMES TO THE BRAHMS DATA EXTRACT ###############################
 #
 # iucn_MSB_wcvp_matched = test[test$keep == 1,]
-# write.csv(iucn_MSB_wcvp_matched, paste0(basepath, "revision_1/iucn_brahms_unique_wcvp_matched_full_name.csv"), row.names = F)
+# write.csv(iucn_MSB_wcvp_matched, paste0(basepath, "revision_1/iucn_brahms_unique_wcvp_matched_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 #
 # iucn_brahms_wcvp_matched = iucn_brahms %>% left_join(iucn_MSB_wcvp_matched, by = "full_name")
-# write.csv(iucn_brahms_wcvp_matched, paste0(basepath, "revision_1/iucn_brahms_wcvp_matched_full_name.csv"), row.names = F)
+# write.csv(iucn_brahms_wcvp_matched, paste0(basepath, "revision_1/iucn_brahms_wcvp_matched_full_name.csv"), row.names = F, fileEncoding = "UTF-8")
 #
 #

@@ -82,10 +82,10 @@ length(unique(iucn_CR_predictions_wcvp_matched$taxon_name)) # 197
 
 
 # Compile orthodoxy predictions
-iucn_orthodox = read.csv(paste0(basepath,"revision_1/Model-results-2025-09-24_1.csv"))
+iucn_orthodox = read.csv(paste0(basepath,"revision_1/Model-results-2025-09-24_1.csv"), encoding = "UTF-8")
 for (i in 2:8){
   iucn_orthodox = rbind(iucn_orthodox,
-                        read.csv(paste0(basepath,"revision_1/Model-results-2025-09-24_",i,".csv")))
+                        read.csv(paste0(basepath,"revision_1/Model-results-2025-09-24_",i,".csv"), encoding = "UTF-8"))
 }
 
 
@@ -157,7 +157,7 @@ iucn_storage_behaviour = iucn_storage_behaviour[,colkeep]
 iucn_storage_behaviour = iucn_storage_behaviour[which(!is.na(iucn_storage_behaviour$taxon_name)),]
 
 # save the output
-write.csv(iucn_storage_behaviour, paste0(basepath, "revision_1/iucn_orthodoxy_recalcitrance.csv"), row.names=FALSE)
+write.csv(iucn_storage_behaviour, paste0(basepath, "revision_1/iucn_orthodoxy_recalcitrance.csv"), row.names=FALSE, fileEncoding = "UTF-8")
 iucn_storage_behaviour = read.csv(paste0(basepath, "revision_1/iucn_orthodoxy_recalcitrance.csv"))
 
 
@@ -183,7 +183,7 @@ CR_pred = unique(iucn_CR_predictions_wcvp_matched$taxon_name)
 CR_pred = CR_pred[which(!is.na(CR_pred))]
 CR_pred = data.frame(CR_pred)
 dim(CR_pred)
-# write.csv(CR_pred, paste0(basepath, "revision_1/orthodox_to_match_predictions.csv"), row.names=FALSE )
+# write.csv(CR_pred, paste0(basepath, "revision_1/orthodox_to_match_predictions.csv"), row.names=FALSE , fileEncoding = "UTF-8")
 
 # run the shiny seed predictor app
 # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
@@ -270,7 +270,7 @@ CR_pred_to_add = CR_pred_to_add[,colkeep]
 CR_pred_to_add = CR_pred_to_add[which(!is.na(CR_pred_to_add$taxon_name)),]
 
 # save the output
-write.csv(CR_pred_to_add, paste0(basepath, "revision_1/CR_pred_orthodoxy_recalcitrance.csv"), row.names=FALSE)
+write.csv(CR_pred_to_add, paste0(basepath, "revision_1/CR_pred_orthodoxy_recalcitrance.csv"), row.names=FALSE, fileEncoding = "UTF-8")
 CR_pred_to_add = read.csv(paste0(basepath, "revision_1/CR_pred_orthodoxy_recalcitrance.csv"))
 
 
@@ -452,7 +452,7 @@ spp_banked_recalcitrant$higher[spp_banked_recalcitrant$higher == "Polypodiophyta
 
 ##### SAVE ################################################
 
-write.csv(spp_banked_recalcitrant, paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), row.names=FALSE )
+write.csv(spp_banked_recalcitrant, paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), row.names=FALSE , fileEncoding = "UTF-8")
 
 ###################################################################################################
 ####                                                         ######################################
@@ -468,7 +468,7 @@ write.csv(spp_banked_recalcitrant, paste0(basepath, "revision_1/spp_banked_recal
 # site_counts = read.csv(paste0(basepath,"revision_1/iucn_brahms_wcvp_matched_full_name.csv"))#read.csv(paste0(basepath,"IUCN_seedsampling_info.csv"))
 # site_counts = site_counts[, !(colnames(site_counts) %in% c("RECSUMMARY", "RDEFILE"))]
 # # predictor = unique(site_counts$taxon_name[!is.na(site_counts$taxon_name)])#[which(!(unique(CR_pred$taxon_name) %in% brahms_to_add$taxon_name))] #unique(CR_pred$taxon_name)[!(unique(CR_pred$taxon_name) %in% iucn_storage_behaviour$taxon_name)]
-# # write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE)
+# # write.csv(data.frame(predictor), paste0(basepath,"msb_CE_orthodoxy_see.csv"), row.names=FALSE, fileEncoding = "UTF-8")
 #
 # #run the shiny seed predictor app
 # # runApp("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Recalcitrance predictor/Copy of SW App code AH KD.R", launch.browser = T)
