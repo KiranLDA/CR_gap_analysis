@@ -26,8 +26,12 @@ iucn_banked_recalcitrance <- read.csv(paste0(basepath, "revision_1/spp_banked_re
 abs <- read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
 
 #load data from previous session
-iucn <- read.csv(paste0(basepath, "redlist/assessments.csv" ))
+iucn <- read.table(paste0(basepath, "revision_1/redlist_2025-1_downloaded_17_09_2025/assessments.csv" ),
+                   sep = ",", quote = "\"",
+                   dec = ".",header=TRUE,fill=TRUE, encoding = "UTF-8")
+
 iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"))
+iucn_wcvp_matched$higher[which(iucn_wcvp_matched$higher == "A")] = "Angiosperms"
 
 # make sure only consider predicted that aren't already CR
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched_full_name.csv"))
@@ -37,7 +41,7 @@ brahms_unique_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_unique
 # brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched.csv"))
 # brahms_unique_wcvp_matched = read.csv(paste0(basepath, "brahms_unique_wcvp_matched.csv"))
 # exceptional_wcvp_matched = read.csv(paste0(basepath,"exceptional_wcvp_matched.csv"))
-exceptional <- read.csv(paste0(basepath, "pence_appendix1.csv"))
+exceptional <- read.csv(paste0(basepath, "revision_1/list_exceptional_status_18_09_2025.csv"))
 exceptional_wcvp_matched = read.csv(paste0(basepath,"revision_1/exceptional_unique_wcvp_matched.csv"))
 
 iucn_predictions = read.csv(paste0(basepath, "Angiosperm_extinction_risk_predictions_v1.csv"))
@@ -54,40 +58,8 @@ iucn_CR_predictions_wcvp_matched$taxon_name[which(!(iucn_CR_predictions_wcvp_mat
                                                       iucn_wcvp_matched$taxon_name))]
 
 
-CR_msbp <- read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+CR_msbp <- read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"))
 CR_msbp
-
-# # load brahms data
-# brahms <- read.csv(paste0(basepath,"2024-03-21_164953044-BRAHMSOnlineData.csv"))
-#
-# # remove duplicates
-# brahms <- brahms[duplicated(brahms$AccessionNumber)==FALSE,] # removes 441 duplicates
-#
-# # extract species
-# brahms$species <- gsub("^(\\S+ \\S+).*", "\\1", brahms$Taxon) #gsub("^(\\w+ \\w+).*", "\\1", brahms$Taxon)
-# brahms$species <- trimws(brahms$species)
-#
-# # extract subspecies
-# subspecies_match <- regexpr("subsp\\. \\w+", brahms$Taxon)
-# brahms$subspecies <- substring(brahms$Taxon, subspecies_match,
-#                                subspecies_match + attr(subspecies_match, "match.length") - 1)
-#
-# # extract variety
-# variety_match <- regexpr("var\\. \\w+", brahms$Taxon)
-# brahms$var <- substring(brahms$Taxon, variety_match,
-#                         variety_match + attr(variety_match, "match.length") - 1)
-#
-# # now save the rest of the string as the author name
-# # Remove species and subspecies information to get author
-# brahms$author <- gsub("^(\\S+ \\S+)", "", brahms$Taxon) # gsub("^(\\w+ \\w+)", "", brahms$Taxon)  # Remove species
-# brahms$author <- gsub("subsp\\. \\w+", "", brahms$author)      # Remove subspecies
-# brahms$author <- gsub("var\\. \\w+", "", brahms$author)
-# brahms$author <- trimws(brahms$author)
-# # brahms$subspecies_name = trimws(paste(brahms$species,brahms$subspecies))
-#
-# # edit code to include var and other if needed
-# brahms$full_name = trimws(paste(brahms$species,brahms$subspecies,brahms$var))
-# brahms$full_name = gsub("\\s+"," ",brahms$full_name)
 
 
 ##############################################################
