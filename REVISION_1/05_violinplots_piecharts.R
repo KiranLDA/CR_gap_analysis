@@ -17,16 +17,19 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 ##########################################################################################################
 
 
-indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
-indexes$total_index = mean(c(indexes$information_index,indexes$viability_index, indexes$genetic_index), na.rm = T)
+indexes = read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), encoding = "UTF-8")
 
 test = indexes[,c("information_index", "viability_index", "genetic_index")] %>%
   rowwise() %>%
-  mutate(total_index = mean(c(information_index,viability_index,genetic_index)))
+  mutate(total_index = mean(c(information_index,viability_index,genetic_index), na.rm=TRUE))
+
+indexes$viability_index
+indexes$information_index
+indexes$genetic_index
+
 
 indexes$total_index = test$total_index
-   #((indexes$information_index + indexes$viability_index +
-#                           indexes$genetic_index)/3)
+   #(indexes$information_index + indexes$viability_index + indexes$genetic_index)/3
 # indexes$cultivation_index = ifelse(indexes$CultivatedAll == FALSE, NA, indexes$cultivation_index)
 # indexes$exsitu_index = ifelse(indexes$CultivatedAll == TRUE, NA, indexes$exsitu_index)
 

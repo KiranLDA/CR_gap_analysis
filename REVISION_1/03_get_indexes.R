@@ -168,7 +168,7 @@ site_counts$geographic_index = ifelse(site_counts$LOCNOTES == "",
                                       site_counts$geographic_index,
                                       0.75)
 # coordinates
-site_counts$geographic_index = ifelse(site_counts$LAT == 0,
+site_counts$geographic_index = ifelse(is.na(site_counts$LAT),
                                       site_counts$geographic_index,
                                       1)
 

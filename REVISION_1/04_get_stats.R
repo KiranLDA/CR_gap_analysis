@@ -1334,6 +1334,10 @@ length(unique(iucn_banked_recalcitrance$taxon_name[
 #### NEW ORTHODOXY PREDICTIONS
 #############################################################################
 
+
+####  REFERENCES    ##########################################################
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
 # certain
 #~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1444,12 +1448,8 @@ summary(as.factor(iucn_banked_recalcitrance$tax.level[
 
 
 
+####  STORAGE CATEGORIES  ###########################################################
 
-
-
-#############################################################################
-#### NEW ORTHODOXY PREDICTIONS for BANKED
-#############################################################################
 
 # number CR
 length(unique(iucn_banked_recalcitrance$taxon_name))
