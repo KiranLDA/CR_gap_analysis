@@ -11,6 +11,7 @@ library(vioplot)
 library(viridis)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/plots/revision_1/"
 
 ##########################################################################################################
 #####  VIOLIN PLOTS    ###################################################################################
@@ -18,21 +19,14 @@ basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP
 
 
 indexes = read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), encoding = "UTF-8")
+indexes$information_index[is.na(indexes$information_index)] <- 0
+indexes$geographic_index[is.na(indexes$geographic_index)] <- 0
 
+# add total index
 test = indexes[,c("information_index", "viability_index", "genetic_index")] %>%
   rowwise() %>%
   mutate(total_index = mean(c(information_index,viability_index,genetic_index), na.rm=TRUE))
-
-indexes$viability_index
-indexes$information_index
-indexes$genetic_index
-
-
 indexes$total_index = test$total_index
-   #(indexes$information_index + indexes$viability_index + indexes$genetic_index)/3
-# indexes$cultivation_index = ifelse(indexes$CultivatedAll == FALSE, NA, indexes$cultivation_index)
-# indexes$exsitu_index = ifelse(indexes$CultivatedAll == TRUE, NA, indexes$exsitu_index)
-
 
 #########################
 ##  VIOLIN PLOT: MSBP  ##
@@ -114,11 +108,11 @@ vio <- ggplot(stacked_MSBP, aes(x = factor(ind), y = values,
   xlab("")
 
 vio
-ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index.pdf"),
+ggsave(paste0(plotpath, "index.pdf"),
        width = 20, height = 12, units = "cm")
 
 par(mar = c(5,5,3,3))
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index.png"),
+png(paste0(plotpath, "index.png"),
     width = 6, height = 3.5, units = "in", res = 300)
 vio
 dev.off()
@@ -136,11 +130,12 @@ stacked_MSBP <- stack(indexes[, c("total_index",
 
 hist(indexes$cultivation_index)
 summary(as.factor(indexes$cultivation_index))/ length(indexes$cultivation_index)
-# 0           0.5         1
-# 0.926320273 0.067717206 0.005962521
+#       0           0.5         1
+#       0.924773533 0.069712485 0.005513982
+# old   0.926320273 0.067717206 0.005962521
 
 mean(indexes$cultivation_index)
-# 0.03982112
+# 0.04037022 #0.03982112
 
 stacked_MSBP = stacked_MSBP[!is.na(stacked_MSBP$values),]
 stacked_MSBP$ind<- factor(stacked_MSBP$ind,
@@ -179,11 +174,11 @@ vio <- ggplot(stacked_MSBP, aes(x = factor(ind), y = values,
   xlab("")
 
 vio
-ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index_all.pdf"),
+ggsave(paste0(plotpath, "index_all.pdf"),
        width = 20, height = 12, units = "cm")
 
 par(mar = c(5,5,3,3))
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "index_all.png"),
+png(paste0(plotpath, "index_all.png"),
     width = 6, height = 3.5, units = "in", res = 300)
 vio
 dev.off()
@@ -195,71 +190,13 @@ dev.off()
 #####       PIE CHART       ##############################################################################
 ##########################################################################################################
 
-# Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$probability.of.recalcitrance))] = "unknown"
-spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
-spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category
-spp_banked_recalcitrant$category2[which(spp_banked_recalcitrant$category2 =="recalcitrant")] = "exceptional"
-spp_banked_recalcitrant$category2 = ifelse(spp_banked_recalcitrant$banked == T, "banked", spp_banked_recalcitrant$category2)
-spp_banked_recalcitrant$labels = paste0( spp_banked_recalcitrant$category2, " (", spp_banked_recalcitrant$predictions,")")
 
-single = spp_banked_recalcitrant[which(duplicated(spp_banked_recalcitrant$taxon_name) == F),]
-# bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
+#####  PIE CHART CERTAIN  ################################################################################
 
-# Some are replicated but they are species that have bee split
-length(unique(spp_banked_recalcitrant$taxon_name)) # 5758
-length(spp_banked_recalcitrant$taxon_name) # 5780, was 5773
-
-length(unique(single$taxon_name)) # 5758
-length(single$taxon_name) # 5758
-
-pie_data = single %>% count(labels)
-pie_data = pie_data[c(1,2,5,6,3,4,7,8),]
-sum(pie_data$n)
-par(mar = c(0,0,1,10))
-pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.pdf"),
-    width = 8, height = 5)
-pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#fe6100", "darkorange4",
-          "#1E88E5", "#0F4777",
-          "#FFC107", "goldenrod3",
-          "#D81B60", "#610A1A"
-          ))
-# "#785ef0",
-# "#004D40", "#00231D",
-#     "darkolivegreen4","darkolivegreen4",
-#     "darkolivegreen3","darkolivegreen4",
-#     "darkgoldenrod1","darkgoldenrod3",
-#     "chocolate1","chocolate3",
-#     "brown3","brown4",
-# "black", "grey"))
-dev.off()
-
-
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind.png"),
-    width = 8, height = 5, units = "in", res = 300)
-pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    col=c("#fe6100", "darkorange4",
-          "#1E88E5", "#0F4777",
-          "#FFC107", "goldenrod3",
-          "#D81B60", "#610A1A"
-    ))
-# pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-#     col=c("darkolivegreen3","darkolivegreen4",
-#           "darkgoldenrod1","darkgoldenrod3",
-#           "chocolate1","chocolate3",
-#           "brown3","brown4",
-#           "black", "grey"))
-dev.off()
-par(mar = c(5,5,3,3))
-
-##########################################################################################################
-#####       PIE CHART CERTAIN       ######################################################################
-##########################################################################################################
 
 # Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
+
 spp_banked_recalcitrant$category_certain[which(is.na(spp_banked_recalcitrant$category_certain))] = "unknown"
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_certain
@@ -271,70 +208,51 @@ single = spp_banked_recalcitrant[which(duplicated(spp_banked_recalcitrant$taxon_
 # bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
 
 # Some are replicated but they are species that have bee split
-length(unique(spp_banked_recalcitrant$taxon_name)) # 5758
-length(spp_banked_recalcitrant$taxon_name) # 5780, was 5773
+length(unique(spp_banked_recalcitrant$taxon_name)) # 6635 #5758
+length(spp_banked_recalcitrant$taxon_name) # 6709 #5780
 
-length(unique(single$taxon_name)) # 5758
-length(single$taxon_name) # 5758
+length(unique(single$taxon_name)) # 6635 #5758
+length(single$taxon_name) #6635 #5758
 
 pie_data = single %>% count(labels)
 pie_data = pie_data[c(1,2,7,8,5,6,3,4,9,10),] # c(5,6,7,8,3,4,1,2),]
 sum(pie_data$n)
 par(mar = c(0,0,1,10))
-pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_certain.pdf"),
+pdf(paste0(plotpath, "piechart_iucn_colourblind_certain.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    # col=c("#FFC107", "goldenrod3",
-    #       "#fe6100", "darkorange4",
-    #       "#D81B60", "#610A1A",
-    #       "#1E88E5", "#0F4777",
-    #       "grey40","grey20"))
     col=c("grey40","grey20",
           "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
           "#FFC107", "goldenrod3",
           "#D81B60", "#610A1A"
           ))
-# "#785ef0",
-# "#004D40", "#00231D",
-#     "darkolivegreen4","darkolivegreen4",
-#     "darkolivegreen3","darkolivegreen4",
-#     "darkgoldenrod1","darkgoldenrod3",
-#     "chocolate1","chocolate3",
-#     "brown3","brown4",
-# "black", "grey"))
+
 dev.off()
 
 
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_certain.png"),
+png(paste0(plotpath, "piechart_iucn_colourblind_certain.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    # col=c("#FFC107", "goldenrod3",
-    #       "#fe6100", "darkorange4",
-    #       "#D81B60", "#610A1A",
-    #       "#1E88E5", "#0F4777",
-    #       "grey40","grey20"))
     col=c("grey40","grey20",
           "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
           "#FFC107", "goldenrod3",
           "#D81B60", "#610A1A"
     ))
-# pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-#     col=c("darkolivegreen3","darkolivegreen4",
-#           "darkgoldenrod1","darkgoldenrod3",
-#           "chocolate1","chocolate3",
-#           "brown3","brown4",
-#           "black", "grey"))
+
 dev.off()
 par(mar = c(5,5,3,3))
 
-##########################################################################################################
-#####       PIE CHART       ##############################################################################
-##########################################################################################################
+
+
+
+#####  PIE CHART UNCERTAIN ####################################################################################
+
 
 # Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
+
 spp_banked_recalcitrant$category_uncertain[which(is.na(spp_banked_recalcitrant$category_uncertain))] = "unknown"
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_uncertain
@@ -356,14 +274,9 @@ pie_data = single %>% count(labels)
 pie_data = pie_data[c(1,2,7,8,5,6,3,4,9,10),] # c(5,6,7,8,3,4,1,2),]
 sum(pie_data$n)
 par(mar = c(0,0,1,10))
-pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_uncertain.pdf"),
+pdf(paste0(plotpath, "piechart_iucn_colourblind_uncertain.pdf"),
     width = 8, height = 5)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    # col=c("#FFC107", "goldenrod3",
-    #       "#fe6100", "darkorange4",
-    #       "#D81B60", "#610A1A",
-    #       "#1E88E5", "#0F4777",
-    #       "grey40","grey20"))
     col=c("grey40","grey20",
           "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
@@ -373,14 +286,9 @@ pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
 dev.off()
 
 
-png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_iucn_colourblind_uncertain.png"),
+png(paste0(plotpath, "piechart_iucn_colourblind_uncertain.png"),
     width = 8, height = 5, units = "in", res = 300)
 pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n), cex=.75,
-    # col=c("#FFC107", "goldenrod3",
-    #       "#fe6100", "darkorange4",
-    #       "#D81B60", "#610A1A",
-    #       "#1E88E5", "#0F4777",
-    #       "grey40","grey20"))
     col=c("grey40","grey20",
           "#1E88E5","#0F4777",
           "#fe6100", "darkorange4",
@@ -392,13 +300,14 @@ par(mar = c(5,5,3,3))
 
 
 
-#############################################################
-# plot both as part of the same panel
-#############################################################
+
+
+#####  PIE CHART CERTAIN AND UNCERTAIN TOGETHER ####################################################################################
 
 
 # Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
+
 spp_banked_recalcitrant$category_certain[which(is.na(spp_banked_recalcitrant$category_certain))] = "unknown"
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_certain
@@ -419,7 +328,7 @@ pie_data = single %>% count(labels)
 pie_data = pie_data[c(1,2,7,8,5,6,3,4,9,10),] # c(5,6,7,8,3,4,1,2),]
 sum(pie_data$n)
 
-pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/",
+pdf(paste0(plotpath,
            "piechart_iucn_colourblind_both.pdf"),
     width = 6, height = 8)
 par(mfrow = c(2,1), mar = c(1,5,1,6))
@@ -435,7 +344,8 @@ mtext("A", side=3, line=0, adj=-0.2, cex=1.2)
 
 
 # Proportion CR and predicted CR banked, orthodox, intermediate, recalcitrant
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
+
 spp_banked_recalcitrant$category_uncertain[which(is.na(spp_banked_recalcitrant$category_uncertain))] = "unknown"
 spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
 spp_banked_recalcitrant$category2 = spp_banked_recalcitrant$category_uncertain
@@ -471,41 +381,6 @@ dev.off()
 
 
 
-
-# #################################################
-# #       bankable vs banked
-# #################################################
-#
-# spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-# spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
-# spp_banked_recalcitrant$predictions = ifelse(spp_banked_recalcitrant$redlistCriteria == "prediction", "prediction", "IUCN")
-#
-# bankable = spp_banked_recalcitrant[spp_banked_recalcitrant$category %in% c("orthodox","banked","unknown"), ]
-# bankable$labels = paste(bankable$category, bankable$predictions)
-#
-# # bank = spp_banked_recalcitrant[spp_banked_recalcitrant$banked == T,]
-# # predicted = spp_banked_recalcitrant[spp_banked_recalcitrant$redlistCriteria == "predicted",]
-#
-# # Some are replicated but they are species that have bee split
-# # length(unique(spp_banked_recalcitrant$taxon_name)) # 5707
-# # length(spp_banked_recalcitrant$taxon_name) # 5717
-#
-#
-# pie_data = bankable %>% count(labels)
-# par(mar = c(0,0,1,4))
-# pdf(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_bankable.pdf"),
-#     width = 8, height = 5)
-# pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n) , cex=.75,
-#     col=c("darkolivegreen3","darkolivegreen4",
-#           "darkgoldenrod1","darkgoldenrod3", "grey"))
-# dev.off()
-# png(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "piechart_bankable.png"),
-#     width = 8, height = 5, units = "in", res = 300)
-# pie(pie_data$n, paste(pie_data$labels,"n =",pie_data$n) , cex=.75,
-#     col=c("darkolivegreen3","darkolivegreen4",
-#           "darkgoldenrod1","darkgoldenrod3", "grey"))
-# dev.off()
-# par(mar = c(5,5,3,3))
 
 
 
