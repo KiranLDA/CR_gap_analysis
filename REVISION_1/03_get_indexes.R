@@ -174,10 +174,10 @@ site_counts$geographic_index = ifelse(is.na(site_counts$LAT),
 
 summary(as.factor(site_counts$geographic_index))/length(site_counts$geographic_index)
 # 0          0.5        0.75        1
-# 0.02327386 0.10628394 0.36190846 0.50853375
+# 0.02334784 0.10605461 0.36723387 0.50336367
 
 mean(site_counts$geographic_index)
-# 0.8331071
+# 0.8318164
 
 
 #####################################
