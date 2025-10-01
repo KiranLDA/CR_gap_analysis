@@ -1,9 +1,9 @@
-# # Install necessary packages if not already installed
+# Install necessary packages if not already installed
 # install.packages(c("ape", "tidyverse"))
-#
+
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
-#
+
 # install.packages("installr")
 # library("installr")
 # uninstall.packages("cli")
@@ -12,10 +12,10 @@
 # install.packages("cli")
 # install.packages("utf8")
 # install.packages("vctrs")
-# BiocManager::install("GenomeInfoDbData")
-# BiocManager::install("ggtree")#, force = T)
-# BiocManager::install("ggtreeExtra")
-# BiocManager::install("phyloseq")#, force=T)
+# BiocManager::install("GenomeInfoDbData", force = T)
+# BiocManager::install("ggtree", force = T)
+# BiocManager::install("ggtreeExtra", force = T)
+# BiocManager::install("phyloseq", force=T)
 # devtools::install_github("jinyizju/V.PhyloMaker2")
 
 # Load packages
@@ -29,9 +29,12 @@ library(ggplot2)
 library(V.PhyloMaker2)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
-plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code"
+# plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/plots/revision_1/"
+
+
 # load iucn data
-iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
+iucn_banked_recalitrance <- read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
 
 # # Read the phylogenetic tree from Zuntini
 # tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
@@ -347,13 +350,14 @@ fam_count$family[which(fam_count$CR_species > 0)]
 
 # what proportion of families with CR species are banked
 length(fam_count$family[which(fam_count$banked_species == 0 & fam_count$CR_species > 0)])/length(fam_count$family[which(fam_count$CR_species > 0)])
-# 0.6260504
+# 0.6065574
 
 # what families have lost of CR species and no collections
 fam_count$family[which(fam_count$banked_species == 0 &
                          fam_count$CR_species > 50)]
-# "Annonaceae"       "Araliaceae"       "Bromeliaceae"     "Dipterocarpaceae"
-# "Fagaceae"         "Lauraceae"        "Zingiberaceae"
+
+# "Annonaceae"       "Dipterocarpaceae" "Lauraceae" "Phyllanthaceae"   "Zingiberaceae"
+
 
 
 colorz  = ifelse(test$banked_species > 0, "darkolivegreen",
@@ -389,41 +393,41 @@ proportions = dat$value[dat$group == "Banked CR species in family"]
 
 # % families with CR
 length(which(!is.na(proportions)))/length(proportions) *100
-# 47.24771
-length(which(!is.na(proportions)))
+# 45.43568 # 47.24771
+length(which(!is.na(proportions))) # 219
 
 # % families with banked CR
 length(which(proportions > 0))/length(proportions) *100
-# 19.26606
+# 19.91701 # 19.26606
 
 # % CR that have some banked
 length(which(proportions > 0))/length(which(!is.na(proportions))) *100
-# 40.7767
-length(which(proportions > 0))
+# 43.83562 # 40.7767
+length(which(proportions > 0))#96
 
 # % CR that have 50% banked
 length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
-# 5.825243
-length(which(proportions > 0.50))
+# 5.022831 # 5.825243
+length(which(proportions > 0.50)) #11
 
 # % CR that have 99% banked
 length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
-# 4.854369
-length(which(proportions > 0.99))
+# 4.109589 # 4.854369
+length(which(proportions > 0.99)) # 9
 
 # Names of fanmilies with CR that are 99% banked
 dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
-# [1] "Moringaceae"     "Cistaceae"       "Onagraceae"      "Kewaceae"
-# [5] "Frankeniaceae"   "Byblidaceae"     "Calceolariaceae" "Stylidiaceae"
-# [9] "Pennantiaceae"   "Nyssaceae"
+# [1] "Stylidiaceae"  "Paulowniaceae" "Byblidaceae"
+# [4] "Kewaceae"      "Frankeniaceae" "Moringaceae"
+# [7] "Cistaceae"     "Onagraceae"    "Nymphaeaceae"
 
 # Stats for big families
-test$CR_species[test$tr.tip.label == "Rubiaceae"] #342
-test$CR_species[test$tr.tip.label == "Myrtaceae"] #297
-test$CR_species[test$tr.tip.label == "Lauraceae"] #290
-test$CR_species[test$tr.tip.label == "Fabaceae"] #286
-test$CR_species[test$tr.tip.label == "Orchidaceae"] #268
-test$CR_species[test$tr.tip.label == "Asteraceae"] #247
+test$CR_species[test$tr.tip.label == "Rubiaceae"] #428 #342
+test$CR_species[test$tr.tip.label == "Myrtaceae"] #365 #297
+test$CR_species[test$tr.tip.label == "Lauraceae"] #318 #290
+test$CR_species[test$tr.tip.label == "Fabaceae"] #322 #286
+test$CR_species[test$tr.tip.label == "Orchidaceae"] #281 #268
+test$CR_species[test$tr.tip.label == "Asteraceae"] #289 #247
 
 #############################################
 # Plot the phylogenetic tree
@@ -540,7 +544,7 @@ p <- ggtree(tr, layout = "circular") +
              pwidth = 0.7,
              stat = "identity",
              orientation = "y",
-             offset =  0.55) +
+             offset =  0.35) +
   scale_fill_manual(values = c("darkolivegreen", "grey", "#FFA500"),
                     name = "")
 
@@ -549,7 +553,7 @@ tip_data <- p$data %>% filter(isTip) %>% left_join(dat2, by = c("label" = "id"))
 
 p <- p %<+% tip_data +
   aes(color = colour) +
-  geom_tiplab(aes(label=label), offset=200, size=2, hjust = 1) +
+  geom_tiplab(aes(label=label), offset=120, size=2, hjust = 1) +
   scale_color_identity() +
   scale_colour_manual(values = c( "#FFA500","darkolivegreen","grey",  "black"),
                       labels = c("Unbanked CR", "Banked CR", "Not CR", "NA")) +

@@ -15,7 +15,9 @@ library(raster)
 library(ggpubr)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
-plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/"
+# plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/plots/revision_1/"
+
 
 wcvp_countries <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_distribution.csv" ),
                              sep="|", header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
@@ -72,59 +74,137 @@ world <- sf::st_as_sf(world(path="."))
 #~~~~~~~~~~~~~
 # Read data
 #~~~~~~~~~~~~~
-indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
 
+indexes = read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), encoding = "UTF-8")
 
 permissions = read.csv(paste0(basepath,"ABSCH-Country-List_03_07_24.csv"))
 
-iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-# brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name_infra.csv"))
+iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"), encoding = "UTF-8")
 
-brahms_wcvp_matched = brahms_wcvp_matched %>% left_join(indexes[,c("ACCESSION","ADJSTCOUNT", "PLANTSAMP",
-                                                                   "Cultivated", "Derived.From","Result", "DateStarted", "DateCollected",
-                                                                   "DateDonated","DateGermplasmBanked", "geographic_index", "taxonomy_index",
+
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), encoding = "UTF-8")
+brahms_wcvp_matched <- brahms_wcvp_matched[which(!is.na(brahms_wcvp_matched$taxon_name)),]
+
+brahms_wcvp_matched = brahms_wcvp_matched %>% left_join(indexes[,c("ACCESSION",
+                                                                   # "full_name", #"ADJSTCOUNT", "PLANTSAMP",
+                                                                   # "Cultivated", #CULTIVATED
+                                                                   # "Derived.From",
+                                                                   # "Result",
+                                                                   # "DateStarted", # ENTRYDATE
+                                                                   # "DateCollected",
+                                                                   # "DateDonated", # DONORDATE
+                                                                   # "DateGermplasmBanked",
+                                                                   "geographic_index", "taxonomy_index",
                                                                    "year_index", "information_index", "count_index", "adjcount_index",
                                                                    "germination_index", "viability_index", "cultivation_index",
-                                                                   "exsitu_index", "genetic_index", "total_index", "prop_range_banked",
-                                                                   "Target_1a", "Target_1b", "Target_1", "Target_2")],
-                                                        by = c("AccessionNumber" = "ACCESSION"))
+                                                                   "exsitu_index", "genetic_index", "total_index",
+                                                                   "collections",
+                                                                   "collections_per_tdwg","collections_per_country",
+                                                                   "collections_per_native_country",  "proportion_native_country",
+                                                                   "proportion_collections_native_country",
+                                                                   # "prop_range_banked",
+                                                                   "Target_1a", "Target_1b", "Target_1",
+                                                                   "Target_2a", "Target_2b", "Target_2")],
+                                                        by = "ACCESSION")
 
 
-
-brahms_wcvp_matched$PLANTSAMP[brahms_wcvp_matched$PLANTSAMP == "11-100"] = "50"
-brahms_wcvp_matched$PLANTSAMP[brahms_wcvp_matched$PLANTSAMP == "100-1000"] = "100"
-brahms_wcvp_matched$PLANTSAMP[brahms_wcvp_matched$PLANTSAMP == "25-50"] = "50"
-brahms_wcvp_matched$PLANTSAMP[brahms_wcvp_matched$PLANTSAMP == ">100"] = "100"
-brahms_wcvp_matched$PLANTSAMP[brahms_wcvp_matched$PLANTSAMP == "200-500"] = "200"
-brahms_wcvp_matched$PLANTSAMP[is.na(brahms_wcvp_matched$PLANTSAMP)] = "0"
 brahms_wcvp_matched$plants_sampled = as.numeric(brahms_wcvp_matched$PLANTSAMP)
-# brahms_wcvp_matched$ADJSTCOUNT[is.na(brahms_wcvp_matched$ADJSTCOUNT)] = 0
+unique(brahms_wcvp_matched$PLANTSAMP[which(is.na(brahms_wcvp_matched$plants_sampled) & brahms_wcvp_matched$PLANTSAMP != "")])
 
-iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "iucn_predictions_wcvp_matched.csv"))
+
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("Ldg" ,"many","unknown","Many","`" ,"?","Hard to te"))] = NA
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("Single", "A clump","1?","10 berries","1 patch","1 ale","Ramet 1","Ale 1","1 clump"))]=1
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">2","2 patches","~2","2 total","2 ale"))] = 2
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("Up to 3","3 clumps","2-5?", "a few","3 patches","2 to 5","to 0.3","3?","3 ale",
+                                                                     "3 (erraboi","~3","2 or 4?" ))] = 3
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("5+",  "5-1 0", ">5", ">3", "5- 1 0" ,"1-10??","c. 5",". 5","4 to 7",">5?", "~ 5","6 minimum",
+  "<5","5 minimum","4 minimum",">4","~5",">  5", "5 ale","4 or 5" ))] = 5
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("6+","6 mats",">6","At least 6","8 patches","~6","7 flower s",
+                                                                     "6 clumps","6 colonies","6 (3 from","c.8","~7"))] = 6
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("~10",  ">10", "10+" , "<10", "c8","~10?" ,">10?","ca. 10","< 10","~8","Several","> 10","11+",". 10","10 to 12","10?","ca 10","c 10","Approx. 8",
+  "c. 10","13 in 4 su","10 in 4 su","10 minimum","7 minimum","8 minimum","c10",">  10",">7","10x","8 ale","9 ale","10 ale","~11","10s",
+  "10 heads","8+","9 patches"))] = 10
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("~15", ">15","10-20?","15+","12+",">12","c. 15","<15","~15?","~12","Minimum 12","c 15","16>","15>","~18","ca 15","4-20?", "14 ejempla","16+2berde",
+  "14 (errabo","12 ale","13 eskapo",">14","<16","~17","15 clumps","12 (see no")) ]= 15
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("~20", ">20", "20+" , "20-30" ,"1 0-25", "5-50?","20 minimum","c.20","20 to 30","15-25","<20",">21","> 20",">18","18>","~21",". 20","0-25","22 clumps",
+  "12-24??","18 to 20","15-20","20-25","ca. 20","~25" ,"20clumps",">20?","c. 20","20 clumps","c20",">22","20?","?20","Approx. 20",
+  "2-40?","c 20","20 ale","21 ale","25 gara","23 (errabo", "22 (errabo","17 ejempla","20 gara","26 (errabo","21 minimum","15 to 25",
+  "approx. 25","20 spots","20 patches",">24"))] =20
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">30","> 30","<30","~30", "25 -50","30-40", "10-50?","30 to 40","ca 30",". 30","25- 50","35 shoots","25-49","29 minimum","26 minimum",
+  "~35","30+","1-50?",">25","c. 30" ,"25-30","?>30","20-40","25+","c30","30 clumps","30 minimum","27 minimum","25 minimum","30 ale" ,
+  "~26","~33","15-30","25-51","30>","28>","25>","15-40","Approx. 30","25-40","20-35","c.28","15-50","31+","30?",">36","36 hazi 1",
+  "35 (errabo",  "25 ale azh","c.30","ca. 30","ca 35", ">23","30-35","c.35","~30 patche"))] =30
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">40", "31-45", "30-45", "40+", "25 - 50", "20-50", "40-50",">35","30-50","35-47", "~45","40 minimum","<40",
+  "c. 40","40 shoots","40>","42 clumps","30-45 ale","c 40","c40+","c40","35-40","35+","25-50"))] = 40
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">50", ". 50","~50", "10-100","<50", "25-99" ,"ca. 50","c. 50","50 female","c.50","5-100",">50?","2-100", "45>","50>","25-100","35-75","45-60","20-70",
+  "50+" ,"11-100", "40-90","40-60","30-60","40-100","> 50","c50",">45","50 minimum","30-70","~55","Approx. 50","50?","24-49","c 50",">50 ale",
+  "50 ale","51 (errabo","50 gara", "50 eskapo", "ca 50","45+","20-60"))] = 50
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("50-70",  "62 (57+5)", ">60", "60+","50-60","50-75","~60","50-80","60 minimum","30-90",">55","55>",">58",">56","60>",">54",
+  "c. 60","57 total 6", "c60","c.60" ))] = 60
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("50-100", "50 - 100", "50 -100", "60-70", "50-99", ">75", "~70",">70","~76" ,"50 to 80","70-80","70+","<70",">64","43 & 27 sp","60-80","~75","65+",
+  "76 (errabo","50-101","Approx. 75",">68"))] = 70
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">80","75+","~80","ca. 80","80+", "78/65",">78",">76","80>",
+                                                                           "70-100","75>","75-80","<80","75-100",">50-100","~70-90","ca 80","c80"))] = 80
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("~90","85+","80-100", "c. 88",">83","90+","82>","85>","92 eskapo","<90","70/20","c90","c.90"))] = 90
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("100+", ">100", "50-170" , "100-", ">90" ,"30-150?","~100","100-135","<100","100?","c100","91-100","~120 spike",">97",">124",">115",">128","100+?",
+  ">100.","100's","> 100","~130", "100-99","100s",">95","<115","110>","100>",">>100","100<100 -","100 - 100","c. 100", "c.110","75-150","110 gara",
+  "100 eskapo","100-120",">100?","~120","<140", "ca 100","ca. 100","cca. 100","c.100","30 & 100",">110","99+")) ] = 100
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("100 - 200", "100-200","100 -200", ">150", ">130", ">140","120+","~150","150-200","ca. 150","150+","100-150" ,"100 -150",">150<200","130-140",">120",
+  "> 150","145+",">160","150 gara","~160"))] = 150
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">200", "c.200", "100 - 300", ">180","210+","200+","~200","~220","~180",
+                                                                              "> 200","50-300",">>200","200 inflor","176-200","100-300","approx 200",
+                                                                              "189 patche","aprox.200","~170 spike","200 minimu","100 -300","c200"))]  = 200
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">100<500", ">250", ">260","250+","250-300","100-500","100 - 500","~250","200-300","ca 250","~240") )] = 250
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("300+", "100 -500", ">300","~300","c. 300","300-400",">270","200-400","200-500","300-400 st",
+                                                                           "> 300","330+","c300","300 minimu"))] = 300
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("c.400", ">400", "300 -500" ,"400+","~40","350+","~400",">350","350-500","400-500"))] = 400
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">500","100-1000","100-999", "500-600", "100 - 1000" ,"500+", "~500","c. 500","ca 500","50 - 1000","480+","520+"))] = 500
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">600" , "600+","~600","550+"))] = 600
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">660" ))] = 660
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("700+", ">500<1000","500-1000",">700","Several hu"))] = 700
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("500-1,000",">790","750+",">750",">800"))] = 750
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("800+"))] = 800
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("1000+",">1000",">999",">909","1000 +","thousands", ">1000 infr"))] = 1000
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("1200-1500","~1200", "999+","1500+","~1500"))]=1500
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("1500-2000",">2000","2000+"))] =2000
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c("3000+"))] = 3000
+brahms_wcvp_matched$plants_sampled[which(brahms_wcvp_matched$PLANTSAMP %in% c(">5000"))] = 5000
+
+
+
+iucn_predictions_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_predictions_wcvp_matched.csv"),encoding = "UTF-8")
 iucn_predictions_wcvp_matched = iucn_predictions_wcvp_matched[which(iucn_predictions_wcvp_matched$category == "CR"),]
 
 
 tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
-spp_banked_recalcitrant <- read.csv(paste0(basepath,"spp_banked_recalcitrant.csv"))
+
+
+
+
+
+spp_banked_recalcitrant <- read.csv(paste0(basepath,"revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
 
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(brahms_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                                                                by = "taxon_name")
+                                                                by = c("taxon_name","wcvp_accepted_id"))
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(iucn_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                                                                by = "taxon_name")
+                                                                by = c("taxon_name","wcvp_accepted_id"))
 spp_banked_recalcitrant = spp_banked_recalcitrant %>% left_join(iucn_predictions_wcvp_matched[,c("taxon_name","wcvp_accepted_id")],
-                                                                by = "taxon_name")
+                                                                by = c("taxon_name","wcvp_accepted_id"))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # add the ID to the recalcitrant species
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-spp_banked_recalcitrant$wcvp_accepted_id <- ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id),
-                                                   ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id.y),
-                                                          spp_banked_recalcitrant$wcvp_accepted_id.x,
-                                                          spp_banked_recalcitrant$wcvp_accepted_id.y),
-                                                   spp_banked_recalcitrant$wcvp_accepted_id)
+# spp_banked_recalcitrant$wcvp_accepted_id <- ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id),
+#                                                    ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id.y),
+#                                                           spp_banked_recalcitrant$wcvp_accepted_id.x,
+#                                                           spp_banked_recalcitrant$wcvp_accepted_id.y),
+#                                                    spp_banked_recalcitrant$wcvp_accepted_id)
+# spp_banked_recalcitrant$wcvp_accepted_id <- ifelse(is.na(spp_banked_recalcitrant$wcvp_accepted_id.y),
+#                                                           spp_banked_recalcitrant$wcvp_accepted_id.x,
+#                                                           spp_banked_recalcitrant$wcvp_accepted_id.y)
+
 spp_banked_recalcitrant$wcvp_accepted_id = as.numeric(spp_banked_recalcitrant$wcvp_accepted_id)
 spp_banked_recalcitrant = spp_banked_recalcitrant[ , !(names(spp_banked_recalcitrant) %in% c("wcvp_accepted_id.x","wcvp_accepted_id.y"))]
 
@@ -169,7 +249,9 @@ iucn_wcvp_matched_countries_tdwg3$country_duplicate = duplicated(iucn_wcvp_match
 #########################################################################################################
 
 # add a new column with the reformatted name
-brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$CountryName
+# brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$CountryName
+# add a new column with the reformatted name
+brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$COUNTRY
 
 # spelling errors
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Auckland Island"] = "New Zealand"
@@ -184,11 +266,19 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Sao To
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Swaziland"] = "Eswatini"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Cape Verde"] = "Cabo Verde"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Palestinian Territory, Occupied"] = "Palestine"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Korea, South"] = "South Korea"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Trinidad & Tobago"] = "Trinidad and Tobago"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "North Macedonia" ] = "Macedonia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "\tMacedonia"] = "Macedonia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Saint Helena, Ascension, and Tristan da Cunha"] = "Saint Helena"
+
 
 #putting territories with their countries
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Christmas I."] = "Australia"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Norfolk Island"] = "Australia"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Virgin Is."] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "South Georgia and the Islands"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Virgin Islands" ] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Bermuda"] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Gibraltar"] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Pitcairn"] = "United Kingdom"
@@ -202,34 +292,23 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Russia
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Yugoslavia"] = "Bosnia and Herzegovina"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "San-Marino"] = "Italy"
 
-
 permissions$NewCountryName = permissions$Country
-
-
 permissions$NewCountryName[which(permissions$NewCountryName == "Bolivia (Plurinational State of)")] = "Bolivia"
 permissions$NewCountryName[which(permissions$NewCountryName == "Brunei Darussalam")] = "Brunei"
 permissions$NewCountryName[which(permissions$NewCountryName == "Czechia")] = "Czech Republic"
 permissions$NewCountryName[which(permissions$NewCountryName == "Democratic People's Republic of Korea" )] = "North Korea"
-# permissions$NewCountryName[which(permissions$NewCountryName == "European Union")] = NA
-# permissions$NewCountryName[which(permissions$NewCountryName == "Holy See")] = "Vatican"
 permissions$NewCountryName[which(permissions$NewCountryName == "Iran (Islamic Republic of)")] = "Iran"
 permissions$NewCountryName[which(permissions$NewCountryName == "Lao People's Democratic Republic")] = "Laos"
-# permissions$NewCountryName[which(permissions$NewCountryName == "Maldives")] = NA
-# permissions$NewCountryName[which(permissions$NewCountryName == "Marshall Islands")] =NA
 permissions$NewCountryName[which(permissions$NewCountryName == "Micronesia (Federated States of)" )] = "Micronesia"
-# permissions$NewCountryName[which(permissions$NewCountryName == "Monaco")] =NA
-# permissions$NewCountryName[which(permissions$NewCountryName == "Nauru")] =NA
 permissions$NewCountryName[which(permissions$NewCountryName == "Netherlands (Kingdom of the)")] = "Netherlands"
 permissions$NewCountryName[which(permissions$NewCountryName == "North Macedonia")] = "Macedonia"
 permissions$NewCountryName[which(permissions$NewCountryName == "Republic of Korea")] = "South Korea"
 permissions$NewCountryName[which(permissions$NewCountryName == "Republic of Moldova")] = "Moldova"
 permissions$NewCountryName[which(permissions$NewCountryName == "Russian Federation")] = "Russia"
-# permissions$NewCountryName[which(permissions$NewCountryName == "San Marino")] =NA
 permissions$NewCountryName[which(permissions$NewCountryName == "Sao Tome and Principe")] = "São Tomé and Príncipe"
 permissions$NewCountryName[which(permissions$NewCountryName == "State of Palestine")] = "Palestine"
 permissions$NewCountryName[which(permissions$NewCountryName == "Syrian Arab Republic")] = "Syria"
 permissions$NewCountryName[which(permissions$NewCountryName == "Timor-Leste")] = "East Timor"
-# permissions$NewCountryName[which(permissions$NewCountryName == "Tuvalu")] =NA
 permissions$NewCountryName[which(permissions$NewCountryName == "Türkiye")]  =  "Turkey"
 permissions$NewCountryName[which(permissions$NewCountryName == "United Kingdom of Great Britain and Northern Ireland")] = "United Kingdom"
 permissions$NewCountryName[which(permissions$NewCountryName == "United Republic of Tanzania")] = "Tanzania"
@@ -247,36 +326,42 @@ iucn_wcvp_matched_countries_tdwg3 = iucn_wcvp_matched_countries_tdwg3[which(iucn
 summary(iucn_wcvp_matched_countries_tdwg3$plants_sampled)
 
 # find the MSB species that are CR endangered
-# iucn_wcvp_matched_countries_tdwg3$banked = (iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id %in%
-#                                               brahms_wcvp_matched$wcvp_accepted_id)
+iucn_wcvp_matched_countries_tdwg3$banked = (iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id %in%
+                                              brahms_wcvp_matched$wcvp_accepted_id)
 # (data.frame(banked = iucn_wcvp_matched_countries_tdwg3$banked,
 #             id = iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id ))[451:501,]
 # CR species
 # iucn_wcvp_matched_countries_tdwg3$banked_per_country
-iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country = 0
-iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country = 0
-iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country = 0
-iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country = 0
 
-for(ID in unique(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id)){
-  # ID = 3259908#2797442 #3144077#
-  iucn_row = which(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id == ID)
-  iucn_country = iucn_wcvp_matched_countries_tdwg3$NewCountryName[iucn_row]
-  banked_row = which(as.numeric(brahms_wcvp_matched$wcvp_accepted_id) %in% ID)
-  banked_country = brahms_wcvp_matched$NewCountryName[banked_row]
-  match = iucn_country %in% banked_country
-  if(any(match)){
-    iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country[iucn_row[match]]= 1
-    iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country[iucn_row[match]]= length(unique(brahms_wcvp_matched$AccessionNumber[banked_row]))
-    iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country[iucn_row[match]]= sum(brahms_wcvp_matched$AdjustedSeedQuantity[banked_row])
-    iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country[iucn_row[match]] = sum(brahms_wcvp_matched$plants_sampled[banked_row], na.rm = T)# iucn_wcvp_matched_countries_tdwg3[iucn_row,c("NewCountryName","banked_per_country")]
-  }
-}
 
+# # # save the data
+#
+# iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country = 0
+# iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country = 0
+# iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country = 0
+# iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country = 0
+#
+# for(ID in unique(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id)){
+#   # ID = 3259908#2797442 #3144077#
+#   iucn_row = which(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id == ID)
+#   iucn_country = iucn_wcvp_matched_countries_tdwg3$NewCountryName[iucn_row]
+#   banked_row = which(as.numeric(brahms_wcvp_matched$wcvp_accepted_id) %in% ID)
+#   banked_country = brahms_wcvp_matched$NewCountryName[banked_row]
+#   match = iucn_country %in% banked_country
+#   if(any(match)){
+#     iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country[iucn_row[match]]= 1
+#     iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country[iucn_row[match]]= length(unique(brahms_wcvp_matched$ACCESSION[banked_row]))
+#     iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country[iucn_row[match]]= sum(brahms_wcvp_matched$ADJSTCOUNT[banked_row])
+#     iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country[iucn_row[match]] = sum(brahms_wcvp_matched$plants_sampled[banked_row], na.rm = T)# iucn_wcvp_matched_countries_tdwg3[iucn_row,c("NewCountryName","banked_per_country")]
+#   }
+# }
+# # # # save the data
+# write.csv(iucn_wcvp_matched_countries_tdwg3, paste0(basepath, "revision_1/iucn_wcvp_matched_countries_tdwg3_maps.csv"))
+iucn_wcvp_matched_countries_tdwg3 <- read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched_countries_tdwg3_maps.csv"))
 
 
 iucn_wcvp_matched_countries_tdwg3$Target_1 = ifelse((iucn_wcvp_matched_countries_tdwg3$seeds_per_spp_country >= 1050) &
-                                                      (iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50), TRUE, FALSE)
+                                                      (iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50), 1, 0)
 
 
 #======================================================
@@ -284,7 +369,7 @@ iucn_wcvp_matched_countries_tdwg3$Target_1 = ifelse((iucn_wcvp_matched_countries
 # iucn_wcvp_matched_countries_tdwg3$Target_2a = grepl("B", iucn_wcvp_matched_countries_tdwg3$redlistCriteria, ignore.case=FALSE)
 # iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a == T) &
 #                                                       (iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1), T, F)
-# site_counts$Target_2a = ifelse(site_counts$prop_range_banked == 1,
+# site_counts$Target_2a = ifelse(site_counts$proportion_native_country == 1,
 #                                TRUE,FALSE)
 # site_counts$Target_2a[is.na(site_counts$Target_2a)] = FALSE
 #
@@ -295,56 +380,59 @@ iucn_wcvp_matched_countries_tdwg3$Target_1 = ifelse((iucn_wcvp_matched_countries
 
 # add the proportion of range collected
 iucn_dict = unique(data.frame(cbind(indexes$taxon_name,
-                                    indexes$prop_range_banked)))
-colnames(iucn_dict) = c("taxon_name","prop_range_banked")
+                                    indexes$proportion_native_country)))
+colnames(iucn_dict) = c("taxon_name","proportion_native_country")
 
 iucn_wcvp_matched_countries_tdwg3 = iucn_wcvp_matched_countries_tdwg3 %>%
   left_join(iucn_dict, by= c("taxon_name"))
 
-iucn_wcvp_matched_countries_tdwg3$prop_range_banked[which(is.na(iucn_wcvp_matched_countries_tdwg3$prop_range_banked))] = 0
+iucn_wcvp_matched_countries_tdwg3$proportion_native_country[which(is.na(iucn_wcvp_matched_countries_tdwg3$proportion_native_country))] = 0
 
 head(iucn_wcvp_matched_countries_tdwg3)
 
 # estimate targets
+iucn_wcvp_matched_countries_tdwg3$proportion_native_country = as.numeric(iucn_wcvp_matched_countries_tdwg3$proportion_native_country)
+iucn_wcvp_matched_countries_tdwg3$Target_2a = ifelse((iucn_wcvp_matched_countries_tdwg3$proportion_native_country == 1) , 1, 0)
 
-iucn_wcvp_matched_countries_tdwg3$Target_2a = ifelse((iucn_wcvp_matched_countries_tdwg3$prop_range_banked == 1) , TRUE, FALSE)
 
-iucn_wcvp_matched_countries_tdwg3$Target_2b = ifelse((iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50) , TRUE, FALSE)
-
-iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a & iucn_wcvp_matched_countries_tdwg3$Target_2b), T, F)
+# iucn_wcvp_matched_countries_tdwg3$Target_2b = ifelse((iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50) , TRUE, FALSE)
+iucn_wcvp_matched_countries_tdwg3$Target_2b = ifelse((iucn_wcvp_matched_countries_tdwg3$accessions_per_spp_country >= 5) , 1, 0)
+# collections_per_native_country
+iucn_wcvp_matched_countries_tdwg3$Target_2 = ifelse((iucn_wcvp_matched_countries_tdwg3$Target_2a & iucn_wcvp_matched_countries_tdwg3$Target_2b &
+                                                       iucn_wcvp_matched_countries_tdwg3$plants_sampled_per_spp_country >= 50), 1, 0)
 
 
 #======================================================
 # orthodoxy and recalcitrance OLD
 #======================================================
-
-iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                      iucn_wcvp_matched_countries_tdwg3$banked_category,
-                                                                      iucn_wcvp_matched_countries_tdwg3$category)
-iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                    iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
-                                                                    iucn_wcvp_matched_countries_tdwg3$tax.level)
-iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
-                                                                       iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
-                                                                       iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
-
-# orthodox banked unbanked
-iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                              iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
-
-# recalcitrant banked unbanked
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
-                                                                  iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
-                                                                    iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
-
-iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked)] = 0
-iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked)] = 0
-iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked)] = 0
-
+#
+# iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                       iucn_wcvp_matched_countries_tdwg3$banked_category,
+#                                                                       iucn_wcvp_matched_countries_tdwg3$category)
+# iucn_wcvp_matched_countries_tdwg3$taxonomic_level_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                     iucn_wcvp_matched_countries_tdwg3$taxonomic_prediction_level,
+#                                                                     iucn_wcvp_matched_countries_tdwg3$tax.level)
+# iucn_wcvp_matched_countries_tdwg3$recalcitrance_prob_combined = ifelse(iucn_wcvp_matched_countries_tdwg3$category == "banked",
+#                                                                        iucn_wcvp_matched_countries_tdwg3$banked_recalcitrance.y,
+#                                                                        iucn_wcvp_matched_countries_tdwg3$probability.of.recalcitrance)
+#
+# # orthodox banked unbanked
+# iucn_wcvp_matched_countries_tdwg3$orthodox_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+#                                                               iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+# iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+#                                                                 iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "orthodox"), 1, 0)
+#
+# # recalcitrant banked unbanked
+# iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country == 1 &
+#                                                                   iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+# iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked = ifelse((iucn_wcvp_matched_countries_tdwg3$banked_per_spp_country != 1 &
+#                                                                     iucn_wcvp_matched_countries_tdwg3$storage_behaviour_combined == "recalcitrant"), 1, 0)
+#
+# iucn_wcvp_matched_countries_tdwg3$orthodox_banked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_banked)] = 0
+# iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$orthodox_unbanked)] = 0
+# iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_banked)] = 0
+# iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked[is.na(iucn_wcvp_matched_countries_tdwg3$recalcitrant_unbanked)] = 0
+#
 
 #======================================================
 #orthodoxy and recalcitrance CERTAIN/UNCERTAIN
@@ -439,23 +527,23 @@ country_stats = iucn_wcvp_matched_countries_tdwg3[,c("NewCountryName",
   mutate(sum_CR_pred = length(unique(taxon_name)),
          sum_CR = length(unique(taxon_name[which(redlistCriteria != "predicted")])),
          sum_pred = length(unique(taxon_name[which(redlistCriteria == "predicted")])),
-         sum_CR_banked = sum(banked_per_spp_country),
-         sum_Target1 = sum(Target_1),
-         sum_Target2 = sum(Target_2),
+         sum_CR_banked = sum(banked_per_spp_country,na.rm=T),
+         sum_Target1 = sum(Target_1,na.rm=T),
+         sum_Target2 = sum(Target_2,na.rm=T),
          sum_orthodox_certain = length(which(category_certain == "orthodox")),
          sum_exceptional_certain = length(which(category_certain == "recalcitrant" | category_certain == "exceptional")),
-         sum_orthodox_banked_certain = sum(orthodox_banked_certain),
-         sum_exceptional_banked_certain = sum(exceptional_banked_certain),
-         sum_orthodox_unbanked_certain = sum(orthodox_unbanked_certain),
-         sum_exceptional_unbanked_certain = sum(exceptional_unbanked_certain),
+         sum_orthodox_banked_certain = sum(orthodox_banked_certain,na.rm=T),
+         sum_exceptional_banked_certain = sum(exceptional_banked_certain,na.rm=T),
+         sum_orthodox_unbanked_certain = sum(orthodox_unbanked_certain,na.rm=T),
+         sum_exceptional_unbanked_certain = sum(exceptional_unbanked_certain,na.rm=T),
          sum_orthodox_uncertain = length(which(category_uncertain == "orthodox")),
          sum_exceptional_uncertain = length(which(category_uncertain == "recalcitrant"| category_uncertain == "exceptional")),
-         sum_orthodox_banked_uncertain = sum(orthodox_banked_uncertain),
-         sum_exceptional_banked_uncertain = sum(exceptional_banked_uncertain),
-         sum_orthodox_unbanked_uncertain = sum(orthodox_unbanked_uncertain),
-         sum_exceptional_unbanked_uncertain = sum(exceptional_unbanked_uncertain),
-         sum_accessions = sum(accessions_per_spp_country),
-         sum_seeds = sum(seeds_per_spp_country)) %>%
+         sum_orthodox_banked_uncertain = sum(orthodox_banked_uncertain,na.rm=T),
+         sum_exceptional_banked_uncertain = sum(exceptional_banked_uncertain,na.rm=T),
+         sum_orthodox_unbanked_uncertain = sum(orthodox_unbanked_uncertain,na.rm=T),
+         sum_exceptional_unbanked_uncertain = sum(exceptional_unbanked_uncertain,na.rm=T),
+         sum_accessions = sum(accessions_per_spp_country,na.rm=T),
+         sum_seeds = sum(seeds_per_spp_country,na.rm=T)) %>%
   ungroup()
 country_stats = country_stats[, c("NewCountryName",
                                   "sum_CR_pred",
@@ -481,7 +569,7 @@ country_stats = country_stats[, c("NewCountryName",
 country_stats = unique(country_stats)
 
 # save the data
-write.csv(country_stats, paste0(basepath, "country_stats.csv"))
+write.csv(country_stats, paste0(basepath, "revision_1/country_stats.csv"))#,encoding = "UTF-8")
 
 
 
@@ -607,7 +695,7 @@ country_counts_map.prj = st_transform(st_crop(m, st_bbox(c(xmin = -180,
 ####    PLOT          ################################
 ######################################################
 # values
-dim=5
+dim=4
 
 col.matrix<-colmat(nquantiles=dim,
                    upperleft= "#1E88E5",#509dc2", #rgb(0,150,235, maxColorValue=255),
@@ -624,7 +712,7 @@ names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 data <- bi_class(country_counts_map.prj,
                  y=prop_Target_1,
                  x=prop_Target_2,
-                 style = "equal",#"fisher",#"jenks",#""quantile", #
+                 style = "jenks",#"equal",#"fisher",#"""quantile", #
                  dim = dim)
 
 # create map
@@ -636,7 +724,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.4, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -674,7 +762,7 @@ finalPlota <- ggdraw() +
 
 finalPlota
 ggsave(paste0(plotpath, "targets.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "targets.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "targets.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 #############################
@@ -717,7 +805,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.4, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -755,7 +843,7 @@ finalPlotb <- ggdraw() +
 
 finalPlotb
 ggsave(paste0(plotpath, "ABS_CRbanked.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "ABS_CRbanked.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "ABS_CRbanked.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 #############################
@@ -802,7 +890,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.4, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -841,7 +929,7 @@ finalPlotc <- ggdraw() +
 finalPlotc
 
 ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_certain.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_certain.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_certain.png"), width = 30, height = 12, units = "cm", bg="white")
 
 #############################
 ### orthodoxy uncertain
@@ -887,7 +975,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.4, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -926,7 +1014,7 @@ finalPlote <- ggdraw() +
 finalPlote
 
 ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_uncertain.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_uncertain.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "unbanked_CR_orth_exceptional_uncertain.png"), width = 30, height = 12, units = "cm", bg="white")
 
 #############################
 ### banked vs unbanked
@@ -972,7 +1060,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.4, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -1010,7 +1098,7 @@ finalPlotd <- ggdraw() +
 
 finalPlotd
 ggsave(paste0(plotpath, "CR_banked_prop.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "CR_banked_prop.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "CR_banked_prop.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 ############################
@@ -1086,7 +1174,7 @@ finalPlot1 <- ggdraw() +
 
 finalPlot1
 ggsave(paste0(plotpath, "map_CR.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "map_CR.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "map_CR.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 
@@ -1138,7 +1226,7 @@ finalPlot2
 
 
 ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm", bg="white")
 
 
 
@@ -1377,13 +1465,21 @@ ggsave(paste0(plotpath, "permits_seperate.png"),  width = 60, height = 30, units
 
 # number of CR species
 length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria != "prediction")]))
+# 5654
 length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria == "prediction")]))
+# 96
 length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name))
+# 5750
+
 
 # number of countries
 length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria != "prediction")]))
+# 166
 length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName[which(iucn_wcvp_matched_countries_tdwg3$redlistCriteria == "prediction")]))
+# 38
 length(unique(iucn_wcvp_matched_countries_tdwg3$NewCountryName))
+# 166
+
 
 # countries with more than 10 CR species
 country_data2 = data.frame(country_counts_map.prj)
@@ -1393,7 +1489,12 @@ length(unique(country_data2$NewCountryName[country_data2$sum_CR_pred < 10]))
 
 # countries with more than 100CR species
 country_data2$NewCountryName[country_data2$sum_CR_pred >= 150]
+# [1]  "Brazil"           "Cameroon"         "Colombia"         "Ecuador"          "Indonesia"
+# [6]  "Madagascar"       "Mexico"           "New Caledonia"    "Philippines"      "Papua New Guinea"
+# [11] "United States"
 country_data2$NewCountryName[country_data2$sum_CR_pred >= 200]
+# [1] "Brazil"           "Colombia"         "Ecuador"          "Indonesia"        "Madagascar"
+# [6] "Mexico"           "Philippines"      "Papua New Guinea" "United States"
 
 # countries with the highest % of CR species
 country_stats$prop_CR = country_stats$sum_CR_pred/length(unique(iucn_wcvp_matched_countries_tdwg3$taxon_name))
@@ -1401,30 +1502,64 @@ test = country_stats %>%
   arrange(desc(prop_CR)) %>%  # arrange in descending order
   slice(1:12)
 test[,c("NewCountryName","prop_CR","sum_CR_pred", "sum_CR")]
+# NewCountryName      prop_CR sum_CR_pred sum_CR
+# 1 Madagascar         0.0896         515    515
+# 2 United States      0.0650         374    374
+# 3 Philippines        0.0626         360    360
+# 4 Indonesia          0.0595         342    342
+# 5 Mexico             0.0468         269    269
+# 6 Ecuador            0.0466         268    268
+# 7 Colombia           0.0463         266    266
+# 8 Brazil             0.0454         261    261
+# 9 Papua New Guinea   0.0388         223    223
+# 10 NA                0.0303         174    174
+# 11 Cameroon          0.0303         174    174
+# 12 New Caledonia     0.0261         150    150
 
 # countries with over 50% of spp banked
 country_data2$NewCountryName[country_data2$prop_banked >= 0.5]
+# "Australia"      "Botswana"       "Spain"
+# "United Kingdom" "Namibia"        "Saint Helena"
+
 country_data2$sum_CR_banked[country_data2$NewCountryName %in% country_data2$NewCountryName[country_data2$prop_banked >= 0.5]]
+#  74  2 66 22  4 22
+
 
 #countries with highest proportion meeting target 1
 country_data2$NewCountryName[country_data2$prop_Target_1 >= 0.9]
+# "United Arab Emirates" "Austria"              "Botswana"
+# "Cayman Islands"       "Oman"                 "Saudi Arabia"
+# "Sierra Leone"         "Yemen"                "Zambia"
+# "Zimbabwe"
+
 length(unique(country_data2$NewCountryName[country_data2$prop_Target_1 <= 0.1]))
+# 134
 
 #countries with highest proportion meeting target 2
 country_data2$NewCountryName[country_data2$prop_Target_2 >= 0.9]
+#0
 length(unique(country_data2$NewCountryName[country_data2$prop_Target_2 <= 0.1]))
+#160
 
 # countries that meet both targets
-country_data2$NewCountryName[country_data2$prop_Target_2 >= 0.9 & country_data2$prop_Target_1 >= 0.9]
+country_data2$NewCountryName[country_data2$prop_Target_2 >= 0.9 & country_data2$prop_Target_1 >= 0.9] #0
 
 # nunmber pf countries with each permission level
-sum(country_data2$NFP)
-sum(country_data2$CNA)
-sum(country_data2$IRCC)
-sum(country_data2$NR)
+sum(country_data2$NFP)  #173
+sum(country_data2$CNA)  #79
+sum(country_data2$IRCC) #27
+sum(country_data2$NR)   #99
 
 # countries with all four ABS
 unique(country_data2$NewCountryName[country_data2$permits == 4])
+# [1] "Argentina"          NA                   "Belgium"
+# [4] "Benin"              "Bulgaria"           "Belarus"
+# [7] "Bhutan"             "Côte d'Ivoire"      "Cameroon"
+# [10] "Dominican Republic" "Spain"              "Ethiopia"
+# [13] "France"             "Guatemala"          "Guyana"
+# [16] "India"              "Kenya"              "Laos"
+# [19] "Mexico"             "Panama"             "Peru"
+# [22] "Uruguay"            "Vietnam"            "South Africa"
 
 
 #####################################################################################################################
@@ -1517,9 +1652,12 @@ library(ggtreeExtra)
 library(phyloseq)
 library(dplyr)
 library(ggplot2)
+library(V.PhyloMaker2)
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
-plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code"
+# plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/plots/revision_1/"
+
 # load iucn data
 # iucn_banked_recalitrance <- read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
 iucn_wcvp_matched_countries_tdwg3
@@ -1530,12 +1668,46 @@ iucn_wcvp_matched_countries_tdwg3
 # orthodox certain
 ##########################################
 
-# Read the phylogenetic tree from Zuntini
-tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+# # Read the phylogenetic tree from Zuntini
+# tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
+#
+# # load tree data
+# tr <- tree
+# numtip <- length(tr$tip.label)
 
-# load tree data
-tr <- tree
+# Keep one representative species per family
+family_reps <- tips.info.TPL[!duplicated(tips.info.TPL$family), ]
+
+# Create the species list in the format required by phylo.maker()
+sp.list <- data.frame(
+  species = family_reps$species,
+  genus = family_reps$genus,
+  family = family_reps$family,
+  stringsAsFactors = FALSE
+)
+
+# Build the tree (using scenario S3 for best interpolation)
+result <- phylo.maker(
+  sp.list = sp.list,
+  tree = GBOTB.extended.TPL,
+  nodes = nodes.info.1.TPL,
+  scenarios = "S3",
+  output.tree = TRUE
+)
+
+family_tree <- result$scenario.3
+
+# renamte the tips by family not species
+for (tipi in 1:length(family_tree$tip.label)){
+  family_tree$tip.label[tipi] <- sp.list$family[which(sp.list$species %in% family_tree$tip.label[tipi])]
+}
+
+########################################################
+# Plot tree data
+########################################################
+tr <- family_tree
 numtip <- length(tr$tip.label)
+
 
 # Get number of species per family that are CR and that are banked
 fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "category_certain")] %>%
@@ -1574,16 +1746,19 @@ colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
                               ifelse(df_with_max_col$Max_Column == "p_unknown","#DC267F","grey85"))))
 
 test$tr.tip.label[which(df_with_max_col$Max_Column == "p_inter")]
-# "Nartheciaceae"
+# "Nartheciaceae"    "Aspleniaceae"     "Dennstaedtiaceae"
+# "Pteridaceae"      "Lindsaeaceae"     "Ophioglossaceae"
+# "Marattiaceae"     "Lycopodiaceae"    "Isoetaceae"
 
 
 test$tr.tip.label[which(df_with_max_col$Max_Column == "p_exceptional")]
-# [1] "Dipterocarpaceae" "Thymelaeaceae"    "Meliaceae"        "Elaeocarpaceae"   "Fagaceae"
-# [6] "Myrtaceae"        "Myristicaceae"    "Araucariaceae"
+# [1] "Fagaceae"         "Elaeocarpaceae"   "Dipterocarpaceae"
+# [4] "Thymelaeaceae"    "Meliaceae"        "Myrtaceae"
+# [7] "Myristicaceae"    "Araucariaceae"    "Hymenophyllaceae"
 
 length(test$tr.tip.label[which(df_with_max_col$Max_Column == "p_orthodox")])/
   length(which(df_with_max_col$p_orthodox > 0))
-# 0.5666667
+# 0.5867769 # 0.5666667
 
 
 
@@ -1615,7 +1790,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
 
 # Plot the phylogenetic tree
 p <- ggtree(tr, layout = "circular") +
-  xlim(-10, 70) +
+  xlim(-100, 700) +
   geom_fruit(data = dat,
              geom = geom_bar,
              mapping = aes(y = id, x = value, fill = group),
@@ -1631,7 +1806,7 @@ tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
 
 p <- p %<+% tip_data +
   aes(color = colour) +
-  geom_tiplab(aes(label=label), offset=24, size=2) +
+  geom_tiplab(aes(label=label), offset=240, size=2) +
   scale_color_identity() +
   scale_colour_manual(values =  c("#648FFF", "#DC267F","darkorange2","#FFB000", "grey85"),
                       labels = c("Exceptional", "Intermediate", "no CR in family", "Orthodox", "Unknown")) +
@@ -1647,7 +1822,7 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.pdf"),
 ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.png"),
        width = 25,
        height = 25,
-       units = "cm")
+       units = "cm",bg="white")
 
 
 
@@ -1655,12 +1830,7 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_certain.png"),
 # orthodox uncertain
 ###########################################
 
-
-# Read the phylogenetic tree from Zuntini
-tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
-
-# load tree data
-tr <- tree
+tr <- family_tree
 numtip <- length(tr$tip.label)
 
 # Get number of species per family that are CR and that are banked
@@ -1707,17 +1877,22 @@ colorz = ifelse(df_with_max_col$Max_Column == "p_orthodox", "#648FFF",
 test$no_CR = ifelse(colorz == "grey85",1,0)
 
 test$tr.tip.label[which(df_with_max_col$Max_Column == "p_inter")]
-# "Rutaceae"      "Nartheciaceae"
+# [1] "Rutaceae"         "Nartheciaceae"    "Aspleniaceae"
+# [4] "Dennstaedtiaceae" "Pteridaceae"      "Lindsaeaceae"
+# [7] "Ophioglossaceae"  "Marattiaceae"     "Lycopodiaceae"
+# [10] "Isoetaceae"
 
 
 test$tr.tip.label[which(df_with_max_col$Max_Column == "p_exceptional")]
-# [1] "Dipterocarpaceae" "Thymelaeaceae"    "Meliaceae"        "Elaeocarpaceae"   "Chrysobalanaceae"
-# [6] "Rhizophoraceae"   "Peraceae"         "Fagaceae"         "Myrtaceae"        "Sapotaceae"
-# [11] "Arecaceae"        "Lauraceae"        "Myristicaceae"    "Araucariaceae"
+# [1] "Sapotaceae"       "Fagaceae"         "Rhizophoraceae"
+# [4] "Chrysobalanaceae" "Peraceae"         "Elaeocarpaceae"
+# [7] "Dipterocarpaceae" "Thymelaeaceae"    "Meliaceae"
+# [10] "Myrtaceae"        "Arecaceae"        "Myristicaceae"
+# [13] "Lauraceae"        "Araucariaceae"    "Hymenophyllaceae"
 
 length(test$tr.tip.label[which(df_with_max_col$Max_Column == "p_orthodox")])/
   length(which(df_with_max_col$p_orthodox > 0))
-# 0.8930481
+# 0.8983957 # 0.8930481
 
 
 dat = rbind(data.frame(id = test$tr.tip.label,
@@ -1744,7 +1919,7 @@ dat = rbind(data.frame(id = test$tr.tip.label,
 
 # Plot the phylogenetic tree
 p <- ggtree(tr, layout = "circular") +
-  xlim(-10, 70) +
+  xlim(-100, 700) +
   geom_fruit(data = dat,
              geom = geom_bar,
              mapping = aes(y = id, x = value, fill = group),
@@ -1760,7 +1935,7 @@ tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
 
 p <- p %<+% tip_data +
   aes(color = colour) +
-  geom_tiplab(aes(label=label), offset=24, size=2) +
+  geom_tiplab(aes(label=label), offset=240, size=2) +
   scale_color_identity() +
   scale_colour_manual(values =  c("#648FFF", "#DC267F","darkorange2","#FFB000", "grey85"),
                       labels = c("Exceptional", "Intermediate", "no CR in family", "Orthodox", "Unknown")) +
@@ -1776,150 +1951,6 @@ ggsave(paste0(plotpath, "/phylo_orthodoxy_uncertain.pdf"),
 ggsave(paste0(plotpath, "/phylo_orthodoxy_uncertain.png"),
        width = 25,
        height = 25,
-       units = "cm")
+       units = "cm",bg="white")
 
-###########################################################
-# old tree
-###########################################################
 
-# # Read the phylogenetic tree from Zuntini
-# tree <- read.tree("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/Trees/Trees/2_global_family_level.tre")
-#
-# # load tree data
-# tr <- tree
-# numtip <- length(tr$tip.label)
-#
-# # Get number of species per family that are CR and that are banked
-# fam_count = iucn_wcvp_matched_countries_tdwg3[,c("family", "storage_behaviour_combined", "taxonomic_level_combined")] %>%
-#   group_by(family) %>%
-#   summarize(
-#     n_orthodox = length(which(storage_behaviour_combined == "orthodox")),
-#     n_recalc = length(which(storage_behaviour_combined == "recalcitrant")),
-#     n_inter = length(which(storage_behaviour_combined == "intermediate")),
-#     n_exceptional = length(which(storage_behaviour_combined == "exceptional")),
-#     n_unknown = length(which(is.na(storage_behaviour_combined))),
-#     p_orthodox = length(which(storage_behaviour_combined == "orthodox"))/n(),
-#     p_recalc = length(which(storage_behaviour_combined == "recalcitrant"))/n(),
-#     p_inter = length(which(storage_behaviour_combined == "intermediate"))/n(),
-#     p_exceptional = length(which(storage_behaviour_combined == "exceptional"))/n(),
-#     p_unknown = length(which(is.na(storage_behaviour_combined)))/n(),
-#     tot = n()
-#   )
-#
-# test = data.frame(tr$tip.label) %>% left_join(fam_count,
-#                                               by = c("tr.tip.label" = "family"))
-#
-#
-# colorz  = ifelse(test$p_orthodox >= 0.5, "#648FFF",
-#                  ifelse(test$p_recalc >= 0.5, "#DC267F",
-#                         ifelse(test$p_inter >= 0.5,"#785EF0",
-#                                ifelse(test$p_exceptional >= 0.5,"#FFB000", "grey85"))))
-# colorz[is.na(colorz)] = "grey85"
-#
-#
-#
-# dat = rbind(data.frame(id = test$tr.tip.label,
-#                        group = "Orthodox",
-#                        value = test$p_orthodox,
-#                        colour = colorz),
-#             data.frame(id = test$tr.tip.label,
-#                        group = "Recalcitrant",
-#                        value = test$p_recalc,
-#                        colour = colorz),
-#             data.frame(id = test$tr.tip.label,
-#                        group = "Intermediate",
-#                        value = test$p_inter,
-#                        colour = colorz),
-#             data.frame(id = test$tr.tip.label,
-#                        group = "Exceptional",
-#                        value = test$p_exceptional,
-#                        colour = colorz),
-#             data.frame(id = test$tr.tip.label,
-#                        group = "No CR species in family",
-#                        value = ifelse(is.na(test$p_unknown),1,test$p_unknown),
-#                        # ifelse(is.na(test$tot),1,0),
-#                        colour = colorz))
-#
-#
-#
-#
-# ##########################################
-# ### GET STATS
-# ##########################################
-# #
-# length(test$tr.tip.label[which(test$p_orthodox >=0.5)])/length(which(test$p_unknown != 1))
-# length(test$tr.tip.label[which(test$p_recalc >=0.5)])
-# length(test$tr.tip.label[which(test$p_inter >=0.5)])
-# length(test$tr.tip.label[which(test$p_exceptional >=0.5)])
-# test$tr.tip.label[which(test$p_exceptional >=0.5)]
-#
-#
-# # proportions = dat$value[dat$group == "Banked CR species in family"]
-# #
-# # # % families with CR
-# # length(which(!is.na(proportions)))/length(proportions) *100
-# #
-# # # % families with banked CR
-# # length(which(proportions > 0))/length(proportions) *100
-# #
-# # # % CR that have some banked
-# # length(which(proportions > 0))/length(which(!is.na(proportions))) *100
-# #
-# # # % CR that have 50% banked
-# # length(which(proportions > 0.50))/length(which(!is.na(proportions))) *100
-# #
-# # # % CR that have 99% banked
-# # length(which(proportions > 0.99))/length(which(!is.na(proportions))) *100
-# #
-# # # Names of fanmilies with CR that are 99% banked
-# # dat$id[which(dat$group == "Banked CR species in family" & dat$value >0.99)]
-# #
-# # # Stats for big families
-# # test$CR_species[test$tr.tip.label == "Rubiaceae"]
-# # test$CR_species[test$tr.tip.label == "Myrtaceae"]
-# # test$CR_species[test$tr.tip.label == "Lauraceae"]
-# # test$CR_species[test$tr.tip.label == "Fabaceae"]
-# # test$CR_species[test$tr.tip.label == "Orchidaceae"]
-# # test$CR_species[test$tr.tip.label == "Asteraceae"]
-#
-# #############################################
-# # Plot the phylogenetic tree
-# #############################################
-#
-# p <- ggtree(tr, layout = "circular") +
-#   xlim(-10, 70) +
-#   geom_fruit(data = dat,
-#              geom = geom_bar,
-#              mapping = aes(y = id, x = value, fill = group),
-#              pwidth = 0.5,
-#              stat = "identity",
-#              orientation = "y",
-#              offset = 0.05) +
-#   scale_fill_manual(values = c( "#FFB000","#785EF0","grey85","#648FFF", "#DC267F"),
-#                     # "darkolivegreen", "grey", "#FFA500"),
-#                     name = "")
-#
-# # Extract tip labels from the tree data
-# tip_data <- p$data %>% filter(isTip) %>% left_join(dat, by = c("label" = "id"))
-#
-# p <- p %<+% tip_data +
-#   aes(color = colour) +
-#   geom_tiplab(aes(label=label), offset=24, size=2) +
-#   scale_color_identity() +
-#   # scale_colour_manual(values = c("darkolivegreen", "grey", "#FFA500", "black"))
-#   scale_colour_manual(values = c("#648FFF","#785EF0","#DC267F","#FFB000","grey85"),
-#                       #c("#648FFF","#DC267F","grey","#FFB000", "#785EF0", "black"),
-#                       labels = c("Exceptional", "Intermediate", "Unknown", "Orthodox", "Recalcitrant", "NA")) +
-#   guides(colour = "none")
-#
-# print(p)
-#
-# ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.pdf"),
-#        width = 20,
-#        height = 20,
-#        units = "cm")
-#
-# ggsave(paste0(plotpath, "/phylo_orthodoxy_recalc.png"),
-#        width = 25,
-#        height = 25,
-#        units = "cm")

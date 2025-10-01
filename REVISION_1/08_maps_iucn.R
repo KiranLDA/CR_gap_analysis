@@ -16,9 +16,11 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(raster)
 library(ggpubr)
+# install.packages("MazamaSpatialUtils")
 
 basepath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/20_03_24_data/"
-plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/"
+# plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/"
+plotpath = "C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/plots/revision_1/"
 
 #######   FUNCTION   ##################################################################################
 
@@ -69,23 +71,25 @@ world <- sf::st_as_sf(world(path="."))
 ##### MATCH IUCN TO WCVP AND COUNTRY DATA ###############################################################
 #########################################################################################################
 
-#read in iucn data and wcvp data
-iucn_wcvp_matched = read.csv(paste0(basepath, "iucn_wcvp_matched.csv"))
-brahms_wcvp_matched = read.csv(paste0(basepath, "brahms_wcvp_matched_full_name.csv"))
-
 wcvp_countries <- read.table(paste0(basepath, "revision_1/wcvp_downloaded_17_09_2025/wcvp_distribution.csv" ), sep="|",
                              header=TRUE, quote = "", fill=TRUE, encoding = "UTF-8")
-tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"))
+
+# read in iucn data and wcvp data
+iucn_wcvp_matched = read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched.csv"), encoding = "UTF-8")
+brahms_wcvp_matched = read.csv(paste0(basepath, "revision_1/brahms_wcvp_matched_full_name_infra.csv"), encoding = "UTF-8")
+brahms_wcvp_matched <- brahms_wcvp_matched[which(!is.na(brahms_wcvp_matched$taxon_name)),]
+
+
+tdwg3_countries <- read.csv(paste0(basepath, "country_tdwg3_mapping.csv"), encoding = "UTF-8")
 tdwg3_countries$ISO_code[is.na(tdwg3_countries$ISO_code)] ="NA"
 
 # make sure variables are in same format
 iucn_wcvp_matched$wcvp_accepted_id <- as.numeric(iucn_wcvp_matched$wcvp_accepted_id)
 wcvp_countries$plant_name_id <- as.numeric(wcvp_countries$plant_name_id)
 
-spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-indexes = read.csv(paste0(basepath,"iucn_brahms_indexes_targets.csv"))
+spp_banked_recalcitrant = read.csv(paste0(basepath, "revision_1/spp_banked_recalcitrant.csv"), encoding = "UTF-8")
+indexes = read.csv(paste0(basepath,"revision_1/iucn_brahms_indexes_targets.csv"), encoding = "UTF-8")
 
-# spp_banked_recalcitrant %>% left_join(wcvp_accepted_id)
 
 
 # put wcvp tdwg3 region data into iucn data
@@ -118,11 +122,11 @@ iucn_wcvp_matched_countries_tdwg3$country_duplicate = duplicated(iucn_wcvp_match
                                                                                                       "NewCountryName")])
 
 #########################################################################################################
-##### FORMAT BAKED DATA    ##############################################################################
+##### FORMAT BANKED DATA    ##############################################################################
 #########################################################################################################
 
 # add a new column with the reformatted name
-brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$CountryName
+brahms_wcvp_matched$NewCountryName = brahms_wcvp_matched$COUNTRY
 
 # spelling errors
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Auckland Island"] = "New Zealand"
@@ -137,11 +141,19 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Sao To
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Swaziland"] = "Eswatini"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Cape Verde"] = "Cabo Verde"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Palestinian Territory, Occupied"] = "Palestine"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Korea, South"] = "South Korea"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Trinidad & Tobago"] = "Trinidad and Tobago"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "North Macedonia" ] = "Macedonia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "\tMacedonia"] = "Macedonia"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Saint Helena, Ascension, and Tristan da Cunha"] = "Saint Helena"
+
 
 #putting territories with their countries
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Christmas I."] = "Australia"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Norfolk Island"] = "Australia"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Virgin Is."] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "South Georgia and the Islands"] = "United Kingdom"
+brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "British Virgin Islands" ] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Bermuda"] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Gibraltar"] = "United Kingdom"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Pitcairn"] = "United Kingdom"
@@ -155,66 +167,77 @@ brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Russia
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "Yugoslavia"] = "Bosnia and Herzegovina"
 brahms_wcvp_matched$NewCountryName[brahms_wcvp_matched$NewCountryName == "San-Marino"] = "Italy"
 
+
+#### extract the CR
+brahms_wcvp_matched$CR = brahms_wcvp_matched$wcvp_accepted_id %in% iucn_wcvp_matched$wcvp_accepted_id
+brahms_CR = brahms_wcvp_matched[which(brahms_wcvp_matched$CR),]
+
 #-------------------------------------------------------------------------------------------------#
 ##### SUBSET THE BANKED SPECIES ###################################################################
 #-------------------------------------------------------------------------------------------------#
-#get rid of duplicated tdwgs (mulitple tdwgs in one country are remove)
+# get rid of duplicated tdwgs (mulitple tdwgs in one country are remove)
 iucn_wcvp_matched_countries_tdwg3 = iucn_wcvp_matched_countries_tdwg3[which(iucn_wcvp_matched_countries_tdwg3$country_duplicate == F),]
 
 
 # find the MSB species that are CR endangered
 iucn_wcvp_matched_countries_tdwg3$banked = (iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id %in%
                                               brahms_wcvp_matched$wcvp_accepted_id)
-(data.frame(banked = iucn_wcvp_matched_countries_tdwg3$banked,
-                id = iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id ))[451:501,]
-# CR species
-# iucn_wcvp_matched_countries_tdwg3$banked_per_country
-iucn_wcvp_matched_countries_tdwg3$banked_per_country = 0
-for(ID in unique(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id)){
-  # ID = 3259908#2797442 #3144077#
-  iucn_row = which(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id == ID)
-  iucn_country = iucn_wcvp_matched_countries_tdwg3$NewCountryName[iucn_row]
-  banked_row = which(as.numeric(brahms_wcvp_matched$wcvp_accepted_id) %in% ID)
-  banked_country = brahms_wcvp_matched$NewCountryName[banked_row]
-  match = iucn_country %in% banked_country
-  if(any(match)){
-    iucn_wcvp_matched_countries_tdwg3$banked_per_country[iucn_row[match]]= 1
-    # iucn_wcvp_matched_countries_tdwg3[iucn_row,c("NewCountryName","banked_per_country")]
-  }
-}
 
-###### ESTIMATE HOW MANY COUNTRIES HAVE CR species banked   #######################################################
+# uncomment for revisions - slow to run
+# # CR species
+# # iucn_wcvp_matched_countries_tdwg3$banked_per_country
+# iucn_wcvp_matched_countries_tdwg3$banked_per_country = 0
+# for(ID in unique(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id)){
+#   # ID = 3259908#2797442 #3144077#
+#   iucn_row = which(iucn_wcvp_matched_countries_tdwg3$wcvp_accepted_id == ID)
+#   iucn_country = iucn_wcvp_matched_countries_tdwg3$NewCountryName[iucn_row]
+#   banked_row = which(as.numeric(brahms_wcvp_matched$wcvp_accepted_id) %in% ID)
+#   banked_country = brahms_wcvp_matched$NewCountryName[banked_row]
+#   match = iucn_country %in% banked_country
+#   if(any(match)){
+#     iucn_wcvp_matched_countries_tdwg3$banked_per_country[iucn_row[match]]= 1
+#     # iucn_wcvp_matched_countries_tdwg3[iucn_row,c("NewCountryName","banked_per_country")]
+#   }
+# }
+#
+# ###### ESTIMATE HOW MANY COUNTRIES HAVE CR species banked   #######################################################
+#
+#
+# # Get the counts per country per spp
+# country_CR_spp_banked = iucn_wcvp_matched_countries_tdwg3[,c("NewCountryName", "taxon_name", "banked_per_country")] %>%
+#   group_by(NewCountryName) %>%
+#   mutate(sum_CR = length(unique(taxon_name)),
+#          sum_CR_banked = sum(banked_per_country)) %>%
+#   ungroup()
+# country_CR_spp_banked = country_CR_spp_banked[, c("NewCountryName","sum_CR", "sum_CR_banked")]
+# country_CR_spp_banked = unique(country_CR_spp_banked)
+#
+#
+# # # save the data
+# write.csv(country_CR_spp_banked, paste0(basepath, "revision_1/country_CR_spp_banked.csv"), fileEncoding = "UTF-8")
+# write.csv(iucn_wcvp_matched_countries_tdwg3, paste0(basepath, "revision_1/iucn_wcvp_matched_countries_tdwg3.csv"))
 
-
-# Get the counts per country per spp
-country_CR_spp_banked = iucn_wcvp_matched_countries_tdwg3[,c("NewCountryName", "taxon_name", "banked_per_country")] %>%
-  group_by(NewCountryName) %>%
-  mutate(sum_CR = length(unique(taxon_name)),
-         sum_CR_banked = sum(banked_per_country)) %>%
-  ungroup()
-country_CR_spp_banked = country_CR_spp_banked[, c("NewCountryName","sum_CR", "sum_CR_banked")]
-country_CR_spp_banked = unique(country_CR_spp_banked)
-
-
-# save the data
-write.csv(country_CR_spp_banked, paste0(basepath, "country_CR_spp_banked.csv"))
+country_CR_spp_banked_2 <- read.csv(paste0(basepath, "revision_1/country_CR_spp_banked.csv"), encoding = "UTF-8")
+iucn_wcvp_matched_countries_tdwg3_2 <- read.csv(paste0(basepath, "revision_1/iucn_wcvp_matched_countries_tdwg3.csv"))
 
 
 
 ####### ADD SPATIAL DATA TO THE NAMES #############################################################################
-country_names = data.frame(unique(iucn_wcvp_matched_countries_tdwg3[,"NewCountryName"]))
+
+country_names = data.frame(unique(iucn_wcvp_matched_countries_tdwg3_2[,"NewCountryName"]))
 colnames(country_names) = "NewCountryName"
 country_names = country_names %>% left_join(data.frame(world)[,c("GID_0","NAME_0")],
                                             by=c("NewCountryName" = "NAME_0"))
 
-country_counts_map = country_CR_spp_banked %>% left_join(country_names)
+
+country_counts_map = country_CR_spp_banked_2 %>% left_join(country_names)
 country_counts_map = world %>% left_join(country_counts_map)
-country_counts_map$sum_CR[is.na(country_counts_map$sum_CR)] = 0
-country_counts_map$sum_CR_banked[is.na(country_counts_map$sum_CR_banked)] =0
+country_counts_map$sum_CR[which(is.na(country_counts_map$sum_CR))] = 0
+country_counts_map$sum_CR_banked[which(is.na(country_counts_map$sum_CR_banked))] =0
 
-# CR_country_counts = CR_country_counts %>% left_join(country_names)
 
-####  PROJECT in Mollweide
+
+####  PROJECT in Mollweide #########################################
 
 # create a bounding box - world extent
 b.box <- as(raster::extent(-180, 180, -90, 90), "SpatialPolygons")
@@ -225,16 +248,13 @@ WGS84 <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 proj4string(b.box) <- WGS84
 
 # create graticules/grid lines from box
-# grid <- gridlines(b.box,
-#                   easts  = seq(from=-180, to=180, by=20),
-#                   norths = seq(from=-90, to=90, by=10))
 grid <- gridlines(b.box,
                   easts  = seq(from=-180, to=180, by=360),
                   norths = seq(from=-90, to=90, by=180))
 
 # give the PORJ.4 string for Eckert IV projection
 PROJ <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-#"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" #
+
 
 grid.proj <- spTransform(grid,CRS(PROJ))
 
@@ -284,39 +304,12 @@ country_counts_map.prj$log_proportion = log(country_counts_map.prj$proportion+1)
 # values
 dim=3
 
-# col.matrix<-colmat(nquantiles=dim,
-#                    upperleft= "#73AE80", #rgb(0,150,235, maxColorValue=255),
-#                    upperright= "grey80",  #"grey",# rgb(255,230,15, maxColorValue=255),
-#                    bottomleft="#2A5A5B", #"black",
-#                    bottomright="#6C83B5"# brown3"#rgb(130,0,80, maxColorValue=255)
-# )
-# col.matrix<-colmat(nquantiles=dim,
-#                    upperleft= "#c15e5c", #rgb(0,150,235, maxColorValue=255),
-#                    upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
-#                    bottomleft="#554249", #"black",
-#                    bottomright="#6eabbd"# brown3"#rgb(130,0,80, maxColorValue=255)
-# )
-
 col.matrix<-colmat(nquantiles=dim,
                    upperleft= "#ffb300", #rgb(0,150,235, maxColorValue=255),
                    upperright= "#e8e8e8",  #"grey",# rgb(255,230,15, maxColorValue=255),
                    bottomleft="darkolivegreen", # "#554249",
                    bottomright="#349e9e"# brown3"#rgb(130,0,80, maxColorValue=255)
 )
-
-
-# col.matrix<-colmat(nquantiles=dim,
-#                    upperleft= "#c73c0a", #rgb(0,150,235, maxColorValue=255),
-#                    upperright= "#c9c9c9",  #"grey",# rgb(255,230,15, maxColorValue=255),
-#                    bottomleft="#411002", #"black",
-#                    bottomright="#432474"# brown3"#rgb(130,0,80, maxColorValue=255)
-# )
-# col.matrix<-colmat(nquantiles=dim,
-#                    upperleft= "#509dc2", #rgb(0,150,235, maxColorValue=255),
-#                    upperright= "#c9c9c9",  #"grey",# rgb(255,230,15, maxColorValue=255),
-#                    bottomleft="#000000", #"black",
-#                    bottomright="#f3b300"# brown3"#rgb(130,0,80, maxColorValue=255)
-# )
 
 
 custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
@@ -327,7 +320,7 @@ names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
 data <- bi_class(country_counts_map.prj,
                  y=log_CR,
                  x=log_CR_banked,
-                 style = "fisher",#"jenks",#""quantile", #"equal",#
+                 style = "equal",#"quantile", #""fisher",#""jenks",#"fisher",#""jenks",#
                  dim = dim)
 
 # create map
@@ -337,9 +330,10 @@ map <- ggplot() +
                   geometry = geometry),
               size = 2,
               stat = "sf_coordinates" ) +
-  geom_sf(data = data, mapping = aes(fill = bi_class),
+  geom_sf(data = data,
+          mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.3, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -377,7 +371,7 @@ finalPlot <- ggdraw() +
 
 finalPlot
 ggsave(paste0(plotpath, "bivariate_spp_vs_banked_GRYlBu.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "bivariate_spp_vs_banked_GRYlBu.png"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "bivariate_spp_vs_banked_GRYlBu.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 
@@ -396,10 +390,9 @@ map1 <- ggplot() +
               stat = "sf_coordinates") +
   geom_sf(data = data, mapping = aes(fill = log_CR),
           color = "black", #aes(fill = log_CR),
-          size = 0.4, show.legend = FALSE) +
-  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
-  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"))+
-
+          linewidth = 0.3,, show.legend = FALSE) +
+  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"), na.value = "#e8e8e8")+
+  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Reds"), na.value = "#e8e8e8")+
   bi_theme() +
   geom_path(data = grid.DT,
             aes(x = X, y = Y, group = group),
@@ -447,9 +440,9 @@ map2 <- ggplot() +
               stat = "sf_coordinates") +
   geom_sf(data = data, mapping = aes(fill = proportion),
           color = "black",#aes(fill = proportion),
-          size = 0.4, show.legend = FALSE) +
-  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"))+
-  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"))+
+          linewidth = 0.3,, show.legend = FALSE) +
+  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"), na.value = "#e8e8e8")+
+  scale_color_gradientn(colours=RColorBrewer::brewer.pal(7, "Greens"), na.value = "#e8e8e8")+
   bi_theme() +
   geom_path(data = grid.DT,
             aes(x = X, y = Y, group = group),
@@ -482,13 +475,13 @@ finalPlot2
 
 
 ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "map_proportion_banked.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "map_proportion_banked.png"), width = 30, height = 12, units = "cm",bg="white")
 
 
 
 
 ggarrange(finalPlot1, finalPlot2,
-          labels = c("a.", "b."),
+          labels = c("A", "B"),
           font.label = list(size = 30),
           ncol = 1, nrow = 2)
 
@@ -498,8 +491,8 @@ ggsave(paste0(plotpath, "maps.png"),  width = 30, height = 30, units = "cm",bg="
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 # values
+
 dim=3
 
 
@@ -511,11 +504,8 @@ col.matrix<-colmat(nquantiles=dim,
 )
 
 
-
 custom_pal4 <- as.vector(rotate(rotate(col.matrix[2:(dim+1),2:(dim+1)])))
 names(custom_pal4)= do.call(paste0, expand.grid(1:(dim), sep="-",1:(dim)))
-
-
 
 
 data <- bi_class(country_counts_map.prj,
@@ -533,7 +523,7 @@ map <- ggplot() +
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
           color = "black",#aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          linewidth = 0.3, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -572,21 +562,7 @@ finalPlot <- ggdraw() +
 finalPlot
 
 ggsave(paste0(plotpath, "bivariate_spp_vs_prop_banked_GRYlBu.pdf"), width = 30, height = 12, units = "cm")
-ggsave(paste0(plotpath, "bivariate_spp_vs_prop_banked_GRYlBu.png"), width = 30, height = 12, units = "cm")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ggsave(paste0(plotpath, "bivariate_spp_vs_prop_banked_GRYlBu.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 ######################################################################################
@@ -614,19 +590,14 @@ WGS84 <- CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 proj4string(b.box) <- WGS84
 
 # create graticules/grid lines from box
-# grid <- gridlines(b.box,
-#                   easts  = seq(from=-180, to=180, by=20),
-#                   norths = seq(from=-90, to=90, by=10))
 grid <- gridlines(b.box,
                   easts  = seq(from=-180, to=180, by=360),
                   norths = seq(from=-90, to=90, by=180))
 
 # give the PORJ.4 string for Eckert IV projection
 PROJ <- "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-#"+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" #
 
 grid.proj <- spTransform(grid,CRS(PROJ))
-
 
 # transform bounding box
 grid.DT <- data.table::data.table(map_data(SpatialLinesDataFrame(sl=grid.proj,
@@ -710,8 +681,8 @@ map <- ggplot() +
               size = 2,
               stat = "sf_coordinates" ) +
   geom_sf(data = data, mapping = aes(fill = bi_class),
-          color = aes(fill = bi_class ),#NA,"black",#
-          size = 0.8, show.legend = FALSE) +
+          color = "black",#color = aes(fill = bi_class ),#NA,
+          linewidth = 0.3, show.legend = FALSE) +
   scale_alpha_continuous(range = c(0.1, 1)) +
   bi_scale_fill(pal = custom_pal4, dim=dim,
                 na.value="#e8e8e8")+#, flip_axes = TRUE, rotate_pal = TRUE) + #"GrPink", dim = 3) +#, rotate_pal = TRUE) +
@@ -747,37 +718,14 @@ finalPlot <- ggdraw() +
 
 
 finalPlot
-ggsave(paste0("C:/Users/kdh10kg/OneDrive - The Royal Botanic Gardens, Kew/SEEDS/GAP_analysis/code/", "seeds_vs_species_CR.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "seeds_vs_species_CR.pdf"), width = 30, height = 12, units = "cm")
+ggsave(paste0(plotpath, "seeds_vs_species_CR.png"), width = 30, height = 12, units = "cm", bg="white")
 
 
 
-#
-# spp_banked_recalcitrant = read.csv(paste0(basepath, "spp_banked_recalcitrant.csv"))
-# spp_banked_recalcitrant$category[which(is.na(spp_banked_recalcitrant$category))] = "unknown"
-#
-# # Add the country information to spp_banked_recalcitrant
-#
-#
-#
-# # return a species list per tdwg
-# country_counts_map.prj$total_species = NA
-#
-# i=2
-# country = country_counts_map.prj$NAME_0[i] #country_counts_map.prj$NewCountryName[i]
-# tdwg_code <- get_wgsrpd3_codes(country)
-# checklist <- wcvp_checklist(area_codes = tdwg_code, taxon_rank = "species",
-#                             synonyms = FALSE)
-# # only keep the country data
-# checklist = checklist[checklist$area_code_l3 == tdwg_code,]
-#
-# # see how many of those are CR endangered
-# country_counts_map.prj$total_species[i] = nrow(checklist)
-# country_counts_map.prj$total_banked_somewhere[i] = length(which(checklist$taxon_name %in% brahms_wcvp_matched$taxon_name))
-# country_counts_map.prj$total_banked_in_country[i] =
-#   country_counts_map.prj$CR_species[i] = length(which(checklist$taxon_name %in% spp_banked_recalcitrant$taxon_name))
-# country_counts_map.prj$CR_banked_somewhere[i] = length(which(checklist$taxon_name %in% brahms_CR$taxon_name))
-# country_counts_map.prj$CR_banked_from_country[i] =
-#
+###################################################################################################
+##################       COLOURS       ############################################################
+###################################################################################################
 
 col.matrix<-colmat(nquantiles=dim,
                    upperleft= "#6eabbd", #rgb(0,150,235, maxColorValue=255),
@@ -830,9 +778,3 @@ col.matrix<-colmat(nquantiles=dim,
                    bottomleft="#804D36", #"black",
                    bottomright="#9972AF"# brown3"#rgb(130,0,80, maxColorValue=255)
 )
-
-#############################################################################################
-# IUCN
-#############################################################################################
-
-

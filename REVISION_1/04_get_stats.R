@@ -137,6 +137,15 @@ length(which(iucn_wcvp_matched$wcvp_status == "Synonym" &
                        iucn_wcvp_matched$taxonomic_backbone == "WCVP"))/nrow(iucn_wcvp_matched)
 # 0.03256173 #0.02869213
 
+# how many were name matched where
+length(unique(iucn_wcvp_matched$scientificName))
+length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$taxonomic_backbone == "WCVP")]))
+length(unique(iucn_wcvp_matched$scientificName[which(is.na(iucn_wcvp_matched$taxonomic_backbone))]))
+length(unique(iucn_wcvp_matched$scientificName[which(iucn_wcvp_matched$taxonomic_backbone == "WFO")]))
+
+(length(unique(iucn_wcvp_matched$scientificName[which(!is.na(iucn_wcvp_matched$taxonomic_backbone))]))/
+  length(unique(iucn_wcvp_matched$scientificName)))
+
 
 
 # what names were doubled in the datasets
